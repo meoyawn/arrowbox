@@ -1,0 +1,42 @@
+{
+  "name": "arrowbox2",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "chk": "concurrently bun:chk:*",
+    "chk:lint": "eslint src/ --fix",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "d3-drag": "^3.0.0",
+    "d3-scale": "^4.0.2",
+    "d3-zoom": "^3.0.0",
+    "solid-js": "^1.7.8"
+  },
+  "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^4.1.0",
+    "@prettier/plugin-xml": "^3.1.1",
+    "@tailwindcss/forms": "^0.5.3",
+    "@tailwindcss/typography": "^0.5.9",
+    "@types/d3-scale": "^4.0.3",
+    "@types/d3-zoom": "^3.0.3",
+    "@typescript-eslint/eslint-plugin": "^6.2.0",
+    "@typescript-eslint/parser": "^6.2.0",
+    "autoprefixer": "^10.4.14",
+    "concurrently": "^8.0.1",
+    "eslint": "^8.30.0",
+    "eslint-plugin-jsx-a11y": "^6.6.1",
+    "eslint-plugin-solid": "^0.12.1",
+    "postcss": "^8.4.27",
+    "prettier": "^3.0.0",
+    "prettier-plugin-packagejson": "^2.4.5",
+    "prettier-plugin-tailwindcss": "^0.4.1",
+    "tailwindcss": "^3.3.3",
+    "typescript": "^5.1.6",
+    "vite": "^4.4.5",
+    "vite-plugin-solid": "^2.7.0"
+  }
+}

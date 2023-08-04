@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "alwaysStrict": true,
+    "downlevelIteration": true,
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "noEmit": true,
+    "strict": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true
+  },
+  "include": ["src/"]
+}
