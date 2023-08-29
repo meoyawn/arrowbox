@@ -4,36 +4,41 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "bld": "vite build",
     "chk": "concurrently bun:chk:*",
     "chk:lint": "eslint src/ --fix",
+    "clean": "rm -rf dist/",
     "dev": "vite",
     "preview": "vite preview"
   },
   "dependencies": {
+    "clsx": "^2.0.0",
     "d3-drag": "^3.0.0",
     "d3-scale": "^4.0.2",
     "d3-selection": "^3.0.0",
     "d3-zoom": "^3.0.0",
     "immer": "^10.0.2",
+    "rehype-external-links": "^2.1.0",
+    "rehype-sanitize": "^6.0.0",
     "rehype-stringify": "^9.0.4",
     "remark-parse": "^10.0.2",
     "remark-rehype": "^10.1.0",
     "solid-js": "^1.7.11",
-    "unified": "^11.0.2"
+    "unified": "^10.1.2"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.1.0",
     "@prettier/plugin-xml": "^3.2.0",
     "@tailwindcss/forms": "^0.5.5",
     "@tailwindcss/typography": "^0.5.9",
+    "@types/d3-drag": "^3.0.3",
     "@types/d3-scale": "^4.0.4",
     "@types/d3-zoom": "^3.0.4",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
     "@typescript-eslint/parser": "^6.4.1",
     "autoprefixer": "^10.4.15",
     "concurrently": "^8.2.1",
-    "eslint": "^8.47.0",
+    "eslint": "^8.48.0",
     "eslint-plugin-jsx-a11y": "^6.6.1",
     "eslint-plugin-solid": "^0.13.0",
     "jsdom": "^22.1.0",
@@ -42,9 +47,9 @@
     "prettier-plugin-packagejson": "^2.4.5",
     "prettier-plugin-tailwindcss": "^0.5.3",
     "tailwindcss": "^3.3.3",
-    "typescript": "^5.1.6",
+    "typescript": "^5.2.2",
     "vite": "^4.4.9",
     "vite-plugin-solid": "^2.7.0",
-    "vitest": "^0.34.2"
+    "vitest": "^0.34.3"
   }
 }

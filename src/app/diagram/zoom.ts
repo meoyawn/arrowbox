@@ -29,12 +29,12 @@ function translate(
     : new ZoomTransform(transform.k, x, y)
 }
 
-type E = readonly [readonly [number, number], readonly [number, number]]
+type TxExtent = readonly [readonly [number, number], readonly [number, number]]
 
 function defaultConstrain(
   transform: ZoomTransform,
-  extent: E,
-  translateExtent: E,
+  extent: TxExtent,
+  translateExtent: TxExtent,
 ): ZoomTransform {
   const dx0 = transform.invertX(extent[0][0]) - translateExtent[0][0],
     dx1 = transform.invertX(extent[1][0]) - translateExtent[1][0],
@@ -46,7 +46,7 @@ function defaultConstrain(
   )
 }
 
-function defaultExtent(e: Element): E {
+function defaultTxExtent(e: Element): TxExtent {
   if (e instanceof SVGElement) {
     e = e.ownerSVGElement || e
     if (e.hasAttribute("viewBox")) {
@@ -97,7 +97,7 @@ export function wheeled(t: ZoomTransform, event: WheelEvent): ZoomTransform {
 
   return defaultConstrain(
     t,
-    defaultExtent(event.currentTarget as unknown as Element),
+    defaultTxExtent(event.currentTarget as unknown as Element),
     translateExtent,
   )
 }
