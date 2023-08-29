@@ -7,10 +7,10 @@ import {
   patch,
   screenPos,
   worldPos,
-  type DataStore,
   type NodeID,
-} from "./data"
-import { setStore, store } from "./state"
+  type TheDiagram,
+} from "./data/data"
+import { setStore, store } from "./data/state"
 
 interface SubjectScreenSpace {
   x: number
@@ -29,7 +29,7 @@ interface DragNode {
 }
 
 interface BeforeMove {
-  data: DataStore
+  data: TheDiagram
 }
 
 interface DragBrush {
@@ -59,17 +59,18 @@ function dragSubj(
     : undefined
 
   const dataDrag = target.dataset.drag as DataDrag
+  const { data } = store.data
 
   switch (true) {
     case nid && dataDrag === "node": {
-      const rect = store.data.nodes[nid as NodeID].rect
+      const { rect } = data.nodes[nid as NodeID]
       const [sx, sy] = screenPos(store.camera, [rect.x, rect.y])
       return {
         x: sx,
         y: sy,
         type: "node",
         id: nid as NodeID,
-        data: store.data,
+        data,
       }
     }
 
@@ -80,12 +81,12 @@ function dragSubj(
         type: "new-arrow",
         from: nid as NodeID,
         to: undefined,
-        data: store.data,
+        data,
       }
     }
 
     default:
-      return { type: "brush", x, y, data: store.data }
+      return { type: "brush", x, y, data }
 
     case dataDrag === "corner":
       // TODO drag corner
@@ -146,7 +147,7 @@ const onEnd = (de: Devent): void => {
     case "new-arrow": {
       setStore({
         newArrow: undefined,
-        ...patch(subject.data, store.history, d =>
+        data: patch({ ...store.data, data: subject.data }, d =>
           addEdge(store, d, subject, x, y),
         ),
       })
@@ -156,7 +157,7 @@ const onEnd = (de: Devent): void => {
     case "node": {
       const [wx, wy] = worldPos(store.camera, [x, y])
       setStore({
-        ...patch(subject.data, store.history, ({ nodes }) => {
+        data: patch({ ...store.data, data: subject.data }, ({ nodes }) => {
           const rect = nodes[subject.id].rect
           rect.x = wx
           rect.y = wy

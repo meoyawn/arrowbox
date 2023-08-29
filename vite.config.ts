@@ -1,5 +1,5 @@
-import { defineConfig } from "vite";
-import solidPlugin from "vite-plugin-solid";
+import { defineConfig } from "vite"
+import solidPlugin from "vite-plugin-solid"
 
 // noinspection JSUnusedGlobalSymbols
 export default defineConfig({

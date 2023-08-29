@@ -1,7 +1,8 @@
 import { type ZoomTransform } from "d3-zoom"
 import { enablePatches, produceWithPatches, setAutoFreeze } from "immer"
-import { midPoint, type Rect, type Vec2 } from "../../lib/geometry"
-import { setStore, type DataHistory, type State } from "./state"
+import { midPoint, type Rect, type Vec2 } from "../../../lib/geometry"
+import { buildIndex } from "./graphIndex"
+import { setStore, type DataState, type State } from "./state"
 
 enablePatches()
 setAutoFreeze(false)
@@ -15,10 +16,13 @@ export const isNodeID = (id: unknown): id is NodeID =>
 export const isEdgeID = (id: unknown): id is EdgeID =>
   typeof id === "string" && id.startsWith("e")
 
+export const rootID = "nRoot"
+
 export interface Node {
   id: NodeID
   text: string
   rect: Rect
+  children: Array<NodeID>
 }
 
 export type EdgeAnchor =
@@ -44,7 +48,7 @@ export interface Edge {
   to: EdgeAnchor
 }
 
-export interface DataStore {
+export interface TheDiagram {
   nodes: Record<NodeID, Node>
   edges: Record<EdgeID, Edge>
 }
@@ -55,22 +59,19 @@ export const worldPos = (transform: ZoomTransform, screen: Vec2): Vec2 =>
 export const screenPos = (transform: ZoomTransform, world: Vec2): Vec2 =>
   transform.apply(world)
 
-export const patch = (
-  data: DataStore,
-  history: DataHistory,
-  f: (d: DataStore) => void,
-): {
-  data: DataStore
-  history: DataHistory
-} => {
-  const [next, fwd, bwd] = produceWithPatches(data, f)
+export function patch(
+  { data, history }: DataState,
+  produceFn: (d: TheDiagram) => void,
+): DataState {
+  const [next, fwd, bwd] = produceWithPatches(data, produceFn)
+
+  history.forward.push(fwd)
+  history.backward.push(bwd)
+
   return {
     data: next,
-    history: {
-      index: history.index + 1,
-      forward: [...history.forward, fwd],
-      backward: [...history.backward, bwd],
-    },
+    history: { ...history, index: history.index + 1 },
+    index: buildIndex(next),
   }
 }
 
@@ -88,18 +89,33 @@ export const addNode = (p: Vec2): void =>
     const id = genID("n")
     const [x, y] = worldPos(s.camera, p)
 
-    return patch(s.data, s.history, (data: DataStore) => {
-      data.nodes[id] = {
-        id,
-        text: "",
-        rect: { x, y, width: 100, height: 100 },
-      }
-    })
+    return {
+      data: patch(s.data, (data: TheDiagram) => {
+        data.nodes[id] = {
+          id,
+          text: "",
+          rect: { x, y, width: 100, height: 100 },
+          children: [],
+        }
+      }),
+    }
   })
+
+export const emptyDiagram = (): TheDiagram => ({
+  nodes: {
+    [rootID]: {
+      id: rootID,
+      children: [],
+      rect: { x: 0, y: 0, width: 0, height: 0 },
+      text: "",
+    },
+  },
+  edges: {},
+})
 
 export const addEdge = (
   state: State,
-  draft: DataStore,
+  draft: TheDiagram,
   subject: { from: NodeID },
   x: number,
   y: number,
@@ -117,6 +133,7 @@ export const addEdge = (
       id: toID,
       text: "",
       rect: { x: wx, y: wy, width: 100, height: 100 },
+      children: [],
     }
   }
 

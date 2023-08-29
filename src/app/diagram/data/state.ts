@@ -1,24 +1,25 @@
 import { zoomIdentity, type ZoomTransform } from "d3-zoom"
-import { type Patch } from "immer"
 import { createStore } from "solid-js/store"
-import { type Rect, type Vec2 } from "../../lib/geometry"
-import { type DataStore, type EdgeID, type NodeID } from "./data"
+import { type Rect, type Vec2 } from "../../../lib/geometry"
+import { emptyDiagram, type EdgeID, type NodeID, type TheDiagram } from "./data"
+import { buildIndex, type GraphIndex } from "./graphIndex"
+import { emptyHistory, type ImmerHistory } from "./history"
 
 export interface NewArrowState {
   fromWorld: Vec2
   toWorld: Vec2
 }
 
-export interface DataHistory {
-  index: number
-  forward: ReadonlyArray<ReadonlyArray<Patch>>
-  backward: ReadonlyArray<ReadonlyArray<Patch>>
+export interface DataState {
+  data: TheDiagram
+  history: ImmerHistory
+  index: GraphIndex
 }
 
 export interface State {
   camera: ZoomTransform
-  data: DataStore
-  history: DataHistory
+  data: DataState
+
   selected: Record<NodeID | EdgeID, true>
 
   brush?: Rect
@@ -31,7 +32,10 @@ export interface State {
 
 export const [store, setStore] = createStore<State>({
   camera: zoomIdentity,
-  data: { nodes: {}, edges: {} },
+  data: {
+    data: emptyDiagram(),
+    history: emptyHistory(),
+    index: buildIndex(emptyDiagram()),
+  },
   selected: {},
-  history: { index: -1, forward: [], backward: [] },
 })

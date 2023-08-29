@@ -1,7 +1,7 @@
 import clsx from "clsx"
 import { pointer, select } from "d3-selection"
 import { type ZoomTransform } from "d3-zoom"
-import { createMemo, For, Show, type Component } from "solid-js"
+import { createEffect, createMemo, For, Show, type Component } from "solid-js"
 import { isEl } from "../../lib/dom"
 import { cornerPoints, midPoints } from "../../lib/geometry"
 import staticConfig from "../../static.config.json"
@@ -13,10 +13,10 @@ import {
   patch,
   type EdgeID,
   type NodeID,
-} from "./data"
+} from "./data/data"
 import { DefaultGrid } from "./DefaultGrid"
 import { d3Drag } from "./drag"
-import { setStore, store, type NewArrowState } from "./state"
+import { setStore, store, type NewArrowState } from "./data/state"
 import { SvgDefs } from "./SvgDefs"
 import { wheeled } from "./zoom"
 
@@ -50,6 +50,14 @@ const OneNode: Component<{ id: NodeID }> = props => {
   const mPoints = createMemo(() => midPoints(node().rect))
   const cPoints = createMemo(() => cornerPoints(node().rect))
   const editing = () => store.editing === props.id
+
+  let tarea: HTMLTextAreaElement | undefined
+  createEffect(() => {
+    if (editing() && tarea) {
+      tarea.focus()
+      tarea.select()
+    }
+  })
 
   return (
     <g
@@ -113,8 +121,8 @@ const OneNode: Component<{ id: NodeID }> = props => {
           width={1}
         >
           <textarea
-            class="p-2 form-textarea"
-            autofocus={true}
+            ref={tarea}
+            class="form-textarea p-2"
             value={node().text}
             placeholder="Markdown"
             onKeyPress={ev => {
