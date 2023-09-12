@@ -120,7 +120,7 @@ const onDrag = (dev: Devent): void => {
 
     case "new-arrow": {
       const fromWorld = subject.from
-        ? midPoint(store.data.nodes[subject.from].rect)
+        ? midPoint(store.data.data.nodes[subject.from].rect)
         : world
       const toWorld = world
       setStore({ newArrow: { fromWorld, toWorld } })
