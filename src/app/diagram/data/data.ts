@@ -2,7 +2,7 @@ import { type ZoomTransform } from "d3-zoom"
 import { enablePatches, produceWithPatches, setAutoFreeze } from "immer"
 import { midPoint, type Rect, type Vec2 } from "../../../lib/geometry"
 import { buildIndex } from "./graphIndex"
-import { setStore, type DataState, type State } from "./state"
+import { type DataState, type State } from "./state"
 
 enablePatches()
 setAutoFreeze(false)
@@ -65,12 +65,13 @@ export function patch(
 ): DataState {
   const [next, fwd, bwd] = produceWithPatches(data, produceFn)
 
-  history.forward.push(fwd)
-  history.backward.push(bwd)
-
   return {
     data: next,
-    history: { ...history, index: history.index + 1 },
+    history: {
+      forward: [...history.forward, fwd],
+      backward: [...history.backward, bwd],
+      index: history.index + 1,
+    },
     index: buildIndex(next),
   }
 }
@@ -83,23 +84,6 @@ export const genStr = (): string => {
 
 export const genID = <P extends string>(prefix: P): `${P}${string}` =>
   `${prefix}${genStr()}`
-
-export const addNode = (p: Vec2): void =>
-  setStore(s => {
-    const id = genID("n")
-    const [x, y] = worldPos(s.camera, p)
-
-    return {
-      data: patch(s.data, (data: TheDiagram) => {
-        data.nodes[id] = {
-          id,
-          text: "",
-          rect: { x, y, width: 100, height: 100 },
-          children: [],
-        }
-      }),
-    }
-  })
 
 export const emptyDiagram = (): TheDiagram => ({
   nodes: {

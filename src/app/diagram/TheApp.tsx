@@ -7,16 +7,16 @@ import { cornerPoints, midPoints } from "../../lib/geometry"
 import staticConfig from "../../static.config.json"
 import { md2html } from "../markdown"
 import {
-  addNode,
   edgeAnchor,
   isNodeID,
   patch,
   type EdgeID,
   type NodeID,
 } from "./data/data"
+import { addNode } from "./data/edit"
+import { setStore, store, type NewArrowState } from "./data/state"
 import { DefaultGrid } from "./DefaultGrid"
 import { d3Drag } from "./drag"
-import { setStore, store, type NewArrowState } from "./data/state"
 import { SvgDefs } from "./SvgDefs"
 import { wheeled } from "./zoom"
 
@@ -27,9 +27,9 @@ const svgTransform = ({ x, y }: { x: number; y: number }): string =>
   `translate(${x} ${y})`
 
 const OneEdge: Component<{ id: EdgeID }> = props => {
-  const e = createMemo(() => store.data.edges[props.id])
-  const from = createMemo(() => edgeAnchor(store.data.nodes, e().from))
-  const to = createMemo(() => edgeAnchor(store.data.nodes, e().to))
+  const e = createMemo(() => store.data.data.edges[props.id])
+  const from = createMemo(() => edgeAnchor(store.data.data.nodes, e().from))
+  const to = createMemo(() => edgeAnchor(store.data.data.nodes, e().to))
 
   return (
     <line
@@ -45,7 +45,7 @@ const OneEdge: Component<{ id: EdgeID }> = props => {
 }
 
 const OneNode: Component<{ id: NodeID }> = props => {
-  const node = () => store.data.nodes[props.id]
+  const node = () => store.data.data.nodes[props.id]
   const selected = () => Boolean(store.selected[props.id])
   const mPoints = createMemo(() => midPoints(node().rect))
   const cPoints = createMemo(() => cornerPoints(node().rect))
@@ -130,7 +130,7 @@ const OneNode: Component<{ id: NodeID }> = props => {
 
               if (!ev.shiftKey && ev.code === "Enter") {
                 setStore({
-                  ...patch(store.data, store.history, d => {
+                  data: patch(store.data, d => {
                     d.nodes[props.id].text = ev.currentTarget.value
                   }),
                   editing: undefined,
@@ -230,8 +230,10 @@ export const TheApp: Component = () => (
       <SvgDefs />
 
       <Show when={store.newArrow}>{a => <NewArrow a={a()} />}</Show>
-      <For each={edgeIDs(store.data.edges)}>{eid => <OneEdge id={eid} />}</For>
-      <For each={nodeIDs(store.data.nodes, store.dragging)}>
+      <For each={edgeIDs(store.data.data.edges)}>
+        {eid => <OneEdge id={eid} />}
+      </For>
+      <For each={nodeIDs(store.data.data.nodes, store.dragging)}>
         {nid => <OneNode id={nid} />}
       </For>
     </svg>
