@@ -130,11 +130,14 @@ const onDrag = (dev: Devent): void => {
     case "node": {
       const [wx, wy] = worldPos(store.camera, [x, y])
       setStore({
-        data: produce(subject.data, ({ nodes }) => {
-          const rect = nodes[subject.id].rect
-          rect.x = wx
-          rect.y = wy
-        }),
+        data: {
+          ...store.data,
+          data: produce(subject.data, ({ nodes }) => {
+            const rect = nodes[subject.id].rect
+            rect.x = wx
+            rect.y = wy
+          }),
+        },
         dragging: subject.id,
       })
     }

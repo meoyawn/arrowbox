@@ -6,7 +6,9 @@ import remarkRehype from "remark-rehype"
 import { unified } from "unified"
 
 const p = unified()
+  // @ts-expect-error deps
   .use(remarkParse)
+  // @ts-expect-error deps
   .use(remarkRehype)
   .use(rehypeExternalLinks, { target: "_blank", rel: "noreferrer" })
   .use(rehypeSanitize)

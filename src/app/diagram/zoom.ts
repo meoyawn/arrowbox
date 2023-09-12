@@ -46,6 +46,9 @@ function defaultConstrain(
   )
 }
 
+/**
+ * @ts-expect-error fucked
+ */
 function defaultTxExtent(e: Element): TxExtent {
   if (e instanceof SVGElement) {
     e = e.ownerSVGElement || e

@@ -7,11 +7,14 @@
     "bld": "vite build",
     "chk": "concurrently bun:chk:*",
     "chk:lint": "eslint src/ --fix",
+    "chk:test": "bun test",
+    "chk:types": "tsc",
     "clean": "rm -rf dist/",
     "dev": "vite",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@solidjs/router": "^0.8.3",
     "clsx": "^2.0.0",
     "d3-drag": "^3.0.0",
     "d3-scale": "^4.0.2",

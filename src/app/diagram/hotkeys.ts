@@ -1,10 +1,16 @@
 import hotkeys from "hotkeys-js"
-import { isEdgeID, isNodeID, patch } from "./data/data"
-import { store } from "./data/state"
+import {
+  isEdgeID,
+  isNodeID,
+  patch,
+  type EdgeID,
+  type NodeID,
+} from "./data/data"
+import { setStore, store } from "./data/state"
 
 export const setupHotkeys = (): void => {
-  hotkeys("delete, backspace", () => {
-    patch(store.data, store.history, d => {
+  hotkeys("Delete, Backspace", () => {
+    patch(store.data, d => {
       for (const id in store.selected) {
         if (isNodeID(id)) {
           delete d.nodes[id]
@@ -13,5 +19,17 @@ export const setupHotkeys = (): void => {
         }
       }
     })
+  })
+
+  hotkeys("Escape", () => {
+    setStore({ selected: {} })
+  })
+
+  hotkeys("Enter", () => {
+    const arr = Object.keys(store.selected) as ReadonlyArray<NodeID | EdgeID>
+    if (arr.length === 1) {
+      setStore({ editing: arr[0] })
+      return false
+    }
   })
 }

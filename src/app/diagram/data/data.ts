@@ -32,7 +32,7 @@ export type EdgeAnchor =
 export const edgeAnchor = (
   nodes: Record<NodeID, Node>,
   a: EdgeAnchor,
-): Vec2 => {
+): Readonly<Vec2> => {
   switch (a.type) {
     case "node":
       return midPoint(nodes[a.id].rect)
@@ -84,18 +84,6 @@ export const genStr = (): string => {
 
 export const genID = <P extends string>(prefix: P): `${P}${string}` =>
   `${prefix}${genStr()}`
-
-export const emptyDiagram = (): TheDiagram => ({
-  nodes: {
-    [rootID]: {
-      id: rootID,
-      children: [],
-      rect: { x: 0, y: 0, width: 0, height: 0 },
-      text: "",
-    },
-  },
-  edges: {},
-})
 
 export const addEdge = (
   state: State,

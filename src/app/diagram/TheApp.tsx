@@ -1,7 +1,9 @@
+import { A, useParams } from "@solidjs/router"
 import clsx from "clsx"
 import { pointer, select } from "d3-selection"
 import { type ZoomTransform } from "d3-zoom"
 import { createEffect, createMemo, For, Show, type Component } from "solid-js"
+import icon from "../../assets/icon.svg"
 import { isEl } from "../../lib/dom"
 import { cornerPoints, midPoints } from "../../lib/geometry"
 import staticConfig from "../../static.config.json"
@@ -12,13 +14,17 @@ import {
   patch,
   type EdgeID,
   type NodeID,
+  type TheDiagram,
 } from "./data/data"
 import { addNode } from "./data/edit"
-import { setStore, store, type NewArrowState } from "./data/state"
+import { buildIndex } from "./data/graphIndex"
+import { emptyHistory } from "./data/history"
+import { emptyDiagram, setStore, store, type NewArrowState } from "./data/state"
 import { DefaultGrid } from "./DefaultGrid"
 import { d3Drag } from "./drag"
 import { SvgDefs } from "./SvgDefs"
 import { wheeled } from "./zoom"
+
 
 const cssTransform = ({ k, x, y }: ZoomTransform): string =>
   `translate(${x}px, ${y}px) scale(${k})`
@@ -126,16 +132,30 @@ const OneNode: Component<{ id: NodeID }> = props => {
             value={node().text}
             placeholder="Markdown"
             onKeyPress={ev => {
-              ev.stopPropagation()
+              switch (ev.key) {
+                case "Enter": {
+                  if (ev.shiftKey) return
 
-              if (!ev.shiftKey && ev.code === "Enter") {
-                setStore({
-                  data: patch(store.data, d => {
-                    d.nodes[props.id].text = ev.currentTarget.value
-                  }),
-                  editing: undefined,
-                })
+                  setStore({
+                    // eslint-disable-next-line solid/reactivity
+                    data: patch(store.data, ({ nodes }) => {
+                      nodes[props.id].text = ev.currentTarget.value
+                    }),
+                    editing: undefined,
+                  })
+                  break
+                }
               }
+              return false
+            }}
+            onKeyDown={ev => {
+              switch (ev.key) {
+                case "Escape": {
+                  setStore({ editing: undefined })
+                  break
+                }
+              }
+              return false
             }}
           />
         </foreignObject>
@@ -172,70 +192,98 @@ const NewArrow: Component<{ a: NewArrowState }> = props => (
   />
 )
 
-export const TheApp: Component = () => (
-  // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/mouse-events-have-key-events, jsx-a11y/no-static-element-interactions
-  <div
-    ref={el => select(el).call(d3Drag)}
-    class="fixed inset-0 h-full w-full overflow-hidden"
-    onDblClick={ev => {
-      ev.preventDefault()
+export const TheApp: Component = () => {
+  const params = useParams()
 
-      const node = ev.target.closest("[data-nodeID]")
-      if (node) {
-        const nid = (node as unknown as HTMLOrSVGElement).dataset
-          .nodeID as NodeID
-        setStore({ editing: nid })
-      } else {
-        addNode(pointer(ev))
-      }
-    }}
-    onWheel={ev => {
-      ev.preventDefault()
+  createEffect(() => {
+    const stored = localStorage.getItem(params.id)
+    const data = stored ? (JSON.parse(stored) as TheDiagram) : emptyDiagram()
+    setStore({
+      data: { data, history: emptyHistory(), index: buildIndex(data) },
+    })
+  })
 
-      const old = store.camera
-      const cam = ev.ctrlKey
-        ? wheeled(old, ev)
-        : old.translate(-ev.deltaX / old.k, -ev.deltaY / old.k)
+  createEffect(() => {
+    localStorage.setItem(params.id, JSON.stringify(store.data.data))
+  })
 
-      setStore("camera", cam)
-    }}
-    onClick={ev => {
-      ev.preventDefault()
+  return (
+    <div class="fixed inset-0 h-full w-full overflow-hidden">
+      {/*eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/mouse-events-have-key-events, jsx-a11y/no-static-element-interactions*/}
+      <div
+        ref={el => select(el).call(d3Drag)}
+        class="h-full w-full"
+        onDblClick={ev => {
+          ev.preventDefault()
 
-      const node = ev.target.closest("[data-nodeID]")
-      if (node) {
-        const nid = (node as unknown as HTMLOrSVGElement).dataset
-          .nodeID as NodeID
-        setStore({ selected: { [nid]: true } })
-      } else {
-        setStore({ selected: {} })
-      }
-    }}
-    onMouseOver={ev => {
-      ev.preventDefault()
+          const node = ev.target.closest("[data-nodeID]")
+          if (node) {
+            const nid = (node as unknown as HTMLOrSVGElement).dataset
+              .nodeID as NodeID
+            setStore({ editing: nid })
+          } else {
+            addNode(pointer(ev))
+          }
+        }}
+        onWheel={ev => {
+          ev.preventDefault()
 
-      const node = ev.target.closest("[data-nodeID]")
-      const hovering = isEl(node) ? (node.dataset.nodeID as NodeID) : undefined
-      setStore({ hovering })
-    }}
-  >
-    <Show when={staticConfig.gridEnabled}>
-      <DefaultGrid camera={store.camera} />
-    </Show>
+          const old = store.camera
+          const cam = ev.ctrlKey
+            ? wheeled(old, ev)
+            : old.translate(-ev.deltaX / old.k, -ev.deltaY / old.k)
 
-    <svg
-      class="pointer-events-none absolute left-0 top-0 overflow-visible"
-      style={{ transform: cssTransform(store.camera) }}
-    >
-      <SvgDefs />
+          setStore("camera", cam)
+        }}
+        onClick={ev => {
+          ev.preventDefault()
 
-      <Show when={store.newArrow}>{a => <NewArrow a={a()} />}</Show>
-      <For each={edgeIDs(store.data.data.edges)}>
-        {eid => <OneEdge id={eid} />}
-      </For>
-      <For each={nodeIDs(store.data.data.nodes, store.dragging)}>
-        {nid => <OneNode id={nid} />}
-      </For>
-    </svg>
-  </div>
-)
+          const node = ev.target.closest("[data-nodeID]")
+          if (node) {
+            const nid = (node as unknown as HTMLOrSVGElement).dataset
+              .nodeID as NodeID
+            setStore({ selected: { [nid]: true } })
+          } else {
+            setStore({ selected: {} })
+          }
+        }}
+        onMouseOver={ev => {
+          ev.preventDefault()
+
+          const node = ev.target.closest("[data-nodeID]")
+          const hovering = isEl(node)
+            ? (node.dataset.nodeID as NodeID)
+            : undefined
+          setStore({ hovering })
+        }}
+      >
+        <Show when={staticConfig.gridEnabled}>
+          <DefaultGrid camera={store.camera} />
+        </Show>
+
+        <svg
+          class="pointer-events-none absolute left-0 top-0 overflow-visible"
+          style={{ transform: cssTransform(store.camera) }}
+        >
+          <SvgDefs />
+
+          <Show when={store.newArrow}>{a => <NewArrow a={a()} />}</Show>
+          <For each={edgeIDs(store.data.data.edges)}>
+            {eid => <OneEdge id={eid} />}
+          </For>
+          <For each={nodeIDs(store.data.data.nodes, store.dragging)}>
+            {nid => <OneNode id={nid} />}
+          </For>
+        </svg>
+      </div>
+
+      <A
+        title="Open menu"
+        href="/"
+        class="absolute left-2 top-2 h-12 w-12 rounded-full bg-white p-2 shadow-xl duration-200 hover:bg-gray-100"
+      >
+        <img alt="Arrowbox" src={icon} />
+      </A>
+    </div>
+  )
+}

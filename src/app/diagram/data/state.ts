@@ -1,7 +1,7 @@
 import { zoomIdentity, type ZoomTransform } from "d3-zoom"
 import { createStore } from "solid-js/store"
 import { type Rect, type Vec2 } from "../../../lib/geometry"
-import { emptyDiagram, type EdgeID, type NodeID, type TheDiagram } from "./data"
+import { rootID, type EdgeID, type NodeID, type TheDiagram } from "./data"
 import { buildIndex, type GraphIndex } from "./graphIndex"
 import { emptyHistory, type ImmerHistory } from "./history"
 
@@ -29,6 +29,18 @@ export interface State {
   dragging?: NodeID | EdgeID
   editing?: NodeID | EdgeID
 }
+
+export const emptyDiagram = (): TheDiagram => ({
+  nodes: {
+    [rootID]: {
+      id: rootID,
+      children: [],
+      rect: { x: 0, y: 0, width: 0, height: 0 },
+      text: "",
+    },
+  },
+  edges: {},
+})
 
 export const [store, setStore] = createStore<State>({
   camera: zoomIdentity,

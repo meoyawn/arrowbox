@@ -10,7 +10,7 @@
  * @param value - The interpolation value.
  * @param rangeA - From [low, high]
  * @param rangeB - To [low, high]
- * @param clamp - Whether to clamp the the result to [low, high]
+ * @param clamp - Whether to clamp the result to [low, high]
  * @public
  */
 export const modulate = (
