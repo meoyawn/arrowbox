@@ -1,5 +1,6 @@
 import { A, useNavigate } from "@solidjs/router"
 import { createEffect, createSignal, For, type Component } from "solid-js"
+import logoLight from "../../assets/logo_light.svg"
 import { genID } from "../diagram/data/data"
 
 export type GraphID = `g${string}`
@@ -20,7 +21,7 @@ const NewGraph: Component = () => {
 
   return (
     <button
-      class="rounded bg-blue-500 px-4 py-2 font-bold text-white duration-200 hover:bg-blue-700"
+      class="rounded bg-blue-600 px-4 py-2 font-bold text-white duration-200 hover:bg-blue-800"
       onClick={() => {
         const id = genID("g")
         nav(`/graph/${id}`)
@@ -38,7 +39,11 @@ export const GraphList: Component = () => {
   })
 
   return (
-    <div>
+    <div class="mx-auto flex max-w-xl flex-col gap-4 py-4">
+      <img alt="Arrowbox" class="mx-auto h-8" src={logoLight} />
+
+      <h1 class="mx-auto text-6xl font-medium">Welcome back</h1>
+
       <NewGraph />
 
       <ul>

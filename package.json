@@ -4,12 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "bld": "vite build",
     "chk": "concurrently bun:chk:*",
     "chk:lint": "eslint src/ --fix",
     "chk:test": "bun test",
     "chk:types": "tsc",
     "clean": "rm -rf dist/",
+    "dpl": "rm -rf dist/ && vite build && wrangler pages deploy dist/ --commit-dirty=true",
     "dev": "vite",
     "preview": "vite preview"
   },
@@ -55,6 +55,7 @@
     "typescript": "^5.2.2",
     "vite": "^4.4.9",
     "vite-plugin-solid": "^2.7.0",
-    "vitest": "^0.34.4"
+    "vitest": "^0.34.4",
+    "wrangler": "^3.7.0"
   }
 }
