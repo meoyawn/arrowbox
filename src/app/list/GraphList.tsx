@@ -42,7 +42,7 @@ export const GraphList: Component = () => {
     <div class="mx-auto flex max-w-xl flex-col gap-4 py-4">
       <img alt="Arrowbox" class="mx-auto h-8" src={logoLight} />
 
-      <h1 class="mx-auto text-6xl font-medium">Welcome back</h1>
+      <h1 class="mx-auto text-5xl font-medium">Welcome back</h1>
 
       <NewGraph />
 
