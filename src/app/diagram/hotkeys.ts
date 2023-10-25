@@ -1,11 +1,5 @@
 import hotkeys from "hotkeys-js"
-import {
-  isEdgeID,
-  isNodeID,
-  patch,
-  type EdgeID,
-  type NodeID,
-} from "./data/data"
+import { type EdgeID, isEdgeID, isNodeID, type NodeID, patch } from "./data/data"
 import { setStore, store } from "./data/state"
 
 export const setupHotkeys = (): void => {
