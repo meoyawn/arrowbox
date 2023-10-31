@@ -4,7 +4,7 @@ import {
   type EdgeID,
   type Node,
   type NodeID,
-  type TheDiagram,
+  type NodesEdges,
 } from "./data"
 
 export type ParentIndex = Record<NodeID | EdgeID, NodeID>
@@ -23,7 +23,7 @@ export interface GraphIndex {
 }
 
 /** O(nodes) */
-function deriveParents({ nodes }: TheDiagram): ParentIndex {
+function deriveParents({ nodes }: NodesEdges): ParentIndex {
   const out: ParentIndex = {}
 
   for (const nodeID in nodes) {
@@ -37,7 +37,7 @@ function deriveParents({ nodes }: TheDiagram): ParentIndex {
 }
 
 /** O(edges) */
-function deriveEdges({ edges }: TheDiagram): EdgeIndex {
+function deriveEdges({ edges }: NodesEdges): EdgeIndex {
   const outEdges: FirstEdges = {}
   const inEdges: FirstEdges = {}
 
@@ -87,7 +87,7 @@ function deriveRootChildren(
   return ret
 }
 
-export const buildIndex = (d: TheDiagram): GraphIndex => ({
+export const buildIndex = (d: NodesEdges): GraphIndex => ({
   parents: deriveParents(d),
   deepChildren: deriveRootChildren(d.nodes, rootID),
   edges: deriveEdges(d),

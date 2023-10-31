@@ -48,7 +48,7 @@ export interface Edge {
   to: EdgeAnchor
 }
 
-export interface TheDiagram {
+export interface NodesEdges {
   nodes: Record<NodeID, Node>
   edges: Record<EdgeID, Edge>
 }
@@ -61,7 +61,7 @@ export const screenPos = (transform: ZoomTransform, world: Vec2): Vec2 =>
 
 export function patch(
   { data, history }: DataState,
-  produceFn: (d: TheDiagram) => void,
+  produceFn: (d: NodesEdges) => void,
 ): DataState {
   const [next, fwd, bwd] = produceWithPatches(data, produceFn)
 
@@ -87,17 +87,20 @@ export const genID = <P extends string>(prefix: P): `${P}${string}` =>
 
 export const addEdge = (
   state: State,
-  draft: TheDiagram,
+  draft: NodesEdges,
   subject: { from: NodeID },
   x: number,
   y: number,
-): void => {
-  const id = genID("e")
-  const toNid = isEdgeID(state.hovering) ? undefined : state.hovering
+): NodeID | EdgeID => {
+  const eid = genID("e")
+  const toNid = isNodeID(state.hovering) ? state.hovering : undefined
 
+  let ret: NodeID | EdgeID
   let toID: NodeID
+
   if (isNodeID(toNid)) {
     toID = toNid
+    ret = eid
   } else {
     toID = genID("n")
     const [wx, wy] = worldPos(state.camera, [x, y])
@@ -107,11 +110,14 @@ export const addEdge = (
       rect: { x: wx, y: wy, width: 100, height: 100 },
       children: [],
     }
+    ret = toID
   }
 
-  draft.edges[id] = {
-    id,
+  draft.edges[eid] = {
+    id: eid,
     from: { type: "node", id: subject.from },
     to: { type: "node", id: toID },
   }
+
+  return ret
 }

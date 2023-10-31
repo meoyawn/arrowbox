@@ -4,11 +4,12 @@ import { isEl } from "../../lib/dom"
 import { midPoint } from "../../lib/geometry"
 import {
   addEdge,
+  EdgeID,
   patch,
   screenPos,
   worldPos,
   type NodeID,
-  type TheDiagram,
+  type NodesEdges,
 } from "./data/data"
 import { setStore, store } from "./data/state"
 
@@ -29,7 +30,7 @@ interface DragNode {
 }
 
 interface BeforeMove {
-  data: TheDiagram
+  data: NodesEdges
 }
 
 interface DragBrush {
@@ -148,11 +149,14 @@ const onEnd = (de: Devent): void => {
   const { subject, x, y } = de
   switch (subject.type) {
     case "new-arrow": {
+      let editing: NodeID | EdgeID | undefined
+      const data = patch({ ...store.data, data: subject.data }, d => {
+        editing = addEdge(store, d, subject, x, y)
+      })
       setStore({
         newArrow: undefined,
-        data: patch({ ...store.data, data: subject.data }, d =>
-          addEdge(store, d, subject, x, y),
-        ),
+        data,
+        editing,
       })
       break
     }

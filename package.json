@@ -28,6 +28,7 @@
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.0.0",
     "solid-js": "^1.8.3",
+    "tailwind-merge": "^1.14.0",
     "unified": "^11.0.3"
   },
   "devDependencies": {

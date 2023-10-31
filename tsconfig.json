@@ -2,16 +2,18 @@
   "compilerOptions": {
     "alwaysStrict": true,
     "downlevelIteration": true,
+    "esModuleInterop": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "noEmit": true,
+    "resolveJsonModule": true,
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true,
     "strict": true,
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
     "strictNullChecks": true,
-    "strictPropertyInitialization": true,
-    "resolveJsonModule": true,
-    "esModuleInterop": true
+    "strictPropertyInitialization": true
   },
   "include": ["src/", "*.config.ts"]
 }

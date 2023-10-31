@@ -14,7 +14,7 @@ import {
   patch,
   type EdgeID,
   type NodeID,
-  type TheDiagram,
+  type NodesEdges,
 } from "./data/data"
 import { addNode } from "./data/edit"
 import { buildIndex } from "./data/graphIndex"
@@ -22,9 +22,9 @@ import { emptyHistory } from "./data/history"
 import { emptyDiagram, setStore, store, type NewArrowState } from "./data/state"
 import { DefaultGrid } from "./DefaultGrid"
 import { d3Drag } from "./drag"
+import { measureHtml } from "./label"
 import { SvgDefs } from "./SvgDefs"
 import { wheeled } from "./zoom"
-
 
 const cssTransform = ({ k, x, y }: ZoomTransform): string =>
   `translate(${x}px, ${y}px) scale(${k})`
@@ -50,20 +50,71 @@ const OneEdge: Component<{ id: EdgeID }> = props => {
   )
 }
 
-const OneNode: Component<{ id: NodeID }> = props => {
+const TextEditor: Component<{ id: NodeID }> = props => {
   const node = () => store.data.data.nodes[props.id]
-  const selected = () => Boolean(store.selected[props.id])
-  const mPoints = createMemo(() => midPoints(node().rect))
-  const cPoints = createMemo(() => cornerPoints(node().rect))
   const editing = () => store.editing === props.id
 
   let tarea: HTMLTextAreaElement | undefined
+
   createEffect(() => {
     if (editing() && tarea) {
       tarea.focus()
       tarea.select()
     }
   })
+
+  return (
+    <Show when={editing()}>
+      <foreignObject class="overflow-visible" x={0} y={0} height={1} width={1}>
+        <textarea
+          ref={tarea}
+          class="form-textarea p-2"
+          value={node().text}
+          placeholder="Markdown"
+          onKeyPress={ev => {
+            switch (ev.key) {
+              case "Enter": {
+                if (ev.shiftKey) return
+
+                const md = ev.currentTarget.value
+                const html = md2html(md)
+                const measured = measureHtml(html)
+
+                setStore({
+                  // eslint-disable-next-line solid/reactivity
+                  data: patch(store.data, ({ nodes }) => {
+                    const n = nodes[props.id]
+                    n.text = md
+                    n.rect.width = measured.width
+                    n.rect.height = measured.height
+                  }),
+                  editing: undefined,
+                })
+                break
+              }
+            }
+            return false
+          }}
+          onKeyDown={ev => {
+            switch (ev.key) {
+              case "Escape": {
+                setStore({ editing: undefined })
+                break
+              }
+            }
+            return false
+          }}
+        />
+      </foreignObject>
+    </Show>
+  )
+}
+
+const OneNode: Component<{ id: NodeID }> = props => {
+  const node = () => store.data.data.nodes[props.id]
+  const selected = () => Boolean(store.selected[props.id])
+  const mPoints = createMemo(() => midPoints(node().rect))
+  const cPoints = createMemo(() => cornerPoints(node().rect))
 
   return (
     <g
@@ -109,7 +160,7 @@ const OneNode: Component<{ id: NodeID }> = props => {
       </Show>
 
       <foreignObject
-        class="prose max-w-none overflow-visible whitespace-nowrap"
+        class="prose pointer-events-none max-w-none overflow-visible whitespace-nowrap"
         x={0}
         y={0}
         width={1}
@@ -118,48 +169,7 @@ const OneNode: Component<{ id: NodeID }> = props => {
         innerHTML={md2html(node().text)}
       />
 
-      <Show when={editing()}>
-        <foreignObject
-          class="overflow-visible"
-          x={0}
-          y={0}
-          height={1}
-          width={1}
-        >
-          <textarea
-            ref={tarea}
-            class="form-textarea p-2"
-            value={node().text}
-            placeholder="Markdown"
-            onKeyPress={ev => {
-              switch (ev.key) {
-                case "Enter": {
-                  if (ev.shiftKey) return
-
-                  setStore({
-                    // eslint-disable-next-line solid/reactivity
-                    data: patch(store.data, ({ nodes }) => {
-                      nodes[props.id].text = ev.currentTarget.value
-                    }),
-                    editing: undefined,
-                  })
-                  break
-                }
-              }
-              return false
-            }}
-            onKeyDown={ev => {
-              switch (ev.key) {
-                case "Escape": {
-                  setStore({ editing: undefined })
-                  break
-                }
-              }
-              return false
-            }}
-          />
-        </foreignObject>
-      </Show>
+      <TextEditor id={props.id} />
     </g>
   )
 }
@@ -197,7 +207,7 @@ export const TheApp: Component = () => {
 
   createEffect(() => {
     const stored = localStorage.getItem(params.id)
-    const data = stored ? (JSON.parse(stored) as TheDiagram) : emptyDiagram()
+    const data = stored ? (JSON.parse(stored) as NodesEdges) : emptyDiagram()
     setStore({
       data: { data, history: emptyHistory(), index: buildIndex(data) },
     })
