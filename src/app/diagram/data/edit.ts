@@ -1,5 +1,5 @@
 import { type Vec2 } from "../../../lib/geometry"
-import { genID, patch, worldPos, type NodesEdges } from "./data"
+import { genID, patching, worldPos, type NodesEdges } from "./data"
 import { setStore, store } from "./state"
 
 export const addNode = (p: Vec2): void => {
@@ -8,7 +8,7 @@ export const addNode = (p: Vec2): void => {
   const [x, y] = worldPos(camera, p)
 
   setStore({
-    data: patch(data, (data: NodesEdges) => {
+    data: patching(data, (data: NodesEdges) => {
       data.nodes[id] = {
         id,
         text: "",

@@ -1,8 +1,16 @@
+import { destructure } from "@solid-primitives/destructure"
 import { A, useParams } from "@solidjs/router"
 import clsx from "clsx"
 import { pointer, select } from "d3-selection"
 import { type ZoomTransform } from "d3-zoom"
-import { createEffect, createMemo, For, Show, type Component } from "solid-js"
+import {
+  createEffect,
+  createMemo,
+  For,
+  onCleanup,
+  Show,
+  type Component,
+} from "solid-js"
 import icon from "../../assets/icon.svg"
 import { isEl } from "../../lib/dom"
 import { cornerPoints, midPoints } from "../../lib/geometry"
@@ -11,7 +19,8 @@ import { md2html } from "../markdown"
 import {
   edgeAnchor,
   isNodeID,
-  patch,
+  patching,
+  rootID,
   type EdgeID,
   type NodeID,
   type NodesEdges,
@@ -22,6 +31,7 @@ import { emptyHistory } from "./data/history"
 import { emptyDiagram, setStore, store, type NewArrowState } from "./data/state"
 import { DefaultGrid } from "./DefaultGrid"
 import { d3Drag } from "./drag"
+import { setupHotkeys } from "./hotkeys"
 import { measureHtml } from "./label"
 import { SvgDefs } from "./SvgDefs"
 import { wheeled } from "./zoom"
@@ -33,18 +43,20 @@ const svgTransform = ({ x, y }: { x: number; y: number }): string =>
   `translate(${x} ${y})`
 
 const OneEdge: Component<{ id: EdgeID }> = props => {
-  const e = createMemo(() => store.data.data.edges[props.id])
-  const from = createMemo(() => edgeAnchor(store.data.data.nodes, e().from))
-  const to = createMemo(() => edgeAnchor(store.data.data.nodes, e().to))
+  const e = () => store.data.data.edges[props.id]
+  const from = () => edgeAnchor(store.data.data.nodes, e().from)
+  const to = () => edgeAnchor(store.data.data.nodes, e().to)
+  const [fromX, fromY] = destructure(from)
+  const [toX, toY] = destructure(to)
 
   return (
     <line
       stroke-width={2}
       stroke="black"
-      x1={from()[0]}
-      y1={from()[1]}
-      x2={to()[0]}
-      y2={to()[1]}
+      x1={fromX()}
+      y1={fromY()}
+      x2={toX()}
+      y2={toY()}
       marker-end={"url(#triangle)"}
     />
   )
@@ -82,7 +94,7 @@ const TextEditor: Component<{ id: NodeID }> = props => {
 
                 setStore({
                   // eslint-disable-next-line solid/reactivity
-                  data: patch(store.data, ({ nodes }) => {
+                  data: patching(store.data, ({ nodes }) => {
                     const n = nodes[props.id]
                     n.text = md
                     n.rect.width = measured.width
@@ -174,15 +186,13 @@ const OneNode: Component<{ id: NodeID }> = props => {
   )
 }
 
-const nodeIDs = (
+export const nodeIDs = (
   nodes: Record<NodeID, unknown>,
   dragging: NodeID | EdgeID | undefined,
 ): ReadonlyArray<NodeID> => {
   const keys = Object.keys(nodes) as ReadonlyArray<NodeID>
-  if (!isNodeID(dragging)) return keys
-
-  const out = keys.filter(k => k !== dragging)
-  if (dragging) {
+  const out = keys.filter(k => k !== dragging && k !== rootID)
+  if (isNodeID(dragging)) {
     out.push(dragging)
   }
   return out
@@ -203,10 +213,10 @@ const NewArrow: Component<{ a: NewArrowState }> = props => (
 )
 
 export const TheApp: Component = () => {
-  const params = useParams()
+  const routeParams = useParams()
 
   createEffect(() => {
-    const stored = localStorage.getItem(params.id)
+    const stored = localStorage.getItem(routeParams.id)
     const data = stored ? (JSON.parse(stored) as NodesEdges) : emptyDiagram()
     setStore({
       data: { data, history: emptyHistory(), index: buildIndex(data) },
@@ -214,7 +224,12 @@ export const TheApp: Component = () => {
   })
 
   createEffect(() => {
-    localStorage.setItem(params.id, JSON.stringify(store.data.data))
+    localStorage.setItem(routeParams.id, JSON.stringify(store.data.data))
+  })
+
+  createEffect(() => {
+    const cleanup = setupHotkeys()
+    onCleanup(cleanup)
   })
 
   return (

@@ -5,7 +5,8 @@ import { midPoint } from "../../lib/geometry"
 import {
   addEdge,
   EdgeID,
-  patch,
+  nonPatching,
+  patching,
   screenPos,
   worldPos,
   type NodeID,
@@ -131,14 +132,11 @@ const onDrag = (dev: Devent): void => {
     case "node": {
       const [wx, wy] = worldPos(store.camera, [x, y])
       setStore({
-        data: {
-          ...store.data,
-          data: produce(subject.data, ({ nodes }) => {
-            const rect = nodes[subject.id].rect
-            rect.x = wx
-            rect.y = wy
-          }),
-        },
+        data: nonPatching(store.data, ({ nodes }) => {
+          const rect = nodes[subject.id].rect
+          rect.x = wx
+          rect.y = wy
+        }),
         dragging: subject.id,
       })
     }
@@ -150,7 +148,7 @@ const onEnd = (de: Devent): void => {
   switch (subject.type) {
     case "new-arrow": {
       let editing: NodeID | EdgeID | undefined
-      const data = patch({ ...store.data, data: subject.data }, d => {
+      const data = patching({ ...store.data, data: subject.data }, d => {
         editing = addEdge(store, d, subject, x, y)
       })
       setStore({
@@ -164,7 +162,7 @@ const onEnd = (de: Devent): void => {
     case "node": {
       const [wx, wy] = worldPos(store.camera, [x, y])
       setStore({
-        data: patch({ ...store.data, data: subject.data }, ({ nodes }) => {
+        data: patching({ ...store.data, data: subject.data }, ({ nodes }) => {
           const rect = nodes[subject.id].rect
           rect.x = wx
           rect.y = wy

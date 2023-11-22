@@ -13,4 +13,4 @@ const p = unified()
   .use(rehypeStringify)
   .freeze()
 
-export const md2html = (md: string): string => String(p.processSync(md))
+export const md2html = (md: string): string => p.processSync(md).toString()

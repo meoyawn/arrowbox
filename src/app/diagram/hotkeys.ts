@@ -1,10 +1,16 @@
 import hotkeys from "hotkeys-js"
-import { type EdgeID, isEdgeID, isNodeID, type NodeID, patch } from "./data/data"
+import {
+  isEdgeID,
+  isNodeID,
+  patching,
+  type EdgeID,
+  type NodeID,
+} from "./data/data"
 import { setStore, store } from "./data/state"
 
-export const setupHotkeys = (): void => {
+export const setupHotkeys = (): VoidFunction => {
   hotkeys("Delete, Backspace", () => {
-    patch(store.data, d => {
+    patching(store.data, d => {
       for (const id in store.selected) {
         if (isNodeID(id)) {
           delete d.nodes[id]
@@ -26,4 +32,6 @@ export const setupHotkeys = (): void => {
       return false
     }
   })
+
+  return () => hotkeys.unbind()
 }

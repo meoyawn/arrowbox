@@ -14,6 +14,8 @@ export interface Store {
   /** drag end usually triggers text editing */
   editing?: NodeID | EdgeID
 
+  dragging?: NodeID
+
   brush?: Rect
 }
 
