@@ -1,8 +1,9 @@
 import { destructure } from "@solid-primitives/destructure"
 import { type Component } from "solid-js"
 import { type NodeID } from "../data/data"
-import { dragIDs } from "./drag"
-import { dragNodeBehavior } from "./drag/node"
+import { dragBottom } from "./drag/bottom"
+import { dragNewArrow } from "./drag/new-arrow"
+import { dragNode } from "./drag/node"
 import { store } from "./store"
 
 const resizeLineStrokeWidth = 15
@@ -28,7 +29,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
       transform={`translate(${x()} ${y()})`}
     >
       <rect
-        data-dragID={dragNodeBehavior.id}
+        data-dragID={dragNode.id}
         stroke-width={2}
         stroke="black"
         fill="transparent"
@@ -46,7 +47,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
       />
 
       <circle
-        data-dragID={dragIDs.newArrow}
+        data-dragID={dragNewArrow.id}
         class="invisible cursor-move group-hover:visible"
         stroke="black"
         fill="transparent"
@@ -67,7 +68,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
       />
 
       <line
-        data-dragID={dragIDs.bottom}
+        data-dragID={dragBottom.id}
         x1={0}
         y1={height()}
         x2={width()}

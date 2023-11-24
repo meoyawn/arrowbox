@@ -6,6 +6,7 @@ import {
 } from "../../data/data"
 import { type DragSubj } from "../drag"
 import { type Store } from "../store"
+import { getNID, type DragBehavior } from "./behavior"
 
 export interface DragBottom {
   type: "bottom"
@@ -13,7 +14,7 @@ export interface DragBottom {
   dataBeforeDrag: NodesEdges
 }
 
-export function dragBottomSubj(store: Store, nid: NodeID): DragSubj {
+function dragBottomSubj(store: Store, nid: NodeID): DragSubj {
   const { data } = store.tree
   const { rect } = data.nodes[nid]
   return {
@@ -25,7 +26,7 @@ export function dragBottomSubj(store: Store, nid: NodeID): DragSubj {
   }
 }
 
-export function onBottomDrag(
+function onBottomDrag(
   store: Store,
   _: number,
   y: number,
@@ -40,7 +41,7 @@ export function onBottomDrag(
   }
 }
 
-export function onBottomEnd(
+function onBottomEnd(
   store: Store,
   _: number,
   y: number,
@@ -57,4 +58,15 @@ export function onBottomEnd(
     ),
     dragging: undefined,
   }
+}
+
+export const dragBottom: DragBehavior<DragBottom> = {
+  id: "bottom",
+  subject(store, x) {
+    const nid = getNID(x)
+    if (!nid) throw new Error("no nid")
+    return dragBottomSubj(store, nid)
+  },
+  onDrag: onBottomDrag,
+  onEnd: onBottomEnd,
 }

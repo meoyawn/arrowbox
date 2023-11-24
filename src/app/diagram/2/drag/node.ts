@@ -8,10 +8,7 @@ import {
 } from "../../data/data"
 import { type DragSubj } from "../drag"
 import { type Store } from "../store"
-
-export const dragNodeBehavior = {
-  id: "node",
-} as const
+import { getNID, type DragBehavior } from "./behavior"
 
 export interface DragNode {
   type: "node"
@@ -19,14 +16,14 @@ export interface DragNode {
   dataBeforeDrag: NodesEdges
 }
 
-export function dragNodeSubj(store: Store, nid: NodeID): DragSubj {
+function dragNodeSubj(store: Store, nid: NodeID): DragSubj {
   const { data } = store.tree
   const { rect } = data.nodes[nid]
   const [sx, sy] = screenPos(store.camera, [rect.x, rect.y])
   return { type: "node", x: sx, y: sy, id: nid, dataBeforeDrag: data }
 }
 
-export function onNodeDrag(
+function onNodeDrag(
   store: Store,
   x: number,
   y: number,
@@ -44,7 +41,7 @@ export function onNodeDrag(
   }
 }
 
-export function onNodeEnd(
+function onNodeEnd(
   store: Store,
   x: number,
   y: number,
@@ -62,4 +59,15 @@ export function onNodeEnd(
     ),
     dragging: undefined,
   }
+}
+
+export const dragNode: DragBehavior<DragNode> = {
+  id: "node",
+  subject(store, ev) {
+    const nid = getNID(ev)
+    if (!nid) throw new Error("no nid")
+    return dragNodeSubj(store, nid)
+  },
+  onDrag: onNodeDrag,
+  onEnd: onNodeEnd,
 }

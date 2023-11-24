@@ -1,55 +1,45 @@
 import { drag, type D3DragEvent } from "d3-drag"
 import { isEl } from "../../../lib/dom"
 import { isNodeID, type NodeID } from "../data/data"
-import {
-  dragBottomSubj,
-  onBottomDrag,
-  onBottomEnd,
-  type DragBottom,
-} from "./drag/bottom"
-import {
-  dragNodeBehavior,
-  dragNodeSubj,
-  onNodeDrag,
-  onNodeEnd,
-  type DragNode,
-} from "./drag/node"
+import { type DragBehavior } from "./drag/behavior"
+import { dragBottom, type DragBottom } from "./drag/bottom"
+import { dragBrush, type DragBrush } from "./drag/brush"
+import { dragNewArrow, type DragNewArrow } from "./drag/new-arrow"
+import { dragNode, type DragNode } from "./drag/node"
 import { setStore, store } from "./store"
-
-export const dragIDs = {
-  node: "node",
-  newArrow: "new-arrow",
-  bottom: "bottom",
-} as const
 
 export const dragConstraints = {
   minHeight: 1,
 } as const
 
-type DragVariant =
-  | {
-      type: "new-arrow"
-      from: NodeID
-    }
-  | {
-      type: "brushing"
-    }
-  | DragBottom
-  | DragNode
+export interface Variants {
+  node: DragNode
+  bottom: DragBottom
+  newArrow: DragNewArrow
+  brush: DragBrush
+}
 
-export type DragSubj = {
-  x: number
+export type DragSubj = Variants[keyof Variants] & {
+  x: numbere
   y: number
-} & DragVariant
+}
 
-interface D3Event extends D3DragEvent<SVGSVGElement, unknown, DragSubj> {
+export interface D3Event<Subj>
+  extends D3DragEvent<SVGSVGElement, unknown, Subj> {
   sourceEvent: MouseEvent | TouchEvent
 }
 
-type Did = typeof dragIDs
-type DidV = Did[keyof Did]
+const nodeDragBehaviors: {
+  [K in keyof Variants]: DragBehavior<Variants[K]>
+} = {
+  node: dragNode,
+  bottom: dragBottom,
+  newArrow: dragNewArrow,
+  brush: dragBrush,
+}
 
-function dragSubj(this: SVGSVGElement, { sourceEvent }: D3Event): DragSubj | 0 {
+function dragSubj(this: SVGSVGElement, ev: D3Event<undefined>): DragSubj | 0 {
+  const { sourceEvent } = ev
   const { target } = sourceEvent
   if (!isEl(target)) return 0
 
@@ -60,66 +50,17 @@ function dragSubj(this: SVGSVGElement, { sourceEvent }: D3Event): DragSubj | 0 {
 
   if (!isNodeID(nid)) return 0
 
-  switch (target.dataset.dragID as DidV) {
-    case "bottom": {
-      return dragBottomSubj(store, nid)
-    }
-
-    case "node": {
-      return dragNodeSubj(store, nid)
-    }
-
-    case "new-arrow": {
-      return { type: "new-arrow" }
-    }
-  }
+  return nodeDragBehaviors[target.dataset.dragID as keyof Variants].subject(
+    store,
+    sourceEvent,
+  )
 }
 
-const nodeDragBehaviors = {
-  node: dragNodeBehavior,
-} as const
+const onDrag = ({ subject, x, y }: D3Event<DragSubj>) =>
+  setStore(nodeDragBehaviors[subject.type].onDrag(store, x, y, subject))
 
-function onDrag(e: D3Event): 0 {
-  const { subject, x, y } = e
-  switch (subject.type) {
-    case "node": {
-      setStore(onNodeDrag(store, x, y, subject))
-      return 0
-    }
-
-    case "bottom": {
-      setStore(onBottomDrag(store, x, y, subject))
-      return 0
-    }
-
-    case "brushing":
-      return 0
-
-    case "new-arrow":
-      return 0
-  }
-}
-
-function onEnd({ subject, x, y }: D3Event): 0 {
-  switch (subject.type) {
-    case "bottom": {
-      setStore(onBottomEnd(store, x, y, subject))
-      return 0
-    }
-
-    case "node": {
-      setStore(onNodeEnd(store, x, y, subject))
-      return 0
-    }
-
-    case "new-arrow":
-      // who are we hovering?
-      return 0
-
-    case "brushing":
-      return 0
-  }
-}
+const onEnd = ({ subject, x, y }: D3Event<DragSubj>) =>
+  setStore(nodeDragBehaviors[subject.type].onEnd(store, x, y, subject))
 
 export const d3Drag = drag<SVGSVGElement, unknown>()
   .subject(dragSubj)

@@ -9,8 +9,8 @@
     "chk:test": "bun test",
     "chk:types": "tsc",
     "clean": "rm -rf dist/",
-    "dpl": "rm -rf dist/ && vite build && wrangler pages deploy dist/ --commit-dirty=true",
     "dev": "vite",
+    "dpl": "rm -rf dist/ && vite build && wrangler pages deploy dist/ --commit-dirty=true",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -28,7 +28,7 @@
     "rehype-stringify": "^10.0.0",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.0.0",
-    "solid-js": "^1.8.5",
+    "solid-js": "^1.8.6",
     "tailwind-merge": "^2.0.0",
     "unified": "^11.0.4"
   },
@@ -55,9 +55,9 @@
     "prettier-plugin-tailwindcss": "^0.5.7",
     "tailwindcss": "^3.3.5",
     "typescript": "^5.3.2",
-    "vite": "^5.0.2",
+    "vite": "^4.5.0",
     "vite-plugin-solid": "^2.7.2",
     "vitest": "^0.34.6",
-    "wrangler": "^3.17.0"
+    "wrangler": "^3.17.1"
   }
 }
