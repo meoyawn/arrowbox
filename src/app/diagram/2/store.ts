@@ -17,9 +17,12 @@ export interface Store {
   dragging?: NodeID
 
   brush?: Rect
+
+  selected: Partial<Record<NodeID | EdgeID, true>>
 }
 
 export const [store, setStore] = createStore<Store>({
   camera: zoomIdentity,
   tree: emptyDataState(),
+  selected: {},
 })

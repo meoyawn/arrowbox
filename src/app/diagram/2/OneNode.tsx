@@ -1,6 +1,9 @@
 import { destructure } from "@solid-primitives/destructure"
-import { type Component } from "solid-js"
+import clsx from "clsx"
+import { Show, type Component } from "solid-js"
+import { isEl } from "../../../lib/dom"
 import { type NodeID } from "../data/data"
+import { setStore } from "../data/state"
 import { dragBottom } from "./drag/bottom"
 import { dragNewArrow } from "./drag/new-arrow"
 import { dragNode } from "./drag/node"
@@ -19,13 +22,16 @@ const resizeLineStrokeWidth = 15
 export const OneNode: Component<{ id: NodeID }> = props => {
   const node = () => store.tree.data.nodes[props.id]
   const rect = () => node().rect
+  const selected = () => store.selected[props.id]
 
   const { x, y, width, height } = destructure(rect)
 
   return (
     <g
       data-nodeID={props.id}
-      class="group hover:cursor-grab"
+      class={clsx("group hover:cursor-grab", {
+        "pointer-events-none cursor-grabbing": store.dragging === props.id,
+      })}
       transform={`translate(${x()} ${y()})`}
     >
       <rect
@@ -36,6 +42,17 @@ export const OneNode: Component<{ id: NodeID }> = props => {
         width={width()}
         height={height()}
       />
+
+      <Show when={selected()}>
+        <rect
+          x={-5}
+          y={-5}
+          width={width() + 10}
+          height={height() + 10}
+          fill="transparent"
+          stroke={"blue"}
+        />
+      </Show>
 
       {/*TODO html -> md*/}
       <foreignObject

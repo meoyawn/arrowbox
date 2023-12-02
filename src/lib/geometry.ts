@@ -31,3 +31,21 @@ export const cornerPoints = ({
   [0, height],
   [width, height],
 ]
+
+export function extendToFit(
+  parent: Rect,
+  child: Rect,
+  padding: number = 10,
+): Rect {
+  if (padding < 0) throw new Error("padding must be positive")
+
+  const { x: px, y: py, width: pw, height: ph } = parent
+  const { x: cx, y: cy, width: cw, height: ch } = child
+
+  const x = Math.min(px, cx - padding)
+  const y = Math.min(py, cy - padding)
+  const width = Math.max(px + pw, cx + cw + padding) - x
+  const height = Math.max(py + ph, cy + ch + padding) - y
+
+  return { x, y, width, height }
+}

@@ -26,7 +26,7 @@ export const setupHotkeys = (): VoidFunction => {
   })
 
   hotkeys("Enter", () => {
-    const arr = Object.keys(store.selected) as ReadonlyArray<NodeID | EdgeID>
+    const arr = Object.keys(store.selected) as Array<NodeID | EdgeID>
     if (arr.length === 1) {
       setStore({ editing: arr[0] })
       return false

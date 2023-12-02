@@ -6,7 +6,7 @@ import {
   setAutoFreeze,
 } from "immer"
 import { midPoint, type Rect, type Vec2 } from "../../../lib/geometry"
-import { buildIndex } from "./graphIndex"
+import { buildIndex } from "./indexing"
 import { type DataState, type State } from "./state"
 
 enablePatches()
@@ -122,7 +122,10 @@ export const addEdge = (
     const [wx, wy] = worldPos(state.camera, [x, y])
     draft.nodes[toID] = {
       id: toID,
-      text: "",
+      text: {
+        html: "",
+        markdown: "",
+      },
       rect: { x: wx, y: wy, width: 100, height: 100 },
       children: [],
     }

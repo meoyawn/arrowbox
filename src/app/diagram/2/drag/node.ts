@@ -1,4 +1,6 @@
+import { extendToFit } from "../../../../lib/geometry"
 import {
+  isNodeID,
   nonPatching,
   patching,
   screenPos,
@@ -48,13 +50,19 @@ function onNodeEnd(
   subject: DragNode,
 ): Partial<Store> {
   const [wx, wy] = worldPos(store.camera, [x, y])
+  const parent = isNodeID(store.hovering) ? store.hovering : undefined
   return {
     tree: patching(
       { ...store.tree, data: subject.dataBeforeDrag },
       ({ nodes }) => {
-        const rect = nodes[subject.id].rect
-        rect.x = wx
-        rect.y = wy
+        const childR = nodes[subject.id].rect
+        childR.x = wx
+        childR.y = wy
+
+        if (parent && parent !== subject.id) {
+          const p = nodes[parent]
+          p.rect = extendToFit(p.rect, childR)
+        }
       },
     ),
     dragging: undefined,

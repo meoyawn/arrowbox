@@ -20,7 +20,7 @@ export interface Variants {
 }
 
 export type DragSubj = Variants[keyof Variants] & {
-  x: numbere
+  x: number
   y: number
 }
 

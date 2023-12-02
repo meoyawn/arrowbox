@@ -1,7 +1,14 @@
 import { destructure } from "@solid-primitives/destructure"
 import { pointer, select } from "d3-selection"
 import { createEffect, For, type Component } from "solid-js"
-import { edgeAnchor, patching, worldPos, type EdgeID } from "../data/data"
+import { isEl } from "../../../lib/dom"
+import {
+  edgeAnchor,
+  patching,
+  worldPos,
+  type EdgeID,
+  type NodeID,
+} from "../data/data"
 import { SvgDefs } from "../SvgDefs"
 import { nodeIDs } from "../TheApp"
 import { d3Drag } from "./drag"
@@ -62,6 +69,30 @@ export const Diagram2: Component = () => {
             addNode2(x, world)
           }),
         }))
+      }}
+      onMouseOver={ev => {
+        const node = ev.target.closest("[data-nodeID]")
+        const hovering = isEl(node)
+          ? (node.dataset.nodeID as NodeID)
+          : undefined
+        setStore({ hovering })
+      }}
+      onClick={ev => {
+        const node = ev.target.closest("[data-nodeID]")
+        const nid = isEl(node) ? (node.dataset.nodeID as NodeID) : undefined
+        const edge = ev.target.closest("[data-edgeID]")
+        const eid = isEl(edge) ? (edge.dataset.edgeID as EdgeID) : undefined
+        const selected = nid ?? eid
+        if (selected) {
+          setStore({
+            selected:
+              ev.ctrlKey || ev.metaKey
+                ? { ...store.selected, [selected]: true }
+                : ({ [selected]: true } as const),
+          })
+        } else {
+          setStore({ selected: {} })
+        }
       }}
     >
       <SvgDefs />

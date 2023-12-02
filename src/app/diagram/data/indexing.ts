@@ -7,8 +7,10 @@ import {
   type NodesEdges,
 } from "./data"
 
+type JsonSet<T extends keyof never> = Record<T, true>
+
 export type ParentIndex = Record<NodeID | EdgeID, NodeID>
-export type DeepChildrenIndex = Record<NodeID, Record<NodeID, true>>
+export type DeepChildrenIndex = Record<NodeID, JsonSet<NodeID>>
 type FirstEdges = Record<NodeID, Edge[]>
 
 interface EdgeIndex {
@@ -23,7 +25,7 @@ export interface GraphIndex {
 }
 
 /** O(nodes) */
-function deriveParents({ nodes }: NodesEdges): ParentIndex {
+function indexParents({ nodes }: NodesEdges): ParentIndex {
   const out: ParentIndex = {}
 
   for (const nodeID in nodes) {
@@ -65,8 +67,8 @@ function dfsChildren(
   nodes: Record<NodeID, Node>,
   globalOut: DeepChildrenIndex,
   id: NodeID,
-): Record<NodeID, true> {
-  const localOut: Record<NodeID, true> = {}
+): JsonSet<NodeID> {
+  const localOut: JsonSet<NodeID> = {}
 
   for (const childID of nodes[id].children) {
     localOut[childID] = true
@@ -78,7 +80,7 @@ function dfsChildren(
   return localOut
 }
 
-function deriveRootChildren(
+function indexChildren(
   nodes: Record<NodeID, Node>,
   rootID: NodeID,
 ): DeepChildrenIndex {
@@ -88,7 +90,7 @@ function deriveRootChildren(
 }
 
 export const buildIndex = (d: NodesEdges): GraphIndex => ({
-  parents: deriveParents(d),
-  deepChildren: deriveRootChildren(d.nodes, rootID),
+  parents: indexParents(d),
+  deepChildren: indexChildren(d.nodes, rootID),
   edges: deriveEdges(d),
 })

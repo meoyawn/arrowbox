@@ -26,8 +26,8 @@ import {
   type NodesEdges,
 } from "./data/data"
 import { addNode } from "./data/edit"
-import { buildIndex } from "./data/graphIndex"
 import { emptyHistory } from "./data/history"
+import { buildIndex } from "./data/indexing"
 import { emptyDiagram, setStore, store, type NewArrowState } from "./data/state"
 import { DefaultGrid } from "./DefaultGrid"
 import { d3Drag } from "./drag"
@@ -228,8 +228,7 @@ export const TheApp: Component = () => {
   })
 
   createEffect(() => {
-    const cleanup = setupHotkeys()
-    onCleanup(cleanup)
+    onCleanup(setupHotkeys())
   })
 
   return (

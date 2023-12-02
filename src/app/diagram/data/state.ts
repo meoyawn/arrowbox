@@ -2,7 +2,7 @@ import { zoomIdentity, type ZoomTransform } from "d3-zoom"
 import { createStore } from "solid-js/store"
 import { type Rect, type Vec2 } from "../../../lib/geometry"
 import { rootID, type EdgeID, type NodeID, type NodesEdges } from "./data"
-import { buildIndex, type GraphIndex } from "./graphIndex"
+import { buildIndex, type GraphIndex } from "./indexing"
 import { emptyHistory, type ImmerHistory } from "./history"
 
 export interface NewArrowState {

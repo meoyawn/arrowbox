@@ -1,16 +1,27 @@
 import {
   nonPatching,
   patching,
+  worldPos,
   type NodeID,
   type NodesEdges,
 } from "../../data/data"
 import { type DragSubj } from "../drag"
 import { type Store } from "../store"
 import { getNID, type DragBehavior } from "./behavior"
+import { onDragSide, type Side } from "./resize"
 
 export interface DragBottom {
   type: "bottom"
   id: NodeID
+  dataBeforeDrag: NodesEdges
+  x: number
+  y: number
+}
+
+export interface DragSide {
+  type: "side"
+  id: NodeID
+  side: Side
   dataBeforeDrag: NodesEdges
 }
 
@@ -28,14 +39,22 @@ function dragBottomSubj(store: Store, nid: NodeID): DragSubj {
 
 function onBottomDrag(
   store: Store,
-  _: number,
+  x: number,
   y: number,
   subject: DragBottom,
 ): Partial<Store> {
-  const height = Math.max(1, y / store.camera.k)
+  const [oldwx, oldwy] = worldPos(store.camera, [subject.x, subject.y])
+  const [wx, wy] = worldPos(store.camera, [x, y])
   return {
     tree: nonPatching(store.tree, ({ nodes }) => {
-      nodes[subject.id].rect.height = height
+      nodes[subject.id].rect = onDragSide(
+        oldwx,
+        oldwy,
+        subject.dataBeforeDrag.nodes[subject.id].rect,
+        "s",
+        wx,
+        wy,
+      )
     }),
     dragging: subject.id,
   }
@@ -43,17 +62,24 @@ function onBottomDrag(
 
 function onBottomEnd(
   store: Store,
-  _: number,
+  x: number,
   y: number,
   subject: DragBottom,
 ): Partial<Store> {
-  const height = Math.max(1, y / store.camera.k)
+  const [oldwx, oldwy] = worldPos(store.camera, [subject.x, subject.y])
+  const [wx, wy] = worldPos(store.camera, [x, y])
   return {
     tree: patching(
       { ...store.tree, data: subject.dataBeforeDrag },
       ({ nodes }) => {
-        const r = nodes[subject.id].rect
-        r.height = height
+        nodes[subject.id].rect = onDragSide(
+          oldwx,
+          oldwy,
+          subject.dataBeforeDrag.nodes[subject.id].rect,
+          "s",
+          wx,
+          wy,
+        )
       },
     ),
     dragging: undefined,
