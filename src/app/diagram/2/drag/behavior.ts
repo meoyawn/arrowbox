@@ -1,19 +1,19 @@
 import { isEl } from "../../../../lib/dom"
 import { isNodeID, type NodeID } from "../../data/data"
-import { type DragSubj, type Variants } from "../drag"
+import { type D3Event, type DragSubj, type Variants } from "../drag"
 import { type Store } from "../store"
 
 export interface DragBehavior<Subj extends { type: keyof Variants }> {
   id: Subj["type"]
 
-  subject(store: Store, e: MouseEvent | TouchEvent): DragSubj
+  subject(store: Store, e: D3Event<undefined>): DragSubj
 
   onDrag(store: Store, x: number, y: number, subj: Subj): Partial<Store>
 
   onEnd(store: Store, x: number, y: number, subj: Subj): Partial<Store>
 }
 
-export function getNID(ev: MouseEvent | TouchEvent): NodeID | undefined {
+export function getNID(ev: Event): NodeID | undefined {
   const { target } = ev
   if (!isEl(target)) return
 

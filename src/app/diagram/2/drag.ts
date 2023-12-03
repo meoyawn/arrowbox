@@ -2,8 +2,8 @@ import { drag, type D3DragEvent } from "d3-drag"
 import { isEl } from "../../../lib/dom"
 import { isNodeID, type NodeID } from "../data/data"
 import { type DragBehavior } from "./drag/behavior"
-import { dragBottom, type DragBottom } from "./drag/bottom"
 import { dragBrush, type DragBrush } from "./drag/brush"
+import { dragSide, type DragSide } from "./drag/drag-side"
 import { dragNewArrow, type DragNewArrow } from "./drag/new-arrow"
 import { dragNode, type DragNode } from "./drag/node"
 import { setStore, store } from "./store"
@@ -14,7 +14,7 @@ export const dragConstraints = {
 
 export interface Variants {
   node: DragNode
-  bottom: DragBottom
+  side: DragSide
   newArrow: DragNewArrow
   brush: DragBrush
 }
@@ -33,7 +33,7 @@ const nodeDragBehaviors: {
   [K in keyof Variants]: DragBehavior<Variants[K]>
 } = {
   node: dragNode,
-  bottom: dragBottom,
+  side: dragSide,
   newArrow: dragNewArrow,
   brush: dragBrush,
 }
@@ -50,10 +50,10 @@ function dragSubj(this: SVGSVGElement, ev: D3Event<undefined>): DragSubj | 0 {
 
   if (!isNodeID(nid)) return 0
 
-  return nodeDragBehaviors[target.dataset.dragID as keyof Variants].subject(
-    store,
-    sourceEvent,
-  )
+  const { dragID, side } = target.dataset
+  const xx: keyof Variants = side ? "side" : (dragID as keyof Variants)
+
+  return nodeDragBehaviors[xx].subject(store, ev)
 }
 
 const onDrag = ({ subject, x, y }: D3Event<DragSubj>) =>

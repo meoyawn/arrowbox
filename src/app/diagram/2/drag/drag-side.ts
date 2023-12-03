@@ -1,39 +1,44 @@
+import { isEl } from "../../../../lib/dom"
 import {
+  isNodeID,
   nonPatching,
   patching,
   worldPos,
   type NodeID,
   type NodesEdges,
 } from "../../data/data"
-import { type DragSubj } from "../drag"
+import { type D3Event } from "../drag"
 import { type Store } from "../store"
-import { getNID, type DragBehavior } from "./behavior"
+import { type DragBehavior } from "./behavior"
 import { onDragSide, type Side } from "./resize"
 
-export interface DragBottom {
-  type: "bottom"
-  id: NodeID
+export interface DragSide {
+  type: "side"
   dataBeforeDrag: NodesEdges
+  id: NodeID
+  side: Side
   x: number
   y: number
 }
 
-export interface DragSide {
-  type: "side"
-  id: NodeID
-  side: Side
-  dataBeforeDrag: NodesEdges
-}
+function dragBottomSubj(store: Store, ev: D3Event<unknown>): DragSide {
+  const { target } = ev.sourceEvent
+  if (!isEl(target)) throw new Error("no target")
 
-function dragBottomSubj(store: Store, nid: NodeID): DragSubj {
-  const { data } = store.tree
-  const { rect } = data.nodes[nid]
+  const node = target.closest("[data-nodeID]")
+  const nid: NodeID | undefined = isEl(node)
+    ? (node.dataset.nodeID as NodeID)
+    : undefined
+
+  if (!isNodeID(nid)) throw new Error("no nid")
+
   return {
-    type: "bottom",
-    x: 0,
-    y: store.camera.k + rect.height,
+    type: "side",
+    x: ev.x,
+    side: target.dataset.side as Side,
+    y: ev.y,
     id: nid,
-    dataBeforeDrag: data,
+    dataBeforeDrag: store.tree.data,
   }
 }
 
@@ -41,7 +46,7 @@ function onBottomDrag(
   store: Store,
   x: number,
   y: number,
-  subject: DragBottom,
+  subject: DragSide,
 ): Partial<Store> {
   const [oldwx, oldwy] = worldPos(store.camera, [subject.x, subject.y])
   const [wx, wy] = worldPos(store.camera, [x, y])
@@ -51,7 +56,7 @@ function onBottomDrag(
         oldwx,
         oldwy,
         subject.dataBeforeDrag.nodes[subject.id].rect,
-        "s",
+        subject.side,
         wx,
         wy,
       )
@@ -64,7 +69,7 @@ function onBottomEnd(
   store: Store,
   x: number,
   y: number,
-  subject: DragBottom,
+  subject: DragSide,
 ): Partial<Store> {
   const [oldwx, oldwy] = worldPos(store.camera, [subject.x, subject.y])
   const [wx, wy] = worldPos(store.camera, [x, y])
@@ -76,7 +81,7 @@ function onBottomEnd(
           oldwx,
           oldwy,
           subject.dataBeforeDrag.nodes[subject.id].rect,
-          "s",
+          subject.side,
           wx,
           wy,
         )
@@ -86,13 +91,9 @@ function onBottomEnd(
   }
 }
 
-export const dragBottom: DragBehavior<DragBottom> = {
-  id: "bottom",
-  subject(store, x) {
-    const nid = getNID(x)
-    if (!nid) throw new Error("no nid")
-    return dragBottomSubj(store, nid)
-  },
+export const dragSide: DragBehavior<DragSide> = {
+  id: "side",
+  subject: dragBottomSubj,
   onDrag: onBottomDrag,
   onEnd: onBottomEnd,
 }

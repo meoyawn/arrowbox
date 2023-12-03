@@ -72,7 +72,7 @@ function onNodeEnd(
 export const dragNode: DragBehavior<DragNode> = {
   id: "node",
   subject(store, ev) {
-    const nid = getNID(ev)
+    const nid = getNID(ev.sourceEvent)
     if (!nid) throw new Error("no nid")
     return dragNodeSubj(store, nid)
   },

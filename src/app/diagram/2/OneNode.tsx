@@ -1,15 +1,77 @@
 import { destructure } from "@solid-primitives/destructure"
 import clsx from "clsx"
 import { Show, type Component } from "solid-js"
-import { isEl } from "../../../lib/dom"
+import { type Rect } from "../../../lib/geometry"
 import { type NodeID } from "../data/data"
-import { setStore } from "../data/state"
-import { dragBottom } from "./drag/bottom"
 import { dragNewArrow } from "./drag/new-arrow"
 import { dragNode } from "./drag/node"
+import { Sides, type Side } from "./drag/resize"
 import { store } from "./store"
 
-const resizeLineStrokeWidth = 15
+const sideArea = 14
+
+const Side: Component<{
+  rect: Rect
+  side: Side
+}> = props => {
+  const x1 = () => (props.side === Sides.EAST ? props.rect.width : 0)
+  const y1 = () => (props.side === Sides.SOUTH ? props.rect.height : 0)
+  const x2 = () => (props.side === Sides.WEST ? 0 : props.rect.width)
+  const y2 = () => (props.side === Sides.NORTH ? 0 : props.rect.height)
+
+  const cls = () =>
+    props.side === Sides.EAST || props.side === Sides.WEST
+      ? "hover:cursor-ew-resize"
+      : "hover:cursor-ns-resize"
+
+  return (
+    <line
+      x1={x1()}
+      y1={y1()}
+      x2={x2()}
+      y2={y2()}
+      stroke-width={sideArea}
+      stroke="transparent"
+      class={cls()}
+      data-side={props.side}
+    />
+  )
+}
+
+const Corner: Component<{
+  rect: Rect
+  side: Side
+  selected?: boolean
+}> = props => {
+  const x = () =>
+    props.side === Sides.NORTHEAST || props.side === Sides.SOUTHEAST
+      ? props.rect.width
+      : 0
+
+  const y = () =>
+    props.side === Sides.SOUTHWEST || props.side === Sides.SOUTHEAST
+      ? props.rect.height
+      : 0
+
+  const cls = () =>
+    props.side === Sides.NORTHEAST || props.side === Sides.SOUTHWEST
+      ? "hover:cursor-nesw-resize"
+      : "hover:cursor-nwse-resize"
+
+  return (
+    <rect
+      x={x() - sideArea / 2}
+      y={y() - sideArea / 2}
+      width={sideArea}
+      height={sideArea}
+      fill="transparent"
+      stroke={props.selected ? "blue" : "transparent"}
+      stroke-width={1}
+      class={cls()}
+      data-side={props.side}
+    />
+  )
+}
 
 /**
  * (0,0) -------> X+
@@ -50,7 +112,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
           width={width() + 10}
           height={height() + 10}
           fill="transparent"
-          stroke={"blue"}
+          stroke="blue"
         />
       </Show>
 
@@ -74,46 +136,15 @@ export const OneNode: Component<{ id: NodeID }> = props => {
         r={5}
       />
 
-      <line
-        x1={0}
-        y1={0}
-        x2={width()}
-        y2={0}
-        stroke-width={resizeLineStrokeWidth}
-        stroke="transparent"
-        class="hover:cursor-ns-resize"
-      />
+      <Side rect={rect()} side={Sides.NORTH} />
+      <Side rect={rect()} side={Sides.SOUTH} />
+      <Side rect={rect()} side={Sides.WEST} />
+      <Side rect={rect()} side={Sides.EAST} />
 
-      <line
-        data-dragID={dragBottom.id}
-        x1={0}
-        y1={height()}
-        x2={width()}
-        y2={height()}
-        stroke-width={resizeLineStrokeWidth}
-        stroke="transparent"
-        class="hover:cursor-ns-resize"
-      />
-
-      <line
-        x1={0}
-        y1={0}
-        x2={0}
-        y2={height()}
-        stroke-width={resizeLineStrokeWidth}
-        stroke="transparent"
-        class="hover:cursor-ew-resize"
-      />
-
-      <line
-        x1={width()}
-        y1={0}
-        x2={width()}
-        y2={height()}
-        stroke-width={resizeLineStrokeWidth}
-        stroke="transparent"
-        class="hover:cursor-ew-resize"
-      />
+      <Corner rect={rect()} side={Sides.NORTHWEST} selected={selected()} />
+      <Corner rect={rect()} side={Sides.NORTHEAST} selected={selected()} />
+      <Corner rect={rect()} side={Sides.SOUTHEAST} selected={selected()} />
+      <Corner rect={rect()} side={Sides.SOUTHWEST} selected={selected()} />
     </g>
   )
 }
