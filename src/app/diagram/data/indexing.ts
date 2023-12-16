@@ -1,7 +1,12 @@
+import RBush, { type BBox } from "rbush"
+import type { Rect } from "../../../lib/geometry.ts"
+import type { NestPath } from "../2/brushing.ts"
+import { absRect } from "../2/brushing.ts"
 import {
   rootID,
   type Edge,
   type EdgeID,
+  type IdRect,
   type Node,
   type NodeID,
   type NodesEdges,
@@ -16,12 +21,6 @@ type FirstEdges = Record<NodeID, Edge[]>
 interface EdgeIndex {
   inEdges: FirstEdges
   outEdges: FirstEdges
-}
-
-export interface GraphIndex {
-  parents: ParentIndex
-  deepChildren: DeepChildrenIndex
-  edges: EdgeIndex
 }
 
 /** O(nodes) */
@@ -89,8 +88,84 @@ function indexChildren(
   return ret
 }
 
-export const buildIndex = (d: NodesEdges): GraphIndex => ({
-  parents: indexParents(d),
-  deepChildren: indexChildren(d.nodes, rootID),
-  edges: deriveEdges(d),
-})
+interface Queue<T> {
+  shift(): T | undefined
+
+  push(...items: T[]): number
+}
+
+type NodePath = readonly [id: NodeID, path: NestPath]
+
+// O(N) BFS
+const traverse = (nodes: Record<NodeID, Node>): ReadonlyArray<NodePath> => {
+  const queue: Queue<NodePath> = Array([rootID, []])
+  const ret: Array<NodePath> = []
+
+  for (;;) {
+    // rm first
+    const item = queue.shift()
+    if (!item) return ret
+
+    ret.push(item)
+
+    const [node, path] = item
+    const { children } = nodes[node]
+    if (!children) continue
+
+    for (let i = 0; i < children.length; i++) {
+      // add last
+      queue.push([children[i]!, path.concat(i)])
+    }
+  }
+}
+
+class IdRectBush extends RBush<IdRect> {
+  toBBox = ({ height, width, x, y }: IdRect): BBox => ({
+    minX: x,
+    minY: y,
+    maxX: x + width,
+    maxY: y + height,
+  })
+
+  compareMinX = (a: IdRect, b: IdRect): number => a.x - b.x
+
+  compareMinY = (a: IdRect, b: IdRect): number => a.y - b.y
+}
+
+function getAbsRects(nodes: Record<NodeID, Node>): Record<NodeID, IdRect> {
+  const rects: Record<NodeID, IdRect> = {}
+
+  for (const [id, path] of traverse(nodes)) {
+    if (id !== rootID) {
+      rects[id] = absRect(nodes, path)
+    }
+  }
+
+  return rects
+}
+
+const buildBush = (absRects: Record<NodeID, IdRect>): RBush<IdRect> => {
+  const rBush = new IdRectBush()
+  rBush.load(Object.values(absRects))
+  return rBush
+}
+
+export interface GraphIndex {
+  parents: ParentIndex
+  deepChildren: DeepChildrenIndex
+  edges: EdgeIndex
+  bush: RBush<IdRect>
+  absRects: Record<NodeID, Rect>
+}
+
+export const buildIndex = (d: NodesEdges): GraphIndex => {
+  const absRects = getAbsRects(d.nodes)
+
+  return {
+    parents: indexParents(d),
+    deepChildren: indexChildren(d.nodes, rootID),
+    edges: deriveEdges(d),
+    bush: buildBush(absRects),
+    absRects,
+  }
+}

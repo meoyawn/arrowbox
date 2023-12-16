@@ -1,36 +1,24 @@
 import { destructure } from "@solid-primitives/destructure"
 import { A, useParams } from "@solidjs/router"
-import clsx from "clsx"
 import { pointer, select } from "d3-selection"
 import { type ZoomTransform } from "d3-zoom"
-import {
-  createEffect,
-  createMemo,
-  For,
-  onCleanup,
-  Show,
-  type Component,
-} from "solid-js"
+import { createEffect, For, onCleanup, Show, type Component } from "solid-js"
 import icon from "../../assets/icon.svg"
 import { isEl } from "../../lib/dom"
-import { cornerPoints, midPoints } from "../../lib/geometry"
 import staticConfig from "../../static.config.json"
 import { md2html } from "../markdown"
 import {
   edgeAnchor,
+  emptyDiagram,
   isNodeID,
   patching,
-  rootID,
   type EdgeID,
   type NodeID,
   type NodesEdges,
 } from "./data/data"
-import { addNode } from "./data/edit"
 import { emptyHistory } from "./data/history"
 import { buildIndex } from "./data/indexing"
-import { emptyDiagram, setStore, store, type NewArrowState } from "./data/state"
 import { DefaultGrid } from "./DefaultGrid"
-import { d3Drag } from "./drag"
 import { setupHotkeys } from "./hotkeys"
 import { measureHtml } from "./label"
 import { SvgDefs } from "./SvgDefs"
@@ -96,7 +84,8 @@ const TextEditor: Component<{ id: NodeID }> = props => {
                   // eslint-disable-next-line solid/reactivity
                   data: patching(store.data, ({ nodes }) => {
                     const n = nodes[props.id]
-                    n.text = md
+                    n.text = { markdown: md, html }
+                    // TODO only if growth is required. Also
                     n.rect.width = measured.width
                     n.rect.height = measured.height
                   }),
@@ -122,79 +111,14 @@ const TextEditor: Component<{ id: NodeID }> = props => {
   )
 }
 
-const OneNode: Component<{ id: NodeID }> = props => {
-  const node = () => store.data.data.nodes[props.id]
-  const selected = () => Boolean(store.selected[props.id])
-  const mPoints = createMemo(() => midPoints(node().rect))
-  const cPoints = createMemo(() => cornerPoints(node().rect))
-
-  return (
-    <g
-      data-nodeID={props.id}
-      class={clsx("group", {
-        "pointer-events-auto": store.dragging !== props.id,
-        "opacity-50": store.dragging === props.id,
-      })}
-      transform={svgTransform(node().rect)}
-    >
-      <rect
-        data-drag="node"
-        class="fill-blue-950 group-hover:fill-blue-500"
-        width={node().rect.width}
-        height={node().rect.height}
-      />
-
-      <For each={mPoints()}>
-        {([cx, cy]) => (
-          <circle
-            data-drag="mid"
-            class="hidden fill-white stroke-black hover:cursor-grab group-hover:block"
-            r={5}
-            cx={cx}
-            cy={cy}
-          />
-        )}
-      </For>
-
-      <Show when={selected()}>
-        <For each={cPoints()}>
-          {([cx, cy]) => (
-            <rect
-              data-drag="corner"
-              class="fill-white stroke-black"
-              x={cx - 3}
-              y={cy - 3}
-              width={6}
-              height={6}
-            />
-          )}
-        </For>
-      </Show>
-
-      <foreignObject
-        class="prose pointer-events-none max-w-none overflow-visible whitespace-nowrap"
-        x={0}
-        y={0}
-        width={1}
-        height={1}
-        // eslint-disable-next-line solid/no-innerhtml
-        innerHTML={md2html(node().text)}
-      />
-
-      <TextEditor id={props.id} />
-    </g>
-  )
-}
-
-export const nodeIDs = (
-  nodes: Record<NodeID, unknown>,
+export const draggingLast = (
+  children: ReadonlyArray<NodeID>,
   dragging: NodeID | EdgeID | undefined,
 ): ReadonlyArray<NodeID> => {
-  const keys = Object.keys(nodes) as ReadonlyArray<NodeID>
-  const out = keys.filter(k => k !== dragging && k !== rootID)
-  if (isNodeID(dragging)) {
-    out.push(dragging)
-  }
+  if (!children.length || !isNodeID(dragging)) return children
+
+  const out = children.filter(k => k !== dragging)
+  out.push(dragging)
   return out
 }
 
@@ -294,9 +218,6 @@ export const TheApp: Component = () => {
           <Show when={store.newArrow}>{a => <NewArrow a={a()} />}</Show>
           <For each={edgeIDs(store.data.data.edges)}>
             {eid => <OneEdge id={eid} />}
-          </For>
-          <For each={nodeIDs(store.data.data.nodes, store.dragging)}>
-            {nid => <OneNode id={nid} />}
           </For>
         </svg>
       </div>

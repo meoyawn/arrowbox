@@ -1,10 +1,13 @@
 {
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "alwaysStrict": true,
     "downlevelIteration": true,
     "esModuleInterop": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
     "noEmit": true,
     "resolveJsonModule": true,
     "skipDefaultLibCheck": true,
@@ -13,7 +16,8 @@
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
     "strictNullChecks": true,
-    "strictPropertyInitialization": true
+    "strictPropertyInitialization": true,
+    "verbatimModuleSyntax": true
   },
   "include": ["src/", "*.config.ts"]
 }

@@ -1,6 +1,12 @@
 import { type Vec2 } from "../../../lib/geometry"
 import { md2html } from "../../markdown"
-import { genID, type EdgeID, type NodeID, type NodesEdges } from "../data/data"
+import {
+  genID,
+  rootID,
+  type EdgeID,
+  type NodeID,
+  type NodesEdges,
+} from "../data/data"
 import { measureHtml } from "../label"
 
 export function addNode2(data: NodesEdges, [x, y]: Vec2): NodeID {
@@ -15,6 +21,8 @@ export function addNode2(data: NodesEdges, [x, y]: Vec2): NodeID {
     rect: { x, y, width: 100, height: 100 },
     children: [],
   }
+
+  data.nodes[rootID].children.push(id)
 
   return id
 }

@@ -1,9 +1,8 @@
-import { zoomIdentity, type ZoomTransform } from "d3-zoom"
-import { createStore } from "solid-js/store"
+import { type ZoomTransform } from "d3-zoom"
 import { type Rect, type Vec2 } from "../../../lib/geometry"
-import { rootID, type EdgeID, type NodeID, type NodesEdges } from "./data"
-import { buildIndex, type GraphIndex } from "./indexing"
-import { emptyHistory, type ImmerHistory } from "./history"
+import { type EdgeID, type NodeID, type NodesEdges } from "./data"
+import { type ImmerHistory } from "./history"
+import { type GraphIndex } from "./indexing"
 
 export interface NewArrowState {
   fromWorld: Vec2
@@ -29,27 +28,3 @@ export interface State {
   dragging?: NodeID | EdgeID
   editing?: NodeID | EdgeID
 }
-
-export const emptyDiagram = (): NodesEdges => ({
-  nodes: {
-    [rootID]: {
-      id: rootID,
-      children: [],
-      rect: { x: 0, y: 0, width: 0, height: 0 },
-      text: "",
-    },
-  },
-  edges: {},
-})
-
-export const emptyDataState = (): DataState => ({
-  data: emptyDiagram(),
-  history: emptyHistory(),
-  index: buildIndex(emptyDiagram()),
-})
-
-export const [store, setStore] = createStore<State>({
-  camera: zoomIdentity,
-  data: emptyDataState(),
-  selected: {},
-})

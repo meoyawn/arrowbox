@@ -8,3 +8,6 @@ export const lazy = <T>(fn: () => T): (() => T) => {
     return val
   }
 }
+
+/** serializable set */
+export type RSet<T extends keyof never> = Partial<Record<T, true>>

@@ -6,6 +6,7 @@ import {
   setAutoFreeze,
 } from "immer"
 import { midPoint, type Rect, type Vec2 } from "../../../lib/geometry"
+import { emptyHistory } from "./history.ts"
 import { buildIndex } from "./indexing"
 import { type DataState, type State } from "./state"
 
@@ -21,7 +22,7 @@ export const isNodeID = (id: unknown): id is NodeID =>
 export const isEdgeID = (id: unknown): id is EdgeID =>
   typeof id === "string" && id.startsWith("e")
 
-export const rootID: NodeID = "nRoot"
+export const rootID = "nRoot"
 
 export interface Node {
   id: NodeID
@@ -31,6 +32,10 @@ export interface Node {
   }
   rect: Rect
   children: Array<NodeID>
+}
+
+export interface IdRect extends Rect {
+  id: NodeID
 }
 
 export type EdgeAnchor =
@@ -140,3 +145,24 @@ export const addEdge = (
 
   return ret
 }
+
+export const emptyDiagram = (): NodesEdges => ({
+  nodes: {
+    [rootID]: {
+      id: rootID,
+      children: [],
+      rect: { x: 0, y: 0, width: 0, height: 0 },
+      text: {
+        html: "",
+        markdown: "",
+      },
+    },
+  },
+  edges: {},
+})
+
+export const emptyDataState = (): DataState => ({
+  data: emptyDiagram(),
+  history: emptyHistory(),
+  index: buildIndex(emptyDiagram()),
+})

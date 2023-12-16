@@ -1,26 +1,27 @@
 import { destructure } from "@solid-primitives/destructure"
 import clsx from "clsx"
-import { Show, type Component } from "solid-js"
+import { For, Show, type Component } from "solid-js"
 import { type Rect } from "../../../lib/geometry"
 import { type NodeID } from "../data/data"
+import { draggingLast } from "../TheApp.tsx"
 import { dragNewArrow } from "./drag/new-arrow"
 import { dragNode } from "./drag/node"
-import { Sides, type Side } from "./drag/resize"
+import { ResizeSides, type ResizeSide } from "./drag/resize"
 import { store } from "./store"
 
 const sideArea = 14
 
 const Side: Component<{
   rect: Rect
-  side: Side
+  side: ResizeSide
 }> = props => {
-  const x1 = () => (props.side === Sides.EAST ? props.rect.width : 0)
-  const y1 = () => (props.side === Sides.SOUTH ? props.rect.height : 0)
-  const x2 = () => (props.side === Sides.WEST ? 0 : props.rect.width)
-  const y2 = () => (props.side === Sides.NORTH ? 0 : props.rect.height)
+  const x1 = () => (props.side === ResizeSides.EAST ? props.rect.width : 0)
+  const y1 = () => (props.side === ResizeSides.SOUTH ? props.rect.height : 0)
+  const x2 = () => (props.side === ResizeSides.WEST ? 0 : props.rect.width)
+  const y2 = () => (props.side === ResizeSides.NORTH ? 0 : props.rect.height)
 
   const cls = () =>
-    props.side === Sides.EAST || props.side === Sides.WEST
+    props.side === ResizeSides.EAST || props.side === ResizeSides.WEST
       ? "hover:cursor-ew-resize"
       : "hover:cursor-ns-resize"
 
@@ -40,21 +41,21 @@ const Side: Component<{
 
 const Corner: Component<{
   rect: Rect
-  side: Side
+  side: ResizeSide
   selected?: boolean
 }> = props => {
   const x = () =>
-    props.side === Sides.NORTHEAST || props.side === Sides.SOUTHEAST
+    props.side === ResizeSides.NORTHEAST || props.side === ResizeSides.SOUTHEAST
       ? props.rect.width
       : 0
 
   const y = () =>
-    props.side === Sides.SOUTHWEST || props.side === Sides.SOUTHEAST
+    props.side === ResizeSides.SOUTHWEST || props.side === ResizeSides.SOUTHEAST
       ? props.rect.height
       : 0
 
   const cls = () =>
-    props.side === Sides.NORTHEAST || props.side === Sides.SOUTHWEST
+    props.side === ResizeSides.NORTHEAST || props.side === ResizeSides.SOUTHWEST
       ? "hover:cursor-nesw-resize"
       : "hover:cursor-nwse-resize"
 
@@ -125,9 +126,15 @@ export const OneNode: Component<{ id: NodeID }> = props => {
         innerHTML={node().text.html}
       />
 
+      <For each={draggingLast(node().children, store.dragging)}>
+        {nid => <OneNode id={nid} />}
+      </For>
+
       <circle
         data-dragID={dragNewArrow.id}
-        class="invisible cursor-move group-hover:visible"
+        class={clsx("invisible cursor-move", {
+          "group-hover:visible": !store.dragging,
+        })}
         stroke="black"
         fill="transparent"
         stroke-width={2}
@@ -136,15 +143,31 @@ export const OneNode: Component<{ id: NodeID }> = props => {
         r={5}
       />
 
-      <Side rect={rect()} side={Sides.NORTH} />
-      <Side rect={rect()} side={Sides.SOUTH} />
-      <Side rect={rect()} side={Sides.WEST} />
-      <Side rect={rect()} side={Sides.EAST} />
+      <Side rect={rect()} side={ResizeSides.NORTH} />
+      <Side rect={rect()} side={ResizeSides.SOUTH} />
+      <Side rect={rect()} side={ResizeSides.WEST} />
+      <Side rect={rect()} side={ResizeSides.EAST} />
 
-      <Corner rect={rect()} side={Sides.NORTHWEST} selected={selected()} />
-      <Corner rect={rect()} side={Sides.NORTHEAST} selected={selected()} />
-      <Corner rect={rect()} side={Sides.SOUTHEAST} selected={selected()} />
-      <Corner rect={rect()} side={Sides.SOUTHWEST} selected={selected()} />
+      <Corner
+        rect={rect()}
+        side={ResizeSides.NORTHWEST}
+        selected={selected()}
+      />
+      <Corner
+        rect={rect()}
+        side={ResizeSides.NORTHEAST}
+        selected={selected()}
+      />
+      <Corner
+        rect={rect()}
+        side={ResizeSides.SOUTHEAST}
+        selected={selected()}
+      />
+      <Corner
+        rect={rect()}
+        side={ResizeSides.SOUTHWEST}
+        selected={selected()}
+      />
     </g>
   )
 }

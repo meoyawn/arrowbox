@@ -1,8 +1,9 @@
 import { zoomIdentity, type ZoomTransform } from "d3-zoom"
+import { type BBox } from "rbush"
 import { createStore } from "solid-js/store"
-import { type Rect } from "../../../lib/geometry"
-import { type EdgeID, type NodeID } from "../data/data"
-import { emptyDataState, type DataState } from "../data/state"
+import { type RSet } from "../../../lib/ts"
+import { emptyDataState, type EdgeID, type NodeID } from "../data/data"
+import { type DataState } from "../data/state"
 
 export interface Store {
   camera: ZoomTransform
@@ -16,9 +17,9 @@ export interface Store {
 
   dragging?: NodeID
 
-  brush?: Rect
+  brush?: BBox
 
-  selected: Partial<Record<NodeID | EdgeID, true>>
+  selected: RSet<NodeID | EdgeID>
 }
 
 export const [store, setStore] = createStore<Store>({

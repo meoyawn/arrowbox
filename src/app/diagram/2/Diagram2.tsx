@@ -5,12 +5,13 @@ import { isEl } from "../../../lib/dom"
 import {
   edgeAnchor,
   patching,
+  rootID,
   worldPos,
   type EdgeID,
   type NodeID,
 } from "../data/data"
 import { SvgDefs } from "../SvgDefs"
-import { nodeIDs } from "../TheApp"
+import { draggingLast } from "../TheApp"
 import { d3Drag } from "./drag"
 import { OneNode } from "./OneNode"
 import { setStore, store } from "./store"
@@ -98,7 +99,9 @@ export const Diagram2: Component = () => {
       <SvgDefs />
 
       <g transform={svgTransform2(store.camera)}>
-        <For each={nodeIDs(store.tree.data.nodes, store.dragging)}>
+        <For
+          each={draggingLast(store.tree.data.nodes[rootID].children, store.dragging)}
+        >
           {nid => <OneNode id={nid} />}
         </For>
       </g>

@@ -8,6 +8,7 @@ import {
   type NodeID,
   type NodesEdges,
 } from "../../data/data"
+import { absRect } from "../brushing.ts"
 import { type DragSubj } from "../drag"
 import { type Store } from "../store"
 import { getNID, type DragBehavior } from "./behavior"
@@ -50,18 +51,26 @@ function onNodeEnd(
   subject: DragNode,
 ): Partial<Store> {
   const [wx, wy] = worldPos(store.camera, [x, y])
-  const parent = isNodeID(store.hovering) ? store.hovering : undefined
+  const hoveringAbove = isNodeID(store.hovering) ? store.hovering : undefined
   return {
     tree: patching(
       { ...store.tree, data: subject.dataBeforeDrag },
       ({ nodes }) => {
         const childR = nodes[subject.id].rect
-        childR.x = wx
-        childR.y = wy
 
-        if (parent && parent !== subject.id) {
-          const p = nodes[parent]
+        if (hoveringAbove && hoveringAbove !== subject.id) {
+          const oldParent = nodes[store.tree.index.parents[subject.id]]
+          oldParent.children = oldParent.children.filter(x => x === subject.id)
+
+          nodes[hoveringAbove].children.push(subject.id)
+
+          const p = nodes[hoveringAbove]
           p.rect = extendToFit(p.rect, childR)
+
+          // TODO set child coordinates by offsetting from parent
+        } else {
+          childR.x = wx
+          childR.y = wy
         }
       },
     ),
