@@ -1,17 +1,11 @@
 import { type ZoomTransform } from "d3-zoom"
-import {
-  enablePatches,
-  produce,
-  produceWithPatches,
-  setAutoFreeze,
-} from "immer"
+import { enablePatches, setAutoFreeze } from "immer"
 import { midPoint, type Rect, type Vec2 } from "../../../lib/geometry"
 import { emptyHistory } from "./history.ts"
 import { buildIndex } from "./indexing"
 import { type DataState, type State } from "./state"
 
-enablePatches()
-setAutoFreeze(false)
+
 
 export type NodeID = `n${string}`
 export type EdgeID = `e${string}`
@@ -74,28 +68,6 @@ export const worldPos = (transform: ZoomTransform, screen: Vec2): Vec2 =>
 
 export const screenPos = (transform: ZoomTransform, world: Vec2): Vec2 =>
   transform.apply(world)
-
-export function patching(
-  { data, history }: DataState,
-  fn: (d: NodesEdges) => void,
-): DataState {
-  const [next, fwd, bwd] = produceWithPatches(data, fn)
-
-  return {
-    data: next,
-    history: {
-      forward: [...history.forward, fwd],
-      backward: [...history.backward, bwd],
-      index: history.index + 1,
-    },
-    index: buildIndex(next),
-  }
-}
-
-export const nonPatching = (
-  s: DataState,
-  fn: (d: NodesEdges) => void,
-): DataState => ({ ...s, data: produce(s.data, fn) })
 
 export const genStr = (): string => {
   const neverZero: number = Date.now() + Math.random()
