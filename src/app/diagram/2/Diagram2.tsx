@@ -1,15 +1,16 @@
 import { destructure } from "@solid-primitives/destructure"
 import { pointer, select } from "d3-selection"
-import { createEffect, For, type Component } from "solid-js"
+import { createEffect, For, onCleanup, type Component } from "solid-js"
 import { isEl } from "../../../lib/dom"
 import {
   edgeAnchor,
-  patching,
   rootID,
   worldPos,
   type EdgeID,
   type NodeID,
 } from "../data/data"
+import { patching } from "../data/history.ts"
+import { setupHotkeys } from "../hotkeys.ts"
 import { SvgDefs } from "../SvgDefs"
 import { draggingLast } from "../TheApp"
 import { d3Drag } from "./drag"
@@ -57,6 +58,8 @@ export const Diagram2: Component = () => {
 
   createEffect(() => {
     select(ref).call(d3Drag)
+
+    onCleanup(setupHotkeys())
   })
 
   return (
@@ -100,7 +103,10 @@ export const Diagram2: Component = () => {
 
       <g transform={svgTransform2(store.camera)}>
         <For
-          each={draggingLast(store.tree.data.nodes[rootID].children, store.dragging)}
+          each={draggingLast(
+            store.tree.data.nodes[rootID].children,
+            store.dragging,
+          )}
         >
           {nid => <OneNode id={nid} />}
         </For>

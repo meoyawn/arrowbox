@@ -16,7 +16,7 @@
   "dependencies": {
     "@solid-primitives/destructure": "^0.1.14",
     "@solidjs/router": "^0.10.5",
-    "clsx": "^2.0.0",
+    "clsx": "^2.1.0",
     "d3-drag": "^3.0.0",
     "d3-scale": "^4.0.2",
     "d3-selection": "^3.0.0",
@@ -43,13 +43,13 @@
     "@types/d3-selection": "^3.0.10",
     "@types/d3-zoom": "^3.0.8",
     "@types/rbush": "^3.0.3",
-    "@typescript-eslint/eslint-plugin": "^6.16.0",
-    "@typescript-eslint/parser": "^6.16.0",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
     "autoprefixer": "^10.4.16",
     "concurrently": "^8.2.2",
     "eslint": "^8.56.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
-    "eslint-plugin-solid": "^0.13.0",
+    "eslint-plugin-solid": "^0.13.1",
     "postcss": "^8.4.32",
     "prettier": "^3.1.1",
     "prettier-plugin-packagejson": "^2.4.8",
@@ -58,7 +58,7 @@
     "typescript": "^5.3.3",
     "vite": "^5.0.10",
     "vite-plugin-solid": "^2.8.0",
-    "vitest": "^1.1.0",
+    "vitest": "^1.1.1",
     "wrangler": "^3.22.1"
   }
 }

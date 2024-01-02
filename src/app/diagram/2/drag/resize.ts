@@ -2,12 +2,11 @@ import { isEl } from "../../../../lib/dom"
 import { type Rect } from "../../../../lib/geometry"
 import {
   isNodeID,
-  nonPatching,
-  patching,
   worldPos,
   type NodeID,
   type NodesEdges,
 } from "../../data/data"
+import { nonPatching, patching } from "../../data/history.ts"
 import { type D3Event } from "../drag"
 import { type Store } from "../store"
 import { type DragBehavior } from "./behavior"

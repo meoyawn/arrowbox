@@ -11,7 +11,6 @@ import {
   edgeAnchor,
   emptyDiagram,
   isNodeID,
-  patching,
   type EdgeID,
   type NodeID,
   type NodesEdges,

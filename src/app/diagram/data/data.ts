@@ -1,11 +1,8 @@
 import { type ZoomTransform } from "d3-zoom"
-import { enablePatches, setAutoFreeze } from "immer"
 import { midPoint, type Rect, type Vec2 } from "../../../lib/geometry"
 import { emptyHistory } from "./history.ts"
 import { buildIndex } from "./indexing"
 import { type DataState, type State } from "./state"
-
-
 
 export type NodeID = `n${string}`
 export type EdgeID = `e${string}`

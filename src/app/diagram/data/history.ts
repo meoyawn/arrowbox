@@ -25,10 +25,10 @@ export const emptyHistory = (): ImmerHistory => ({
   backward: [],
 })
 
-export function patching(
+export const patching = (
   { data, history }: DataState,
   fn: (d: NodesEdges) => void,
-): DataState {
+): DataState => {
   const [next, fwd, bwd] = produceWithPatches(data, fn)
 
   return {
@@ -47,7 +47,10 @@ export const nonPatching = (
   fn: (d: NodesEdges) => void,
 ): DataState => ({ ...s, data: produce(s.data, fn) })
 
-export function undo({ data, history }: DataState): DataState {
+export const undo = (ds: DataState): DataState => {
+  const { data, history } = ds
+  if (history.index < 0) return ds
+
   const patch = history.backward[history.index]
   const prev = applyPatches(data, patch)
   return {
@@ -57,12 +60,16 @@ export function undo({ data, history }: DataState): DataState {
   }
 }
 
-export function redo({ data, history }: DataState): DataState {
-  const patch = history.forward[history.index]
+export const redo = (ds: DataState): DataState => {
+  const { data, history } = ds
+  const index = history.index + 1
+  if (index >= history.forward.length) return ds
+
+  const patch = history.forward[index]
   const next = applyPatches(data, patch)
   return {
     data: next,
     index: buildIndex(next),
-    history: { ...history, index: history.index + 1 },
+    history: { ...history, index },
   }
 }

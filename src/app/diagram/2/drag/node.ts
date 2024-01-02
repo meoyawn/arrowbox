@@ -1,14 +1,12 @@
 import { extendToFit } from "../../../../lib/geometry"
 import {
   isNodeID,
-  nonPatching,
-  patching,
   screenPos,
   worldPos,
   type NodeID,
   type NodesEdges,
 } from "../../data/data"
-import { absRect } from "../brushing.ts"
+import { nonPatching, patching } from "../../data/history.ts"
 import { type DragSubj } from "../drag"
 import { type Store } from "../store"
 import { getNID, type DragBehavior } from "./behavior"

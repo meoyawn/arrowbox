@@ -1,4 +1,6 @@
 import hotkeys from "hotkeys-js"
+import { setStore, store } from "./2/store.ts"
+import { redo, undo } from "./data/history.ts"
 
 export const setupHotkeys = (): VoidFunction => {
   // hotkeys("Delete, Backspace", () => {
@@ -25,5 +27,14 @@ export const setupHotkeys = (): VoidFunction => {
   //   }
   // })
   //
+
+  hotkeys("ctrl+z, command+z", () => {
+    setStore(({ tree }) => ({ tree: undo(tree) }))
+  })
+
+  hotkeys("ctrl+shift+z, command+shift+z", () => {
+    setStore(({ tree }) => ({ tree: redo(tree) }))
+  })
+
   return () => hotkeys.unbind()
 }
