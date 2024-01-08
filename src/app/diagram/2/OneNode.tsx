@@ -1,11 +1,9 @@
 import { destructure } from "@solid-primitives/destructure"
 import clsx from "clsx"
-import { For, Show, type Component } from "solid-js"
+import { Show, type Component } from "solid-js"
 import { type Rect } from "../../../lib/geometry"
 import { type NodeID } from "../data/data"
-import { draggingLast } from "../TheApp.tsx"
-import { dragNewArrow } from "./drag/new-arrow"
-import { dragNode } from "./drag/node"
+import { dragIDs } from "./drag.ts"
 import { ResizeSides, type ResizeSide } from "./drag/resize"
 import { store } from "./store"
 
@@ -98,7 +96,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
       transform={`translate(${x()} ${y()})`}
     >
       <rect
-        data-dragID={dragNode.id}
+        data-dragID={dragIDs.node}
         stroke-width={2}
         stroke="black"
         fill="transparent"
@@ -126,12 +124,8 @@ export const OneNode: Component<{ id: NodeID }> = props => {
         innerHTML={node().text.html}
       />
 
-      <For each={draggingLast(node().children, store.dragging)}>
-        {nid => <OneNode id={nid} />}
-      </For>
-
       <circle
-        data-dragID={dragNewArrow.id}
+        data-dragID={dragIDs.newArrow}
         class={clsx("invisible cursor-move", {
           "group-hover:visible": !store.dragging,
         })}

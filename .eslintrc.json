@@ -41,6 +41,7 @@
     "@typescript-eslint/require-array-sort-compare": "error",
     "eqeqeq": ["error", "always"],
     "no-console": "error",
-    "no-unused-vars": "off"
+    "no-unused-vars": "off",
+    "no-param-reassign": "error"
   }
 }

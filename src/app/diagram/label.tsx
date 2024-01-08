@@ -1,6 +1,6 @@
-import { lazy } from "../../lib/ts"
+import { memoize } from "../../lib/ts"
 
-const lazyEl = lazy(() => {
+const lazyEl = memoize(() => {
   const div = document.createElement("div")
   div.className = "prose invisible fixed left-0 top-0"
   document.body.append(div)

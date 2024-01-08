@@ -1,88 +1,49 @@
-import { extendToFit } from "../../../../lib/geometry"
-import {
-  isNodeID,
-  screenPos,
-  worldPos,
-  type NodeID,
-  type NodesEdges,
-} from "../../data/data"
+import { extendToFit, type Rect } from "../../../../lib/geometry"
+import { isNodeID, type NodeID, type NodesEdges } from "../../data/data"
 import { nonPatching, patching } from "../../data/history.ts"
-import { type DragSubj } from "../drag"
+import { type DragBehavior2 } from "../drag.ts"
 import { type Store } from "../store"
-import { getNID, type DragBehavior } from "./behavior"
 
-export interface DragNode {
-  type: "node"
-  id: NodeID
-  dataBeforeDrag: NodesEdges
-}
+/** world coordinates */
+export const dragNode = (
+  id: NodeID,
+  beforeDrag: NodesEdges,
+  init: Rect,
+): DragBehavior2 => ({
+  x: init.x,
+  y: init.y,
 
-function dragNodeSubj(store: Store, nid: NodeID): DragSubj {
-  const { data } = store.tree
-  const { rect } = data.nodes[nid]
-  const [sx, sy] = screenPos(store.camera, [rect.x, rect.y])
-  return { type: "node", x: sx, y: sy, id: nid, dataBeforeDrag: data }
-}
-
-function onNodeDrag(
-  store: Store,
-  x: number,
-  y: number,
-  subject: DragNode,
-): Partial<Store> {
-  const [wx, wy] = worldPos(store.camera, [x, y])
-
-  return {
-    tree: nonPatching(store.tree, ({ nodes }) => {
-      const r = nodes[subject.id].rect
-      r.x = wx
-      r.y = wy
+  onDrag: ({ tree }: Store, x: number, y: number): Partial<Store> => ({
+    tree: nonPatching(tree, ({ nodes }) => {
+      const r = nodes[id].rect
+      r.x = x
+      r.y = y
     }),
-    dragging: subject.id,
-  }
-}
+    dragging: id,
+  }),
 
-function onNodeEnd(
-  store: Store,
-  x: number,
-  y: number,
-  subject: DragNode,
-): Partial<Store> {
-  const [wx, wy] = worldPos(store.camera, [x, y])
-  const hoveringAbove = isNodeID(store.hovering) ? store.hovering : undefined
-  return {
-    tree: patching(
-      { ...store.tree, data: subject.dataBeforeDrag },
-      ({ nodes }) => {
-        const childR = nodes[subject.id].rect
+  onEnd({ hovering, tree }: Store, x: number, y: number): Partial<Store> {
+    const above = isNodeID(hovering) ? hovering : undefined
+    return {
+      tree: patching({ ...tree, data: beforeDrag }, ({ nodes }) => {
+        const childR = nodes[id].rect
 
-        if (hoveringAbove && hoveringAbove !== subject.id) {
-          const oldParent = nodes[store.tree.index.parents[subject.id]]
-          oldParent.children = oldParent.children.filter(x => x === subject.id)
+        if (above && above !== id) {
+          const oldParent = nodes[tree.index.parents[id]]
+          oldParent.children = oldParent.children.filter(x => x === id)
 
-          nodes[hoveringAbove].children.push(subject.id)
+          nodes[above].children.push(id)
 
-          const p = nodes[hoveringAbove]
+          const p = nodes[above]
           p.rect = extendToFit(p.rect, childR)
 
           // TODO set child coordinates by offsetting from parent
         } else {
-          childR.x = wx
-          childR.y = wy
+          childR.x = x
+          childR.y = y
         }
-      },
-    ),
-    dragging: undefined,
-  }
-}
-
-export const dragNode: DragBehavior<DragNode> = {
-  id: "node",
-  subject(store, ev) {
-    const nid = getNID(ev.sourceEvent)
-    if (!nid) throw new Error("no nid")
-    return dragNodeSubj(store, nid)
+      }),
+      dragging: undefined,
+    }
   },
-  onDrag: onNodeDrag,
-  onEnd: onNodeEnd,
-}
+})

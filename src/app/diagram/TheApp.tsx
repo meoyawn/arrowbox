@@ -10,7 +10,6 @@ import { md2html } from "../markdown"
 import {
   edgeAnchor,
   emptyDiagram,
-  isNodeID,
   type EdgeID,
   type NodeID,
   type NodesEdges,
@@ -21,7 +20,6 @@ import { DefaultGrid } from "./DefaultGrid"
 import { setupHotkeys } from "./hotkeys"
 import { measureHtml } from "./label"
 import { SvgDefs } from "./SvgDefs"
-import { wheeled } from "./zoom"
 
 const cssTransform = ({ k, x, y }: ZoomTransform): string =>
   `translate(${x}px, ${y}px) scale(${k})`
@@ -110,17 +108,6 @@ const TextEditor: Component<{ id: NodeID }> = props => {
   )
 }
 
-export const draggingLast = (
-  children: ReadonlyArray<NodeID>,
-  dragging: NodeID | EdgeID | undefined,
-): ReadonlyArray<NodeID> => {
-  if (!children.length || !isNodeID(dragging)) return children
-
-  const out = children.filter(k => k !== dragging)
-  out.push(dragging)
-  return out
-}
-
 const edgeIDs = (edges: Record<EdgeID, unknown>): ReadonlyArray<EdgeID> =>
   Object.keys(edges) as ReadonlyArray<EdgeID>
 
@@ -135,7 +122,7 @@ const NewArrow: Component<{ a: NewArrowState }> = props => (
   />
 )
 
-export const TheApp: Component = () => {
+const TheApp: Component = () => {
   const routeParams = useParams()
 
   createEffect(() => {

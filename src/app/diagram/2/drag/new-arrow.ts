@@ -1,11 +1,24 @@
+import { midPoint, type Rect } from "../../../../lib/geometry.ts"
 import { type NodeID } from "../../data/data"
-import { type DragBehavior } from "./behavior"
+import { patching } from "../../data/history.ts"
+import type { DragBehavior2 } from "../drag.ts"
+import type { Store } from "../store.ts"
 
-export interface DragNewArrow {
-  type: "newArrow"
-  from: NodeID
-}
-
-export const dragNewArrow: DragBehavior<DragNewArrow> = {
-  id: "newArrow",
+export function dragNewArrow(id: NodeID, init: Rect): DragBehavior2 {
+  const [midX, midY] = midPoint(init)
+  return {
+    x: midX,
+    y: midY,
+    onDrag: (store: Store, x: number, y: number): Partial<Store> => ({
+      newArrow: { from: id, to: [x, y] },
+    }),
+    onEnd(store: Store, x: number, y: number): Partial<Store> {
+      return {
+        newArrow: undefined,
+        tree: patching(store.tree, ({ edges, nodes }) => {
+          throw new Error("TODO")
+        }),
+      }
+    },
+  }
 }

@@ -1,19 +1,20 @@
 import { destructure } from "@solid-primitives/destructure"
-import { pointer, select } from "d3-selection"
+import { pointer, select, type Selection } from "d3-selection"
+import { zoom, type D3ZoomEvent, type ZoomTransform } from "d3-zoom"
 import { createEffect, For, onCleanup, type Component } from "solid-js"
-import { isEl } from "../../../lib/dom"
+import { dataset, isEl, svgTransform2 } from "../../../lib/dom"
+import { memoize } from "../../../lib/ts.ts"
 import {
   edgeAnchor,
+  isNodeID,
   rootID,
-  worldPos,
   type EdgeID,
   type NodeID,
 } from "../data/data"
 import { patching } from "../data/history.ts"
 import { setupHotkeys } from "../hotkeys.ts"
 import { SvgDefs } from "../SvgDefs"
-import { draggingLast } from "../TheApp"
-import { d3Drag } from "./drag"
+import { behaviorDrag, worldDragSubj } from "./drag.ts"
 import { OneNode } from "./OneNode"
 import { setStore, store } from "./store"
 import { addNode2 } from "./transactions"
@@ -43,36 +44,65 @@ const OneEdge: Component<{ id: EdgeID }> = props => {
   )
 }
 
-const svgTransform2 = ({
-  k,
-  x,
-  y,
-}: {
-  x: number
-  y: number
-  k?: number
-}): string => `translate(${x} ${y})` + (k ? ` scale(${k})` : "")
+const draggingLast = (
+  children: ReadonlyArray<NodeID>,
+  dragging: NodeID | EdgeID | undefined,
+): ReadonlyArray<NodeID> => {
+  if (!children.length || !isNodeID(dragging)) return children
+
+  const out = children.filter(k => k !== dragging)
+  out.push(dragging)
+  return out
+}
+
+const d3Zoom = zoom<Element, unknown>()
+  .scaleExtent([0.05, 8])
+  .filter((ev: UIEvent) => (ev instanceof WheelEvent ? ev.ctrlKey : true))
+  .on("zoom", (e: D3ZoomEvent<Element, unknown>) =>
+    setStore({ camera: e.transform }),
+  )
+
+export const zoomTo = (
+  s: Selection<Element, unknown, null, unknown>,
+  t: ZoomTransform,
+): void => d3Zoom.transform(s, t)
 
 export const Diagram2: Component = () => {
-  let ref: SVGSVGElement
+  let svgEl: SVGSVGElement
+  let zoomedEl: SVGGElement
+
+  const svgSel = memoize(() => select(svgEl as Element))
 
   createEffect(() => {
-    select(ref).call(d3Drag)
+    svgSel()
+      .call(behaviorDrag(worldDragSubj, zoomedEl))
+      .call(d3Zoom)
+      .on("dblclick.zoom", null)
+      .on("mousedown.zoom", null)
 
     onCleanup(setupHotkeys())
   })
 
   return (
     <svg
-      ref={el => (ref = el)}
+      ref={svgEl!}
       class="h-full min-h-screen w-full"
       onDblClick={e => {
-        const world = worldPos(store.camera, pointer(e))
+        const world = pointer(e, zoomedEl)
         setStore(s => ({
           tree: patching(s.tree, x => {
             addNode2(x, world)
           }),
         }))
+      }}
+      onWheel={ev => {
+        if (!ev.ctrlKey) {
+          const camera = store.camera
+          zoomTo(
+            svgSel(),
+            camera.translate(-ev.deltaX / camera.k, -ev.deltaY / camera.k),
+          )
+        }
       }}
       onMouseOver={ev => {
         const node = ev.target.closest("[data-nodeID]")
@@ -82,10 +112,9 @@ export const Diagram2: Component = () => {
         setStore({ hovering })
       }}
       onClick={ev => {
-        const node = ev.target.closest("[data-nodeID]")
-        const nid = isEl(node) ? (node.dataset.nodeID as NodeID) : undefined
-        const edge = ev.target.closest("[data-edgeID]")
-        const eid = isEl(edge) ? (edge.dataset.edgeID as EdgeID) : undefined
+        const target = ev.target
+        const nid = dataset(target.closest("[data-nodeID]"))?.nodeID
+        const eid = dataset(target.closest("[data-edgeID]"))?.edgeID
         const selected = nid ?? eid
         if (selected) {
           setStore({
@@ -101,7 +130,7 @@ export const Diagram2: Component = () => {
     >
       <SvgDefs />
 
-      <g transform={svgTransform2(store.camera)}>
+      <g ref={zoomedEl!} transform={svgTransform2(store.camera)}>
         <For
           each={draggingLast(
             store.tree.data.nodes[rootID].children,

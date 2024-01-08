@@ -1,72 +1,103 @@
-import { drag, type D3DragEvent } from "d3-drag"
-import { isEl } from "../../../lib/dom"
-import { type DragBehavior } from "./drag/behavior"
-import { dragBrush, type DragBrush } from "./drag/brush"
-import { dragNewArrow, type DragNewArrow } from "./drag/new-arrow"
-import { dragNode, type DragNode } from "./drag/node"
-import { dragSide, type DragResize } from "./drag/resize"
-import { setStore, store } from "./store"
+import {
+  drag,
+  type D3DragEvent,
+  type DragBehavior,
+  type DragContainerElement,
+} from "d3-drag"
+import { dataset, isEl } from "../../../lib/dom.ts"
+import { isNodeID, type NodeID } from "../data/data.ts"
+import { dragBrush } from "./drag/brush.ts"
+import { dragNewArrow } from "./drag/new-arrow.ts"
+import { dragNode } from "./drag/node.ts"
+import { dragSide, type ResizeSide } from "./drag/resize.ts"
+import { setStore, store, type Store } from "./store.ts"
 
-export const dragConstraints = {
-  minHeight: 1,
-} as const
+export function getNodeID(ev: Event): NodeID | undefined {
+  const { target } = ev
+  if (!isEl(target)) return
 
-export interface Variants {
-  node: DragNode
-  side: DragResize
-  newArrow: DragNewArrow
-  brush: DragBrush
+  const nid = dataset(target.closest("[data-nodeID]"))?.nodeID
+
+  return isNodeID(nid) ? nid : undefined
 }
 
-export type DragSubj = Variants[keyof Variants] & {
-  x: number
-  y: number
+export interface DragBehavior2 {
+  readonly x: number
+  readonly y: number
+
+  onDrag(store: Store, x: number, y: number): Partial<Store>
+
+  onEnd(store: Store, x: number, y: number): Partial<Store>
 }
 
-export interface D3Event<Subj>
-  extends D3DragEvent<SVGSVGElement, unknown, Subj> {
+export function behaviorDrag<T extends Element>(
+  subj: (ev: D3Event<undefined>) => DragBehavior2 | null,
+  container?: DragContainerElement,
+): DragBehavior<T, unknown, DragBehavior2> {
+  let d = drag<T, unknown>()
+  if (container) {
+    d = d.container(container)
+  }
+  return d
+    .subject(subj)
+    .on("drag", ({ subject, x, y }: D3Event<DragBehavior2>) =>
+      setStore(subject.onDrag(store, x, y)),
+    )
+    .on("end", ({ subject, x, y }: D3Event<DragBehavior2>) =>
+      setStore(subject.onEnd(store, x, y)),
+    ) as DragBehavior<T, unknown, DragBehavior2>
+}
+
+interface D3Event<Subj> extends D3DragEvent<Element, unknown, Subj> {
   sourceEvent: MouseEvent | TouchEvent
 }
 
-type DragID = keyof Variants
+export const dragIDs = {
+  node: "node",
+  newArrow: "new-arrow",
+} as const
 
-const behaviors: {
-  [K in DragID]: DragBehavior<Variants[K]>
-} = {
-  node: dragNode,
-  side: dragSide,
-  newArrow: dragNewArrow,
-  brush: dragBrush,
-}
+type DragID = (typeof dragIDs)[keyof typeof dragIDs]
 
-const decideSubj = ({ dragID, side }: DOMStringMap): DragID => {
-  switch (true) {
-    case Boolean(side):
-      return "side"
+const dragIDSet: ReadonlySet<DragID> = new Set(Object.values(dragIDs))
 
-    case !dragID:
-      return "brush"
+const isDragID = (id: unknown): id is DragID =>
+  typeof id === "string" && dragIDSet.has(id as DragID)
 
-    default:
-      return dragID as keyof Variants
+/** world coordinates */
+export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
+  const { target, shiftKey } = ev.sourceEvent
+  if (!isEl(target)) return null
+
+  const { dragID, side } = target.dataset
+  const { data } = store.tree
+
+  if (side) {
+    const nid = getNodeID(ev.sourceEvent)
+    if (!nid) throw new Error("no nid")
+
+    return dragSide(data, nid, side as ResizeSide, ev.x, ev.y)
+  }
+
+  if (!isDragID(dragID)) {
+    return !shiftKey ? dragBrush(ev.x, ev.y) : null
+  }
+
+  switch (dragID) {
+    case dragIDs.node: {
+      const nid = getNodeID(ev.sourceEvent)
+      if (!nid) throw new Error("no nid")
+
+      const { rect } = data.nodes[nid]
+      return shiftKey ? dragNewArrow(nid, rect) : dragNode(nid, data, rect)
+    }
+
+    case dragIDs.newArrow: {
+      const nid = getNodeID(ev.sourceEvent)
+      if (!nid) throw new Error("no nid")
+
+      const { rect } = data.nodes[nid]
+      return dragNewArrow(nid, rect)
+    }
   }
 }
-
-function dragSubj(this: SVGSVGElement, ev: D3Event<undefined>): DragSubj | 0 {
-  const { target } = ev.sourceEvent
-  if (!isEl(target)) return 0
-
-  return behaviors[decideSubj(target.dataset)].subject(store, ev)
-}
-
-const onDrag = ({ subject, x, y }: D3Event<DragSubj>) => {
-  return setStore(behaviors[subject.type].onDrag(store, x, y, subject))
-}
-
-const onEnd = ({ subject, x, y }: D3Event<DragSubj>) =>
-  setStore(behaviors[subject.type].onEnd(store, x, y, subject))
-
-export const d3Drag = drag<SVGSVGElement, unknown>()
-  .subject(dragSubj)
-  .on("drag", onDrag)
-  .on("end", onEnd)

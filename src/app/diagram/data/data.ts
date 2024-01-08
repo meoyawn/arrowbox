@@ -4,6 +4,7 @@ import { emptyHistory } from "./history.ts"
 import { buildIndex } from "./indexing"
 import { type DataState, type State } from "./state"
 
+export type GraphID = `g${string}`
 export type NodeID = `n${string}`
 export type EdgeID = `e${string}`
 

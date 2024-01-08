@@ -10,12 +10,11 @@
     "chk:types": "tsc",
     "clean": "rm -rf dist/",
     "dev": "vite",
-    "dpl": "rm -rf dist/ && vite build && wrangler pages deploy dist/ --commit-dirty=true",
-    "preview": "vite preview"
+    "dpl": "rm -rf dist/ && vite build && wrangler pages deploy dist/ --commit-dirty=true"
   },
   "dependencies": {
     "@solid-primitives/destructure": "^0.1.14",
-    "@solidjs/router": "^0.10.5",
+    "@solidjs/router": "^0.10.6",
     "clsx": "^2.1.0",
     "d3-drag": "^3.0.0",
     "d3-scale": "^4.0.2",
@@ -29,7 +28,7 @@
     "rehype-stringify": "^10.0.0",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.0.0",
-    "solid-js": "^1.8.7",
+    "solid-js": "^1.8.8",
     "tailwind-merge": "^2.2.0",
     "unified": "^11.0.4"
   },
@@ -43,22 +42,22 @@
     "@types/d3-selection": "^3.0.10",
     "@types/d3-zoom": "^3.0.8",
     "@types/rbush": "^3.0.3",
-    "@typescript-eslint/eslint-plugin": "^6.17.0",
-    "@typescript-eslint/parser": "^6.17.0",
+    "@typescript-eslint/eslint-plugin": "^6.18.0",
+    "@typescript-eslint/parser": "^6.18.0",
     "autoprefixer": "^10.4.16",
     "concurrently": "^8.2.2",
     "eslint": "^8.56.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-solid": "^0.13.1",
-    "postcss": "^8.4.32",
+    "postcss": "^8.4.33",
     "prettier": "^3.1.1",
-    "prettier-plugin-packagejson": "^2.4.8",
-    "prettier-plugin-tailwindcss": "^0.5.10",
-    "tailwindcss": "^3.4.0",
+    "prettier-plugin-packagejson": "^2.4.9",
+    "prettier-plugin-tailwindcss": "^0.5.11",
+    "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
-    "vite": "^5.0.10",
+    "vite": "^5.0.11",
     "vite-plugin-solid": "^2.8.0",
-    "vitest": "^1.1.1",
-    "wrangler": "^3.22.1"
+    "vitest": "^1.1.3",
+    "wrangler": "^3.22.3"
   }
 }

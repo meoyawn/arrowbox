@@ -1,6 +1,7 @@
 import { zoomIdentity, type ZoomTransform } from "d3-zoom"
 import { type BBox } from "rbush"
 import { createStore } from "solid-js/store"
+import { type Vec2 } from "../../../lib/geometry.ts"
 import { type RSet } from "../../../lib/ts"
 import { emptyDataState, type EdgeID, type NodeID } from "../data/data"
 import { type DataState } from "../data/state"
@@ -20,6 +21,11 @@ export interface Store {
   brush?: BBox
 
   selected: RSet<NodeID | EdgeID>
+
+  newArrow?: {
+    from: NodeID
+    to: Vec2
+  }
 }
 
 export const [store, setStore] = createStore<Store>({

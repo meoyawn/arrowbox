@@ -1,9 +1,7 @@
 import { A, useNavigate } from "@solidjs/router"
 import { createEffect, createSignal, For, type Component } from "solid-js"
 import logoLight from "../../assets/logo_light.svg"
-import { genID } from "../diagram/data/data"
-
-export type GraphID = `g${string}`
+import { genID, type GraphID } from "../diagram/data/data"
 
 type GraphList = Record<GraphID, { title: string }>
 

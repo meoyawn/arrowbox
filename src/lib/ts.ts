@@ -1,4 +1,4 @@
-export const lazy = <T>(fn: () => T): (() => T) => {
+export const memoize = <T>(fn: () => T): (() => T) => {
   let val: T | undefined
 
   return () => {
