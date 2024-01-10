@@ -8,7 +8,7 @@ export const dragBrush = (sx: number, sy: number): DragBehavior2 => ({
   y: sy,
   onDrag(store: Store, x: number, y: number): Partial<Store> {
     const brush: BBox = {
-      minX: Math.min(this.x, x),
+      minX: Math.min(sx, x),
       minY: Math.min(sy, y),
       maxX: Math.max(sx, x),
       maxY: Math.max(sy, y),
