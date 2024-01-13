@@ -1,7 +1,7 @@
 import RBush, { type BBox } from "rbush"
 import type { Rect } from "../../../lib/geometry.ts"
-import type { NestPath } from "../2/brushing.ts"
-import { absRect } from "../2/brushing.ts"
+import type { NestPath } from "../brushing.ts"
+import { absRect } from "../brushing.ts"
 import {
   rootID,
   type Edge,
@@ -132,13 +132,11 @@ class IdRectBush extends RBush<IdRect> {
   compareMinY = (a: IdRect, b: IdRect): number => a.y - b.y
 }
 
-function getAbsRects(nodes: Record<NodeID, Node>): Record<NodeID, IdRect> {
+const getAbsRects = (nodes: Record<NodeID, Node>): Record<NodeID, IdRect> => {
   const rects: Record<NodeID, IdRect> = {}
 
   for (const [id, path] of traverse(nodes)) {
-    if (id !== rootID) {
-      rects[id] = absRect(nodes, path)
-    }
+    rects[id] = absRect(nodes, path)
   }
 
   return rects
@@ -155,7 +153,7 @@ export interface GraphIndex {
   deepChildren: DeepChildrenIndex
   edges: EdgeIndex
   bush: RBush<IdRect>
-  absRects: Record<NodeID, Rect>
+  absRects: Record<NodeID, Readonly<Rect>>
 }
 
 export const buildIndex = (d: NodesEdges): GraphIndex => {

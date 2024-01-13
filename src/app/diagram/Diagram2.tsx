@@ -2,22 +2,23 @@ import { destructure } from "@solid-primitives/destructure"
 import { pointer, select, type Selection } from "d3-selection"
 import { zoom, type D3ZoomEvent, type ZoomTransform } from "d3-zoom"
 import { createEffect, For, onCleanup, type Component } from "solid-js"
-import { dataset, isEl, svgTransform2 } from "../../../lib/dom"
-import { memoize } from "../../../lib/ts.ts"
+import { dataset, isEl, svgTransform2 } from "../../lib/dom.ts"
+import { memoize } from "../../lib/ts.ts"
 import {
   edgeAnchor,
   isNodeID,
   rootID,
   type EdgeID,
   type NodeID,
-} from "../data/data"
-import { patching } from "../data/history.ts"
-import { setupHotkeys } from "../hotkeys.ts"
-import { SvgDefs } from "../SvgDefs"
+} from "./data/data.ts"
+import { patching } from "./data/history.ts"
+import { DefaultGrid } from "./incorrect/DefaultGrid.tsx"
 import { behaviorDrag, worldDragSubj } from "./drag.ts"
-import { OneNode } from "./OneNode"
-import { setStore, store } from "./store"
-import { addNode2 } from "./transactions"
+import { setupHotkeys } from "./hotkeys.ts"
+import { OneNode } from "./OneNode.tsx"
+import { setStore, store } from "./store.ts"
+import { SvgDefs } from "./SvgDefs.tsx"
+import { addNode2 } from "./transactions.ts"
 
 const OneEdge: Component<{ id: EdgeID }> = props => {
   const e = () => store.tree.data.edges[props.id]
@@ -132,10 +133,7 @@ export const Diagram2: Component = () => {
 
       <g ref={zoomedEl!} transform={svgTransform2(store.camera)}>
         <For
-          each={draggingLast(
-            store.tree.data.nodes[rootID].children,
-            store.dragging,
-          )}
+          each={store.tree.data.nodes[rootID].children}
         >
           {nid => <OneNode id={nid} />}
         </For>

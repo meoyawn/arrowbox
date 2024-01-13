@@ -1,7 +1,7 @@
 import { type BBox } from "rbush"
 import { brushSelect } from "../brushing.ts"
-import { type DragBehavior2 } from "../drag"
-import { type Store } from "../store"
+import { type DragBehavior2 } from "../drag.ts"
+import { type Store } from "../store.ts"
 
 export const dragBrush = (sx: number, sy: number): DragBehavior2 => ({
   x: sx,

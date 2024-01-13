@@ -4,8 +4,8 @@ import {
   type DragBehavior,
   type DragContainerElement,
 } from "d3-drag"
-import { dataset, isEl } from "../../../lib/dom.ts"
-import { isNodeID, type NodeID } from "../data/data.ts"
+import { dataset, isEl } from "../../lib/dom.ts"
+import { isNodeID, type EdgeID, type NodeID } from "./data/data.ts"
 import { dragBrush } from "./drag/brush.ts"
 import { dragNewArrow } from "./drag/new-arrow.ts"
 import { dragNode } from "./drag/node.ts"
@@ -89,7 +89,10 @@ export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
       if (!nid) throw new Error("no nid")
 
       const { rect } = data.nodes[nid]
-      return shiftKey ? dragNewArrow(nid, rect) : dragNode(nid, data, rect)
+      const selArr = Object.keys(store.selected) as Array<NodeID | EdgeID>
+      return shiftKey
+        ? dragNewArrow(nid, rect)
+        : dragNode(ev.x, ev.y, data, selArr.length ? selArr : [nid])
     }
 
     case dragIDs.newArrow: {

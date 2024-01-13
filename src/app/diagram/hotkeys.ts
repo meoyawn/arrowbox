@@ -1,6 +1,7 @@
 import hotkeys from "hotkeys-js"
-import { setStore, store } from "./2/store.ts"
+import type { EdgeID, NodeID } from "./data/data.ts"
 import { redo, undo } from "./data/history.ts"
+import { setStore, store } from "./store.ts"
 
 export const setupHotkeys = (): VoidFunction => {
   // hotkeys("Delete, Backspace", () => {
@@ -15,18 +16,19 @@ export const setupHotkeys = (): VoidFunction => {
   //   })
   // })
   //
-  // hotkeys("Escape", () => {
-  //   setStore({ selected: {} })
-  // })
-  //
-  // hotkeys("Enter", () => {
-  //   const arr = Object.keys(store.selected) as Array<NodeID | EdgeID>
-  //   if (arr.length === 1) {
-  //     setStore({ editing: arr[0] })
-  //     return false
-  //   }
-  // })
-  //
+  hotkeys("Escape", () => {
+    setStore({ selected: {} })
+  })
+
+  hotkeys("Enter", () => {
+    const arr = Object.keys(store.selected) as Array<NodeID | EdgeID>
+    if (arr.length === 1) {
+      setStore({ editing: arr[0] })
+
+      // WTF is this?
+      return false
+    }
+  })
 
   hotkeys("ctrl+z, command+z", () => {
     setStore(({ tree }) => ({ tree: undo(tree) }))

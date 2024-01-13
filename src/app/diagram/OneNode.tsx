@@ -1,11 +1,11 @@
 import { destructure } from "@solid-primitives/destructure"
 import clsx from "clsx"
-import { Show, type Component } from "solid-js"
-import { type Rect } from "../../../lib/geometry"
-import { type NodeID } from "../data/data"
+import { For, Show, type Component } from "solid-js"
+import { type Rect } from "../../lib/geometry.ts"
+import { type NodeID } from "./data/data.ts"
 import { dragIDs } from "./drag.ts"
-import { ResizeSides, type ResizeSide } from "./drag/resize"
-import { store } from "./store"
+import { ResizeSides, type ResizeSide } from "./drag/resize.ts"
+import { store } from "./store.ts"
 
 const sideArea = 14
 
@@ -82,16 +82,16 @@ const Corner: Component<{
  */
 export const OneNode: Component<{ id: NodeID }> = props => {
   const node = () => store.tree.data.nodes[props.id]
-  const rect = () => node().rect
-  const selected = () => store.selected[props.id]
+  const selected = () => Boolean(store.selected[props.id])
 
+  const { rect } = destructure(node)
   const { x, y, width, height } = destructure(rect)
 
   return (
     <g
       data-nodeID={props.id}
       class={clsx("group hover:cursor-grab", {
-        "pointer-events-none cursor-grabbing": store.dragging === props.id,
+        "pointer-events-none cursor-grabbing": props.id in store.dragging,
       })}
       transform={`translate(${x()} ${y()})`}
     >
@@ -110,7 +110,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
           y={-5}
           width={width() + 10}
           height={height() + 10}
-          fill="transparent"
+          fill="none"
           stroke="blue"
         />
       </Show>
@@ -162,6 +162,8 @@ export const OneNode: Component<{ id: NodeID }> = props => {
         side={ResizeSides.SOUTHWEST}
         selected={selected()}
       />
+
+      <For each={node().children}>{nid => <OneNode id={nid} />}</For>
     </g>
   )
 }

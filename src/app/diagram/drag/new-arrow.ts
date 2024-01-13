@@ -1,6 +1,6 @@
-import { midPoint, type Rect } from "../../../../lib/geometry.ts"
-import { type NodeID } from "../../data/data"
-import { patching } from "../../data/history.ts"
+import { midPoint, type Rect } from "../../../lib/geometry.ts"
+import { type NodeID } from "../data/data.ts"
+import { patching } from "../data/history.ts"
 import type { DragBehavior2 } from "../drag.ts"
 import type { Store } from "../store.ts"
 

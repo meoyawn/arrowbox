@@ -1,6 +1,8 @@
 <svg viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path
+    <path
     d="M30 147.727L88.587 25.8985C88.9523 25.1388 90.0361 25.1443 90.3937 25.9077L148.333 149.576C148.643 150.239 148.159 151 147.427 151H79.0385"
-    stroke="black" stroke-width="20" stroke-linecap="square"
+    stroke="black"
+    stroke-width="20"
+    stroke-linecap="square"
   />
 </svg>

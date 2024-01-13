@@ -1,8 +1,9 @@
-import { type Rect } from "../../../../lib/geometry"
-import { type NodeID, type NodesEdges } from "../../data/data"
-import { nonPatching, patching } from "../../data/history.ts"
-import { type DragBehavior2 } from "../drag"
-import { type Store } from "../store"
+import { type Rect } from "../../../lib/geometry.ts"
+import { rset } from "../../../lib/ts.ts"
+import { type NodeID, type NodesEdges } from "../data/data.ts"
+import { nonPatching, patching } from "../data/history.ts"
+import { type DragBehavior2 } from "../drag.ts"
+import { type Store } from "../store.ts"
 
 export const dragConstraints = {
   minHeight: 1,
@@ -95,13 +96,13 @@ export const dragSide = (
     tree: nonPatching(store.tree, ({ nodes }) => {
       nodes[id].rect = onDragSide(sx, sy, beforeDrag.nodes[id].rect, side, x, y)
     }),
-    dragging: id,
+    dragging: rset([id]),
   }),
 
   onEnd: (store: Store, x: number, y: number): Partial<Store> => ({
     tree: patching({ ...store.tree, data: beforeDrag }, ({ nodes }) => {
       nodes[id].rect = onDragSide(sx, sy, beforeDrag.nodes[id].rect, side, x, y)
     }),
-    dragging: undefined,
+    dragging: {},
   }),
 })

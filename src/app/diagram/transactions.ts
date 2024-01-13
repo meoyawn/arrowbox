@@ -1,13 +1,13 @@
-import { type Vec2 } from "../../../lib/geometry"
-import { md2html } from "../../markdown"
+import { type Vec2 } from "../../lib/geometry.ts"
+import { md2html } from "../markdown.ts"
 import {
   genID,
   rootID,
   type EdgeID,
   type NodeID,
   type NodesEdges,
-} from "../data/data"
-import { measureHtml } from "../label"
+} from "./data/data.ts"
+import { measureHtml } from "./label.tsx"
 
 export function addNode2(data: NodesEdges, [x, y]: Vec2): NodeID {
   const id = genID("n")

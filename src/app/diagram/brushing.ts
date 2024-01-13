@@ -1,8 +1,8 @@
 import type RBush from "rbush"
 import { type BBox } from "rbush"
-import { type Rect } from "../../../lib/geometry"
-import type { RSet } from "../../../lib/ts.ts"
-import { rootID, type IdRect, type Node, type NodeID } from "../data/data"
+import { type Rect } from "../../lib/geometry.ts"
+import type { RSet } from "../../lib/ts.ts"
+import { rootID, type IdRect, type Node, type NodeID } from "./data/data.ts"
 
 export type NestPath = ReadonlyArray<number>
 
@@ -47,6 +47,6 @@ export const brushSelect = (rBush: RBush<IdRect>, bbox: BBox): RSet<NodeID> => {
   if (!reslt.length) return {}
 
   return Object.fromEntries(
-    reslt.filter(r => !rectExceedsBBox(r, bbox)).map(({ id }) => [id, true]),
+    reslt.filter(r => !rectExceedsBBox(r, bbox)).map(({ id }) => [id, 1]),
   )
 }
