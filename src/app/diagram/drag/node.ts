@@ -44,30 +44,30 @@ export const dragNode = (
     const dy = y - sy
 
     const newParentID = isNodeID(hovering) ? hovering : rootID
+    const newParentAbs = tree.index.absRects[newParentID]
+
     return {
       tree: patching({ ...tree, data: beforeDrag }, ({ nodes }) => {
-        const newParentAbs = tree.index.absRects[newParentID]
         for (const id of selected) {
-          if (!isNodeID(id)) continue
+          if (newParentID === id || !isNodeID(id)) continue
 
           const oldParentID = tree.index.parents[id]
           if (oldParentID !== newParentID) {
             const oldParent = nodes[oldParentID]
             oldParent.children = oldParent.children.filter(x => x !== id)
             nodes[newParentID].children.push(id)
+
+            // TODO extend new parent
+            // p.rect = extendToFit(p.rect, childR)
           }
 
           const oldAbs = tree.index.absRects[id]
-          const newR: Rect = nodes[id].rect
+          const newR = nodes[id].rect
           newR.x = oldAbs.x + dx - newParentAbs.x
           newR.y = oldAbs.y + dy - newParentAbs.y
         }
-
-        // TODO extend new parent
-        // p.rect = extendToFit(p.rect, childR)
       }),
-      dragging: {},
-      // selected: rset(selected),
+      dragging: undefined,
     }
   },
 })

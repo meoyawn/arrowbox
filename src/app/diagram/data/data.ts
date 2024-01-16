@@ -34,17 +34,20 @@ export type EdgeAnchor =
   | { type: "node"; id: NodeID }
   | { type: "relative"; id: NodeID; point: Vec2 }
 
+export const anchoringTo = (ea: EdgeAnchor, id: NodeID): boolean => ea.id === id
+
 export const edgeAnchor = (
-  nodes: Record<NodeID, Node>,
+  absRects: Record<NodeID, Rect>,
   a: EdgeAnchor,
 ): Readonly<Vec2> => {
+  const r = absRects[a.id]
   switch (a.type) {
     case "node":
-      return midPoint(nodes[a.id].rect)
+      return midPoint(r)
 
     case "relative": {
       const [px, py] = a.point
-      const { x, y } = nodes[a.id].rect
+      const { x, y } = r
       return [px + x, py + y]
     }
   }
@@ -122,10 +125,7 @@ export const emptyDiagram = (): NodesEdges => ({
       id: rootID,
       children: [],
       rect: { x: 0, y: 0, width: 0, height: 0 },
-      text: {
-        html: "",
-        markdown: "",
-      },
+      text: { html: "", markdown: "" },
     },
   },
   edges: {},

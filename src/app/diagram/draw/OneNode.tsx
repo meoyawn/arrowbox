@@ -1,11 +1,11 @@
 import { destructure } from "@solid-primitives/destructure"
 import clsx from "clsx"
 import { For, Show, type Component } from "solid-js"
-import { type Rect } from "../../lib/geometry.ts"
-import { type NodeID } from "./data/data.ts"
-import { dragIDs } from "./drag.ts"
-import { ResizeSides, type ResizeSide } from "./drag/resize.ts"
-import { store } from "./store.ts"
+import { type Rect } from "../../../lib/geometry.ts"
+import { type NodeID } from "../data/data.ts"
+import { dragIDs } from "../drag.ts"
+import { ResizeSides, type ResizeSide } from "../drag/resize.ts"
+import { store } from "../store.ts"
 
 const sideArea = 14
 
@@ -91,7 +91,8 @@ export const OneNode: Component<{ id: NodeID }> = props => {
     <g
       data-nodeID={props.id}
       class={clsx("group hover:cursor-grab", {
-        "pointer-events-none cursor-grabbing": props.id in store.dragging,
+        "pointer-events-none cursor-grabbing":
+          store.dragging && props.id in store.dragging,
       })}
       transform={`translate(${x()} ${y()})`}
     >

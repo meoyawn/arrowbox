@@ -1,24 +1,18 @@
 import hotkeys from "hotkeys-js"
 import type { EdgeID, NodeID } from "./data/data.ts"
-import { redo, undo } from "./data/history.ts"
+import { patching, redo, undo } from "./data/history.ts"
 import { setStore, store } from "./store.ts"
+import { del } from "./transactions.ts"
 
 export const setupHotkeys = (): VoidFunction => {
-  // hotkeys("Delete, Backspace", () => {
-  //   patching(store.data, d => {
-  //     for (const id in store.selected) {
-  //       if (isNodeID(id)) {
-  //         delete d.nodes[id]
-  //       } else if (isEdgeID(id)) {
-  //         delete d.edges[id]
-  //       }
-  //     }
-  //   })
-  // })
-  //
-  hotkeys("Escape", () => {
-    setStore({ selected: {} })
-  })
+  hotkeys("Delete, Backspace", () =>
+    setStore(s => ({
+      tree: patching(s.tree, d => del(d, s.tree.index, s.selected)),
+      selected: {},
+    })),
+  )
+
+  hotkeys("Escape", () => setStore({ selected: {} }))
 
   hotkeys("Enter", () => {
     const arr = Object.keys(store.selected) as Array<NodeID | EdgeID>
@@ -30,13 +24,13 @@ export const setupHotkeys = (): VoidFunction => {
     }
   })
 
-  hotkeys("ctrl+z, command+z", () => {
-    setStore(({ tree }) => ({ tree: undo(tree) }))
-  })
+  hotkeys("ctrl+z, command+z", () =>
+    setStore(({ tree }) => ({ tree: undo(tree) })),
+  )
 
-  hotkeys("ctrl+shift+z, command+shift+z", () => {
-    setStore(({ tree }) => ({ tree: redo(tree) }))
-  })
+  hotkeys("ctrl+shift+z, command+shift+z", () =>
+    setStore(({ tree }) => ({ tree: redo(tree) })),
+  )
 
   return () => hotkeys.unbind()
 }

@@ -103,6 +103,6 @@ export const dragSide = (
     tree: patching({ ...store.tree, data: beforeDrag }, ({ nodes }) => {
       nodes[id].rect = onDragSide(sx, sy, beforeDrag.nodes[id].rect, side, x, y)
     }),
-    dragging: {},
+    dragging: undefined,
   }),
 })

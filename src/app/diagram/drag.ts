@@ -70,7 +70,7 @@ export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
   if (!isEl(target)) return null
 
   const { dragID, side } = target.dataset
-  const { data } = store.tree
+  const data = store.tree.data
 
   if (side) {
     const nid = getNodeID(ev.sourceEvent)

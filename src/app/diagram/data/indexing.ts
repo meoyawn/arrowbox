@@ -1,5 +1,6 @@
 import RBush, { type BBox } from "rbush"
 import type { Rect } from "../../../lib/geometry.ts"
+import type { RSet } from "../../../lib/ts.ts"
 import type { NestPath } from "../brushing.ts"
 import { absRect } from "../brushing.ts"
 import {
@@ -12,10 +13,8 @@ import {
   type NodesEdges,
 } from "./data"
 
-type JsonSet<T extends keyof never> = Record<T, true>
-
 export type ParentIndex = Record<NodeID | EdgeID, NodeID>
-export type DeepChildrenIndex = Record<NodeID, JsonSet<NodeID>>
+export type DeepChildrenIndex = Record<NodeID, RSet<NodeID>>
 type FirstEdges = Record<NodeID, Edge[]>
 
 interface EdgeIndex {
@@ -66,8 +65,8 @@ function dfsChildren(
   nodes: Record<NodeID, Node>,
   globalOut: DeepChildrenIndex,
   id: NodeID,
-): JsonSet<NodeID> {
-  const localOut: JsonSet<NodeID> = {}
+): RSet<NodeID> {
+  const localOut: RSet<NodeID> = {}
 
   for (const childID of nodes[id].children) {
     localOut[childID] = true

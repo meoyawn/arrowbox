@@ -1,4 +1,4 @@
-import { A, useParams } from "@solidjs/router"
+import { useParams } from "@solidjs/router"
 import { createEffect, onCleanup, type Component } from "solid-js"
 import icon from "../../assets/icon.svg"
 import { Anchor } from "../routes.tsx"

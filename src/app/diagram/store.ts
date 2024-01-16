@@ -1,10 +1,15 @@
 import { zoomIdentity, type ZoomTransform } from "d3-zoom"
 import { type BBox } from "rbush"
 import { createStore } from "solid-js/store"
-import { type Vec2 } from "../../lib/geometry.ts"
 import { type RSet } from "../../lib/ts.ts"
 import { emptyDataState, type EdgeID, type NodeID } from "./data/data.ts"
 import { type DataState } from "./data/state.ts"
+
+export interface NewArrow {
+  from: NodeID
+  toX: number
+  toY: number
+}
 
 export interface Store {
   camera: ZoomTransform
@@ -16,21 +21,19 @@ export interface Store {
   /** drag end usually triggers text editing */
   editing?: NodeID | EdgeID
 
-  dragging: RSet<NodeID>
+  /** empty object means dragging something without an id */
+  dragging?: RSet<NodeID>
 
   brush?: BBox
 
   selected: RSet<NodeID | EdgeID>
 
-  newArrow?: {
-    from: NodeID
-    to: Vec2
-  }
+  newArrow?: NewArrow
 }
 
+/** creates a proxied object that signals changes */
 export const [store, setStore] = createStore<Store>({
   camera: zoomIdentity,
   tree: emptyDataState(),
   selected: {},
-  dragging: {},
 })

@@ -52,6 +52,7 @@ export const undo = (ds: DataState): DataState => {
   if (history.index < 0) return ds
 
   const patch = history.backward[history.index]
+
   const prev = applyPatches(data, patch)
   return {
     data: prev,
@@ -66,6 +67,7 @@ export const redo = (ds: DataState): DataState => {
   if (index >= history.forward.length) return ds
 
   const patch = history.forward[index]
+
   const next = applyPatches(data, patch)
   return {
     data: next,

@@ -1,12 +1,16 @@
 import { type Vec2 } from "../../lib/geometry.ts"
+import type { RSet } from "../../lib/ts.ts"
 import { md2html } from "../markdown.ts"
 import {
   genID,
+  isEdgeID,
+  isNodeID,
   rootID,
   type EdgeID,
   type NodeID,
   type NodesEdges,
 } from "./data/data.ts"
+import type { GraphIndex } from "./data/indexing.ts"
 import { measureHtml } from "./label.tsx"
 
 export function addNode2(data: NodesEdges, [x, y]: Vec2): NodeID {
@@ -56,5 +60,41 @@ export function setMD2(data: NodesEdges, id: NodeID, markdown: string): void {
   }
   if (rect.height < height) {
     rect.height = height
+  }
+}
+
+const deleteNode = (
+  { nodes, edges }: NodesEdges,
+  { parents, deepChildren }: GraphIndex,
+  nid: NodeID,
+): void => {
+  const parent = nodes[parents[nid]]
+  parent.children = parent.children.filter(x => x !== nid)
+
+  const dc = deepChildren[nid]
+  for (const c in dc) {
+    delete nodes[c as NodeID]
+  }
+  delete nodes[nid]
+
+  for (const eid in edges) {
+    const { from, to } = edges[eid as EdgeID]
+    if (from.id === nid || to.id === nid || from.id in dc || to.id in dc) {
+      delete edges[eid as EdgeID]
+    }
+  }
+}
+
+export function del(
+  ne: NodesEdges,
+  index: GraphIndex,
+  selected: RSet<NodeID | EdgeID>,
+): void {
+  for (const id in selected) {
+    if (isNodeID(id)) {
+      deleteNode(ne, index, id)
+    } else if (isEdgeID(id)) {
+      delete ne.edges[id]
+    }
   }
 }
