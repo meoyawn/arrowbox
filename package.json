@@ -13,7 +13,7 @@
     "dpl": "rm -rf dist/ && vite build && wrangler pages deploy dist/ --commit-dirty=true"
   },
   "dependencies": {
-    "@solid-primitives/destructure": "^0.1.14",
+    "@solid-primitives/destructure": "^0.1.15",
     "@solidjs/router": "^0.10.9",
     "clsx": "^2.1.0",
     "d3-drag": "^3.0.0",
@@ -42,8 +42,8 @@
     "@types/d3-selection": "^3.0.10",
     "@types/d3-zoom": "^3.0.8",
     "@types/rbush": "^3.0.3",
-    "@typescript-eslint/eslint-plugin": "^6.18.1",
-    "@typescript-eslint/parser": "^6.18.1",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
     "autoprefixer": "^10.4.16",
     "concurrently": "^8.2.2",
     "eslint": "^8.56.0",
