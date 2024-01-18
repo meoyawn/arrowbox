@@ -1,8 +1,8 @@
 import { midPoint, type Rect } from "../../../lib/geometry.ts"
 import { isNodeID, type NodeID } from "../data/data.ts"
 import { patching } from "../data/history.ts"
+import type { Store } from "../data/store.ts"
 import type { DragBehavior2 } from "../drag.ts"
-import type { Store } from "../store.ts"
 import { addEdge2 } from "../transactions.ts"
 
 export function dragNewArrow(id: NodeID, init: Rect): DragBehavior2 {

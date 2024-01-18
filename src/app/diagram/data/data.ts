@@ -1,8 +1,13 @@
 import { type ZoomTransform } from "d3-zoom"
 import { midPoint, type Rect, type Vec2 } from "../../../lib/geometry"
-import { emptyHistory } from "./history.ts"
-import { buildIndex } from "./indexing"
-import { type DataState, type State } from "./state"
+import { emptyHistory, type ImmerHistory } from "./history.ts"
+import { buildIndex, type GraphIndex } from "./indexing"
+
+export interface DataState {
+  data: NodesEdges
+  history: ImmerHistory
+  index: GraphIndex
+}
 
 export type GraphID = `g${string}`
 export type NodeID = `n${string}`
@@ -27,7 +32,7 @@ export interface Node {
 }
 
 export interface IdRect extends Rect {
-  id: NodeID
+  readonly id: NodeID
 }
 
 export type EdgeAnchor =
@@ -78,46 +83,6 @@ export const genStr = (): string => {
 
 export const genID = <P extends string>(prefix: P): `${P}${string}` =>
   `${prefix}${genStr()}`
-
-export const addEdge = (
-  state: State,
-  draft: NodesEdges,
-  subject: { from: NodeID },
-  x: number,
-  y: number,
-): NodeID | EdgeID => {
-  const eid = genID("e")
-  const toNid = isNodeID(state.hovering) ? state.hovering : undefined
-
-  let ret: NodeID | EdgeID
-  let toID: NodeID
-
-  if (isNodeID(toNid)) {
-    toID = toNid
-    ret = eid
-  } else {
-    toID = genID("n")
-    const [wx, wy] = worldPos(state.camera, [x, y])
-    draft.nodes[toID] = {
-      id: toID,
-      text: {
-        html: "",
-        markdown: "",
-      },
-      rect: { x: wx, y: wy, width: 100, height: 100 },
-      children: [],
-    }
-    ret = toID
-  }
-
-  draft.edges[eid] = {
-    id: eid,
-    from: subject.from,
-    to: toID,
-  }
-
-  return ret
-}
 
 export const emptyDiagram = (): NodesEdges => ({
   nodes: {

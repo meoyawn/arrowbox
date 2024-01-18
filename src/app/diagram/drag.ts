@@ -10,7 +10,7 @@ import { dragBrush } from "./drag/brush.ts"
 import { dragNewArrow } from "./drag/new-arrow.ts"
 import { dragNode } from "./drag/node.ts"
 import { dragSide, type ResizeSide } from "./drag/resize.ts"
-import { setStore, store, type Store } from "./store.ts"
+import { setStore, store, type Store } from "./data/store.ts"
 
 export function getNodeID(ev: Event): NodeID | undefined {
   const { target } = ev

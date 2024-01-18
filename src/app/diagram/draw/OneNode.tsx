@@ -5,7 +5,7 @@ import { type Rect } from "../../../lib/geometry.ts"
 import { type NodeID } from "../data/data.ts"
 import { dragIDs } from "../drag.ts"
 import { ResizeSides, type ResizeSide } from "../drag/resize.ts"
-import { store } from "../store.ts"
+import { store } from "../data/store.ts"
 
 const sideArea = 14
 

@@ -1,7 +1,7 @@
 import { destructure } from "@solid-primitives/destructure"
 import { type Component } from "solid-js"
 import { edgeAnchor, type EdgeID } from "../data/data.ts"
-import { store } from "../store.ts"
+import { store } from "../data/store.ts"
 
 export const OneEdge: Component<{ id: EdgeID }> = props => {
   const e = () => store.tree.data.edges[props.id]

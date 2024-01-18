@@ -6,9 +6,8 @@ import {
   setAutoFreeze,
   type Patch,
 } from "immer"
-import { type NodesEdges } from "./data"
+import { type DataState, type NodesEdges } from "./data"
 import { buildIndex } from "./indexing"
-import { type DataState } from "./state"
 
 enablePatches()
 setAutoFreeze(false)

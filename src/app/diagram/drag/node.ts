@@ -8,8 +8,8 @@ import {
   type NodesEdges,
 } from "../data/data.ts"
 import { nonPatching, patching } from "../data/history.ts"
+import { type Store } from "../data/store.ts"
 import { type DragBehavior2 } from "../drag.ts"
-import { type Store } from "../store.ts"
 
 /** world coordinates */
 export const dragNode = (

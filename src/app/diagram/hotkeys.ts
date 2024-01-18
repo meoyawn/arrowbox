@@ -1,7 +1,7 @@
 import hotkeys from "hotkeys-js"
 import type { EdgeID, NodeID } from "./data/data.ts"
 import { patching, redo, undo } from "./data/history.ts"
-import { setStore, store } from "./store.ts"
+import { setStore, store } from "./data/store.ts"
 import { del } from "./transactions.ts"
 
 export const setupHotkeys = (): VoidFunction => {

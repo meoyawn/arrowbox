@@ -113,7 +113,7 @@ const traverse = (nodes: Record<NodeID, Node>): ReadonlyArray<NodePath> => {
 
     for (let i = 0; i < children.length; i++) {
       // add last
-      queue.push([children[i]!, path.concat(i)])
+      queue.push([children[i], [...path, i]])
     }
   }
 }

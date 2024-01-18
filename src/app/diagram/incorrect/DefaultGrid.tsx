@@ -41,6 +41,7 @@ const Circle: Component<Props> = props => {
 
 const Pattern: Component<Props> = props => {
   const s = () => props.step.step * GRID_SIZE * props.camera.k
+
   return (
     <pattern
       patternUnits="userSpaceOnUse"
@@ -55,6 +56,8 @@ const Pattern: Component<Props> = props => {
 
 /**
  * https://github.com/tldraw/tldraw/blob/main/packages/editor/src/lib/components/default-components/DefaultGrid.tsx
+ *
+ * but our port is incorrect 😂
  */
 export const DefaultGrid: Component<{
   camera: ZoomTransform

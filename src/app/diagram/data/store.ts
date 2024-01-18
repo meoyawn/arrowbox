@@ -1,9 +1,13 @@
 import { zoomIdentity, type ZoomTransform } from "d3-zoom"
 import { type BBox } from "rbush"
 import { createStore } from "solid-js/store"
-import { type RSet } from "../../lib/ts.ts"
-import { emptyDataState, type EdgeID, type NodeID } from "./data/data.ts"
-import { type DataState } from "./data/state.ts"
+import { type RSet } from "../../../lib/ts.ts"
+import {
+  emptyDataState,
+  type DataState,
+  type EdgeID,
+  type NodeID,
+} from "./data.ts"
 
 export interface NewArrow {
   from: NodeID

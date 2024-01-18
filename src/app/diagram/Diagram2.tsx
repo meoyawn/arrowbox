@@ -17,7 +17,7 @@ import { patching } from "./data/history.ts"
 import { behaviorDrag, worldDragSubj } from "./drag.ts"
 import { OneEdge } from "./draw/OneEdge.tsx"
 import { OneNode } from "./draw/OneNode.tsx"
-import { setStore, store, type NewArrow } from "./store.ts"
+import { setStore, store, type NewArrow } from "./data/store.ts"
 import { SvgDefs } from "./SvgDefs.tsx"
 import { addNode2 } from "./transactions.ts"
 
