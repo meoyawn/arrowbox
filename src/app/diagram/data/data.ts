@@ -42,18 +42,20 @@ export type EdgeAnchor =
 export const anchoringTo = (ea: EdgeAnchor, id: NodeID): boolean => ea.id === id
 
 export const edgeAnchor = (
-  absRects: Record<NodeID, Rect>,
-  a: EdgeAnchor,
+  r: Readonly<Rect>,
+  a: Readonly<EdgeAnchor>,
+  parent: Readonly<Rect>,
 ): Readonly<Vec2> => {
-  const r = absRects[a.id]
   switch (a.type) {
-    case "node":
-      return midPoint(r)
+    case "node": {
+      const [x, y] = midPoint(r)
+      return [x + parent.x, y + parent.y]
+    }
 
     case "relative": {
       const [px, py] = a.point
       const { x, y } = r
-      return [px + x, py + y]
+      return [px + x + parent.x, py + y + parent.y]
     }
   }
 }
