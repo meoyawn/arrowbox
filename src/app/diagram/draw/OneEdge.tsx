@@ -1,28 +1,12 @@
-import { type Component } from "solid-js"
-import { edgeAnchor, type EdgeID } from "../data/data.ts"
+import { createMemo, type Component } from "solid-js"
+import { absEdgeAnchor, type EdgeID } from "../data/data.ts"
 import { store } from "../data/store.ts"
 
 export const OneEdge: Component<{ id: EdgeID }> = props => {
-  const tree = () => store.tree
+  const e = () => store.tree.data.edges[props.id]
 
-  const index = () => tree().index
-
-  const data = () => tree().data
-
-  const e = () => data().edges[props.id]
-
-  const from = () =>
-    edgeAnchor(
-      data().nodes[e().from.id].rect,
-      e().from,
-      index().absRects[index().parents[e().from.id]],
-    )
-  const to = () =>
-    edgeAnchor(
-      data().nodes[e().to.id].rect,
-      e().to,
-      index().absRects[index().parents[e().to.id]],
-    )
+  const from = createMemo(() => absEdgeAnchor(store.tree, e().from))
+  const to = createMemo(() => absEdgeAnchor(store.tree, e().to))
 
   return (
     <g data-edgeID={props.id}>

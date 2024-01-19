@@ -1,5 +1,6 @@
 import { type Rect } from "../../../lib/geometry.ts"
 import { rset } from "../../../lib/ts.ts"
+import { absRect } from "../brushing.ts"
 import {
   isNodeID,
   rootID,
@@ -44,10 +45,14 @@ export const dragNode = (
     const dy = y - sy
 
     const newParentID = isNodeID(hovering) ? hovering : rootID
-    const newParentsAbs = tree.index.absRects[newParentID]
 
     return {
       tree: patching({ ...tree, data: beforeDrag }, ({ nodes }) => {
+        const newParentsAbs = absRect(
+          beforeDrag.nodes,
+          tree.index.paths[newParentID],
+        )
+
         for (const id of selected) {
           if (newParentID === id || !isNodeID(id)) continue
 
@@ -61,7 +66,7 @@ export const dragNode = (
             // p.rect = extendToFit(p.rect, childR)
           }
 
-          const oldAbs = tree.index.absRects[id]
+          const oldAbs = absRect(beforeDrag.nodes, tree.index.paths[id])
           const newR = nodes[id].rect
           newR.x = oldAbs.x + dx - newParentsAbs.x
           newR.y = oldAbs.y + dy - newParentsAbs.y

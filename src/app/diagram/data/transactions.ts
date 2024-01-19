@@ -1,6 +1,7 @@
-import { type Vec2 } from "../../lib/geometry.ts"
-import type { RSet } from "../../lib/ts.ts"
-import { md2html } from "../markdown.ts"
+import { type Vec2 } from "../../../lib/geometry.ts"
+import type { RSet } from "../../../lib/ts.ts"
+import { md2html } from "../../markdown.ts"
+import { measureHtml } from "../label.tsx"
 import {
   genID,
   isEdgeID,
@@ -9,11 +10,10 @@ import {
   type EdgeID,
   type NodeID,
   type NodesEdges,
-} from "./data/data.ts"
-import type { GraphIndex } from "./data/indexing.ts"
-import { measureHtml } from "./label.tsx"
+} from "./data.ts"
+import type { GraphIndex } from "./indexing.ts"
 
-export function addNode2(data: NodesEdges, [x, y]: Vec2): NodeID {
+export const addNode = (data: NodesEdges, [x, y]: Vec2): NodeID => {
   const id = genID("n")
 
   data.nodes[id] = {
@@ -31,14 +31,14 @@ export function addNode2(data: NodesEdges, [x, y]: Vec2): NodeID {
   return id
 }
 
-export function addEdge2(
+export const addEdge = (
   data: NodesEdges,
   { from, to, world }: { from: NodeID; to?: NodeID; world: Vec2 },
-): EdgeID | NodeID {
+): EdgeID | NodeID => {
   if (!to && !from) throw new Error("must specify from or to")
 
   const id: EdgeID = genID("e")
-  const toID: NodeID = to ?? addNode2(data, world)
+  const toID: NodeID = to ?? addNode(data, world)
   data.edges[id] = {
     id,
     from: { type: "node", id: from },
@@ -48,7 +48,11 @@ export function addEdge2(
   return to ? id : toID
 }
 
-export function setMD2(data: NodesEdges, id: NodeID, markdown: string): void {
+export const setMD2 = (
+  data: NodesEdges,
+  id: NodeID,
+  markdown: string,
+): void => {
   const html = md2html(markdown)
   const { width, height } = measureHtml(html)
 
@@ -85,11 +89,11 @@ const deleteNode = (
   }
 }
 
-export function del(
+export const del = (
   ne: NodesEdges,
   index: GraphIndex,
   selected: RSet<NodeID | EdgeID>,
-): void {
+): void => {
   for (const id in selected) {
     if (isNodeID(id)) {
       deleteNode(ne, index, id)

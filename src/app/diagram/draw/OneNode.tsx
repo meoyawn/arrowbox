@@ -3,9 +3,9 @@ import clsx from "clsx"
 import { For, Show, type Component } from "solid-js"
 import { type Rect } from "../../../lib/geometry.ts"
 import { type NodeID } from "../data/data.ts"
+import { store } from "../data/store.ts"
 import { dragIDs } from "../drag.ts"
 import { ResizeSides, type ResizeSide } from "../drag/resize.ts"
-import { store } from "../data/store.ts"
 
 const sideArea = 14
 
@@ -83,86 +83,86 @@ const Corner: Component<{
 export const OneNode: Component<{ id: NodeID }> = props => {
   const node = () => store.tree.data.nodes[props.id]
   const selected = () => Boolean(store.selected[props.id])
+  const rect = () => node().rect
+  const isDragging = () => store.dragging && props.id in store.dragging
 
-  const { rect } = destructure(node)
   const { x, y, width, height } = destructure(rect)
 
   return (
-    <g
-      data-nodeID={props.id}
-      class={clsx("group hover:cursor-grab", {
-        "pointer-events-none cursor-grabbing":
-          store.dragging && props.id in store.dragging,
-      })}
-      transform={`translate(${x()} ${y()})`}
-    >
-      <rect
-        data-dragID={dragIDs.node}
-        stroke-width={2}
-        stroke="black"
-        fill="transparent"
-        width={width()}
-        height={height()}
-      />
-
-      <Show when={selected()}>
-        <rect
-          x={-5}
-          y={-5}
-          width={width() + 10}
-          height={height() + 10}
-          fill="none"
-          stroke="blue"
-        />
-      </Show>
-
-      {/*TODO html -> md*/}
-      <foreignObject
-        class="prose pointer-events-none"
-        width={width()}
-        height={height()}
-        // eslint-disable-next-line solid/no-innerhtml
-        innerHTML={node().text.html}
-      />
-
-      <circle
-        data-dragID={dragIDs.newArrow}
-        class={clsx("invisible cursor-move", {
-          "group-hover:visible": !store.dragging,
+    <g data-nodeID={props.id} transform={`translate(${x()} ${y()})`}>
+      <g
+        class={clsx("group hover:cursor-grab", {
+          "pointer-events-none cursor-grabbing": isDragging(),
         })}
-        stroke="black"
-        fill="transparent"
-        stroke-width={2}
-        cx={width() / 2}
-        cy={height() / 2}
-        r={5}
-      />
+      >
+        <rect
+          data-dragID={dragIDs.node}
+          stroke-width={2}
+          stroke="black"
+          fill="transparent"
+          width={width()}
+          height={height()}
+        />
 
-      <Side rect={rect()} side={ResizeSides.NORTH} />
-      <Side rect={rect()} side={ResizeSides.SOUTH} />
-      <Side rect={rect()} side={ResizeSides.WEST} />
-      <Side rect={rect()} side={ResizeSides.EAST} />
+        <Show when={selected()}>
+          <rect
+            x={-5}
+            y={-5}
+            width={width() + 10}
+            height={height() + 10}
+            fill="none"
+            stroke="blue"
+          />
+        </Show>
 
-      <Corner
-        rect={rect()}
-        side={ResizeSides.NORTHWEST}
-        selected={selected()}
-      />
-      <Corner
-        rect={rect()}
-        side={ResizeSides.NORTHEAST}
-        selected={selected()}
-      />
-      <Corner
-        rect={rect()}
-        side={ResizeSides.SOUTHEAST}
-        selected={selected()}
-      />
-      <Corner
-        rect={rect()}
-        side={ResizeSides.SOUTHWEST}
-        selected={selected()}
-      />
+        {/*TODO html -> md*/}
+        <foreignObject
+          class="prose pointer-events-none"
+          width={width()}
+          height={height()}
+          // eslint-disable-next-line solid/no-innerhtml
+          innerHTML={node().text.html}
+        />
+
+        <circle
+          data-dragID={dragIDs.newArrow}
+          class={clsx("invisible cursor-move", {
+            "group-hover:visible": !store.dragging,
+          })}
+          stroke="black"
+          fill="transparent"
+          stroke-width={2}
+          cx={width() / 2}
+          cy={height() / 2}
+          r={5}
+        />
+
+        <Side rect={rect()} side={ResizeSides.NORTH} />
+        <Side rect={rect()} side={ResizeSides.SOUTH} />
+        <Side rect={rect()} side={ResizeSides.WEST} />
+        <Side rect={rect()} side={ResizeSides.EAST} />
+
+        <Corner
+          rect={rect()}
+          side={ResizeSides.NORTHWEST}
+          selected={selected()}
+        />
+        <Corner
+          rect={rect()}
+          side={ResizeSides.NORTHEAST}
+          selected={selected()}
+        />
+        <Corner
+          rect={rect()}
+          side={ResizeSides.SOUTHEAST}
+          selected={selected()}
+        />
+        <Corner
+          rect={rect()}
+          side={ResizeSides.SOUTHWEST}
+          selected={selected()}
+        />
+      </g>
 
       <For each={node().children}>{nid => <OneNode id={nid} />}</For>
     </g>

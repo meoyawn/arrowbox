@@ -7,7 +7,7 @@ import { dataset, svgTransform2 } from "../../lib/dom.ts"
 import { midPoint } from "../../lib/geometry.ts"
 import { memoize } from "../../lib/ts.ts"
 import {
-  edgeAnchor,
+  absEdgeAnchor,
   isNodeID,
   rootID,
   type EdgeID,
@@ -19,7 +19,7 @@ import { OneEdge } from "./draw/OneEdge.tsx"
 import { OneNode } from "./draw/OneNode.tsx"
 import { setStore, store, type NewArrow } from "./data/store.ts"
 import { SvgDefs } from "./SvgDefs.tsx"
-import { addNode2 } from "./transactions.ts"
+import { addNode } from "./data/transactions.ts"
 
 const draggingLast = (
   children: ReadonlyArray<NodeID>,
@@ -66,7 +66,7 @@ export const Diagram2: Component = () => {
         const world = pointer(e, zoomedEl)
         setStore(s => ({
           tree: patching(s.tree, x => {
-            addNode2(x, world)
+            addNode(x, world)
           }),
         }))
       }}

@@ -1,5 +1,6 @@
 import { type ZoomTransform } from "d3-zoom"
 import { midPoint, type Rect, type Vec2 } from "../../../lib/geometry"
+import { absRect } from "../brushing.ts"
 import { emptyHistory, type ImmerHistory } from "./history.ts"
 import { buildIndex, type GraphIndex } from "./indexing"
 
@@ -18,8 +19,6 @@ export const isNodeID = (id: unknown): id is NodeID =>
 
 export const isEdgeID = (id: unknown): id is EdgeID =>
   typeof id === "string" && id.startsWith("e")
-
-export const rootID = "nRoot"
 
 export interface Node {
   id: NodeID
@@ -41,21 +40,19 @@ export type EdgeAnchor =
 
 export const anchoringTo = (ea: EdgeAnchor, id: NodeID): boolean => ea.id === id
 
-export const edgeAnchor = (
-  r: Readonly<Rect>,
+export const absEdgeAnchor = (
+  ds: Readonly<DataState>,
   a: Readonly<EdgeAnchor>,
-  parent: Readonly<Rect>,
 ): Readonly<Vec2> => {
+  const r = absRect(ds.data.nodes, ds.index.paths[a.id])
   switch (a.type) {
-    case "node": {
-      const [x, y] = midPoint(r)
-      return [x + parent.x, y + parent.y]
-    }
+    case "node":
+      return midPoint(r)
 
     case "relative": {
       const [px, py] = a.point
       const { x, y } = r
-      return [px + x + parent.x, py + y + parent.y]
+      return [px + x, py + y]
     }
   }
 }
@@ -85,6 +82,8 @@ export const genStr = (): string => {
 
 export const genID = <P extends string>(prefix: P): `${P}${string}` =>
   `${prefix}${genStr()}`
+
+export const rootID = "nRoot"
 
 export const emptyDiagram = (): NodesEdges => ({
   nodes: {

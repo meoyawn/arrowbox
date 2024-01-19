@@ -3,7 +3,7 @@ import { isNodeID, type NodeID } from "../data/data.ts"
 import { patching } from "../data/history.ts"
 import type { Store } from "../data/store.ts"
 import type { DragBehavior2 } from "../drag.ts"
-import { addEdge2 } from "../transactions.ts"
+import { addEdge } from "../data/transactions.ts"
 
 export function dragNewArrow(id: NodeID, init: Rect): DragBehavior2 {
   const [midX, midY] = midPoint(init)
@@ -18,7 +18,7 @@ export function dragNewArrow(id: NodeID, init: Rect): DragBehavior2 {
       const above = isNodeID(store.hovering) ? store.hovering : undefined
       return {
         tree: patching(store.tree, data => {
-          addEdge2(data, { from: id, to: above, world: [x, y] })
+          addEdge(data, { from: id, to: above, world: [x, y] })
         }),
         newArrow: undefined,
         dragging: undefined,
