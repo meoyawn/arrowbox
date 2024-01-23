@@ -6,11 +6,11 @@ import {
 } from "d3-drag"
 import { dataset, isEl } from "../../lib/dom.ts"
 import { isNodeID, type EdgeID, type NodeID } from "./data/data.ts"
+import { setStore, store, type Store } from "./data/store.ts"
 import { dragBrush } from "./drag/brush.ts"
 import { dragNewArrow } from "./drag/new-arrow.ts"
 import { dragNode } from "./drag/node.ts"
 import { dragSide, type ResizeSide } from "./drag/resize.ts"
-import { setStore, store, type Store } from "./data/store.ts"
 
 export function getNodeID(ev: Event): NodeID | undefined {
   const { target } = ev

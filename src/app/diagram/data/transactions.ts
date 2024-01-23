@@ -21,6 +21,8 @@ export const addNode = (data: NodesEdges, [x, y]: Vec2): NodeID => {
     text: {
       html: "",
       markdown: "",
+      htmlWidth: 0,
+      htmlHeight: 0,
     },
     rect: { x, y, width: 100, height: 100 },
     children: [],

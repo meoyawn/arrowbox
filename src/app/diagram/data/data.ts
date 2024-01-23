@@ -20,12 +20,16 @@ export const isNodeID = (id: unknown): id is NodeID =>
 export const isEdgeID = (id: unknown): id is EdgeID =>
   typeof id === "string" && id.startsWith("e")
 
+interface NodeText {
+  markdown: string
+  html: string
+  htmlWidth: number
+  htmlHeight: number
+}
+
 export interface Node {
   id: NodeID
-  text: {
-    html: string
-    markdown: string
-  }
+  text: NodeText
   rect: Rect
   children: Array<NodeID>
 }
@@ -91,7 +95,7 @@ export const emptyDiagram = (): NodesEdges => ({
       id: rootID,
       children: [],
       rect: { x: 0, y: 0, width: 0, height: 0 },
-      text: { html: "", markdown: "" },
+      text: { html: "", markdown: "", htmlHeight: 0, htmlWidth: 0 },
     },
   },
   edges: {},
