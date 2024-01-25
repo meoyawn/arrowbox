@@ -1,5 +1,10 @@
 import { type ZoomTransform } from "d3-zoom"
-import { midPoint, type Rect, type Vec2 } from "../../../lib/geometry"
+import {
+  midPoint,
+  pointOnRect,
+  type Rect,
+  type Vec2,
+} from "../../../lib/geometry"
 import { absRect } from "../brushing.ts"
 import { emptyHistory, type ImmerHistory } from "./history.ts"
 import { buildIndex, type GraphIndex } from "./indexing"
@@ -42,11 +47,26 @@ export type EdgeAnchor =
   | { type: "node"; id: NodeID }
   | { type: "relative"; id: NodeID; point: Vec2 }
 
-export function absEdgeAnchor({ data, index }: DataState, a: EdgeAnchor): Vec2 {
+export function absEdgeAnchor(
+  { data, index }: DataState,
+  a: EdgeAnchor,
+  otherID: NodeID,
+): Vec2 {
   const r = absRect(data.nodes, index.paths[a.id])
+  const other = absRect(data.nodes, index.paths[otherID])
   switch (a.type) {
-    case "node":
-      return midPoint(r)
+    case "node": {
+      const [mx, my] = midPoint(other)
+      const { x, y } = pointOnRect(
+        mx,
+        my,
+        r.x,
+        r.y,
+        r.x + r.width,
+        r.y + r.height,
+      )
+      return [x, y]
+    }
 
     case "relative": {
       const [px, py] = a.point
