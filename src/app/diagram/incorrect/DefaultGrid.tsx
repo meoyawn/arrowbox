@@ -1,5 +1,5 @@
 import { type ZoomTransform } from "d3-zoom"
-import { For, type Component } from "solid-js"
+import { For, createMemo, type Component } from "solid-js"
 import { modulate } from "../../../lib/number.ts"
 
 const GRID_STEPS: ReadonlyArray<{
@@ -20,19 +20,22 @@ interface Props {
   camera: ZoomTransform
 }
 
+const to = [0, 1] as const
+
 const Circle: Component<Props> = props => {
-  const s = () => props.step.step * GRID_SIZE * props.camera.k
-  const xo = () => 0.5 + props.camera.x * props.camera.k
-  const yo = () => 0.5 + props.camera.y * props.camera.k
+  const s = createMemo(() => props.step.step * GRID_SIZE * props.camera.k)
+  const xo = createMemo(() => 0.5 + props.camera.x * props.camera.k)
+  const yo = createMemo(() => 0.5 + props.camera.y * props.camera.k)
+
   return (
     <circle
-      fill={"#6D6D6D"}
+      fill="#6D6D6D"
       r={1}
       cx={xo() > 0 ? xo() % s() : s() + (xo() % s())}
       cy={yo() > 0 ? yo() % s() : s() + (yo() % s())}
       opacity={
         props.camera.k < props.step.mid
-          ? modulate(props.camera.k, [props.step.min, props.step.mid], [0, 1])
+          ? modulate(props.camera.k, [props.step.min, props.step.mid], to)
           : 1
       }
     />

@@ -15,8 +15,8 @@
  */
 export const modulate = (
   value: number,
-  [fromLow, fromHigh]: [number, number],
-  [v0, v1]: [number, number],
+  [fromLow, fromHigh]: readonly [number, number],
+  [v0, v1]: readonly [number, number],
   clamp = false,
 ): number => {
   const result = v0 + ((value - fromLow) / (fromHigh - fromLow)) * (v1 - v0)

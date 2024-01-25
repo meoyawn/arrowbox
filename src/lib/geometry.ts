@@ -7,7 +7,7 @@ export interface Rect {
   height: number
 }
 
-export const midPoint = ({ x, y, width, height }: Rect): Readonly<Vec2> => [
+export const midPoint = ({ x, y, width, height }: Rect): Vec2 => [
   x + width / 2,
   y + height / 2,
 ]

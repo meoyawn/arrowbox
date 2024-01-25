@@ -1,6 +1,6 @@
 import { destructure } from "@solid-primitives/destructure"
 import clsx from "clsx"
-import { For, Show, type Component } from "solid-js"
+import { For, Show, createMemo, type Component } from "solid-js"
 import { type Rect } from "../../../lib/geometry.ts"
 import { type NodeID } from "../data/data.ts"
 import { store } from "../data/store.ts"
@@ -81,9 +81,10 @@ const Corner: Component<{
  *  Y+
  */
 export const OneNode: Component<{ id: NodeID }> = props => {
-  const node = () => store.tree.data.nodes[props.id]
-  const selected = () => Boolean(store.selected[props.id])
-  const rect = () => node().rect
+  const node = createMemo(() => store.tree.data.nodes[props.id])
+  const selected = createMemo(() => Boolean(store.selected[props.id]))
+  const rect = createMemo(() => node().rect)
+
   const isDragging = () => store.dragging && props.id in store.dragging
 
   const { x, y, width, height } = destructure(rect)

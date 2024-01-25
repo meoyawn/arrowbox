@@ -42,13 +42,8 @@ export type EdgeAnchor =
   | { type: "node"; id: NodeID }
   | { type: "relative"; id: NodeID; point: Vec2 }
 
-export const anchoringTo = (ea: EdgeAnchor, id: NodeID): boolean => ea.id === id
-
-export const absEdgeAnchor = (
-  ds: Readonly<DataState>,
-  a: Readonly<EdgeAnchor>,
-): Readonly<Vec2> => {
-  const r = absRect(ds.data.nodes, ds.index.paths[a.id])
+export function absEdgeAnchor({ data, index }: DataState, a: EdgeAnchor): Vec2 {
+  const r = absRect(data.nodes, index.paths[a.id])
   switch (a.type) {
     case "node":
       return midPoint(r)

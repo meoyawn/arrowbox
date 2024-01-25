@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@solid-primitives/destructure": "^0.1.15",
-    "@solidjs/router": "^0.10.9",
+    "@solidjs/router": "^0.10.10",
     "clsx": "^2.1.0",
     "d3-drag": "^3.0.0",
     "d3-scale": "^4.0.2",
