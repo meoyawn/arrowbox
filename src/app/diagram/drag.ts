@@ -4,8 +4,9 @@ import {
   type DragBehavior,
   type DragContainerElement,
 } from "d3-drag"
-import { dataset, isEl } from "../../lib/dom.ts"
-import { isNodeID, type EdgeID, type NodeID } from "./data/data.ts"
+import { isEl } from "../../lib/dom.ts"
+import { closestNodeID } from "./Diagram2.tsx"
+import { type EdgeID, type NodeID } from "./data/data.ts"
 import { setStore, store, type Store } from "./data/store.ts"
 import { dragBrush } from "./drag/brush.ts"
 import { dragNewArrow } from "./drag/new-arrow.ts"
@@ -16,11 +17,10 @@ export function getNodeID(ev: Event): NodeID | undefined {
   const { target } = ev
   if (!isEl(target)) return
 
-  const nid = dataset(target.closest("[data-nodeID]"))?.nodeID
-
-  return isNodeID(nid) ? nid : undefined
+  return closestNodeID(target)
 }
 
+/** world coordinates */
 export interface DragBehavior2 {
   readonly x: number
   readonly y: number

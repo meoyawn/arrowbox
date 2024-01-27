@@ -1,5 +1,5 @@
 import { type Rect } from "../../../lib/geometry.ts"
-import { rset } from "../../../lib/ts.ts"
+import type { RSet } from "../../../lib/ts.ts"
 import { type NodeID, type NodesEdges } from "../data/data.ts"
 import { nonPatching, patching } from "../data/history.ts"
 import { type Store } from "../data/store.ts"
@@ -89,7 +89,8 @@ export const dragSide = (
   sx: number,
   sy: number,
 ): DragBehavior2 => {
-  const dragging = rset([id])
+  const dragging: RSet<NodeID> = { [id]: 1 }
+
   return {
     x: sx,
     y: sy,

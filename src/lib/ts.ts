@@ -9,8 +9,15 @@ export const memoize = <T>(fn: () => T): (() => T) => {
   }
 }
 
-/** serializable set */
+/**
+ * because https://docs.solidjs.com/references/api-reference/stores/using-stores#createstore
+ *
+ * Also JSON
+ */
 export type RSet<T extends keyof never> = Partial<Record<T, true | 1>>
 
-export const rset = <T extends keyof never>(arr: ReadonlyArray<T>): RSet<T> =>
+export const toSet = <T extends keyof never>(arr: readonly T[]): RSet<T> =>
   Object.fromEntries(arr.map(x => [x, 1])) as RSet<T>
+
+export const toArr = <T extends keyof never>(obj: RSet<T>): readonly T[] =>
+  Object.keys(obj) as T[]

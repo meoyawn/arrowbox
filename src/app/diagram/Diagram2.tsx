@@ -1,4 +1,3 @@
-import { destructure } from "@solid-primitives/destructure"
 import { pointer, select, type Selection } from "d3-selection"
 import { zoom, type D3ZoomEvent, type ZoomTransform } from "d3-zoom"
 import type { BBox } from "rbush"
@@ -6,20 +5,14 @@ import { createEffect, For, Show, type Component } from "solid-js"
 import { dataset, svgTransform2 } from "../../lib/dom.ts"
 import { midPoint } from "../../lib/geometry.ts"
 import { memoize } from "../../lib/ts.ts"
-import {
-  absEdgeAnchor,
-  isNodeID,
-  rootID,
-  type EdgeID,
-  type NodeID,
-} from "./data/data.ts"
+import { isNodeID, rootID, type EdgeID, type NodeID } from "./data/data.ts"
 import { patching } from "./data/history.ts"
+import { setStore, store, type NewArrow } from "./data/store.ts"
+import { addNode } from "./data/transactions.ts"
 import { behaviorDrag, worldDragSubj } from "./drag.ts"
 import { OneEdge } from "./draw/OneEdge.tsx"
 import { OneNode } from "./draw/OneNode.tsx"
-import { setStore, store, type NewArrow } from "./data/store.ts"
 import { SvgDefs } from "./SvgDefs.tsx"
-import { addNode } from "./data/transactions.ts"
 
 const draggingLast = (
   children: ReadonlyArray<NodeID>,
@@ -44,6 +37,12 @@ export const zoomTo = (
   t: ZoomTransform,
 ): void => d3Zoom.transform(s, t)
 
+const closestEdgeID = (el: Element): EdgeID | undefined =>
+  dataset(el.closest("[data-edgeID]"))?.edgeID as EdgeID
+
+export const closestNodeID = (el: Element): NodeID | undefined =>
+  dataset(el.closest("[data-nodeID]"))?.nodeID as NodeID
+
 export const Diagram2: Component = () => {
   let svgEl: SVGSVGElement
   let zoomedEl: SVGGElement
@@ -62,14 +61,6 @@ export const Diagram2: Component = () => {
     <svg
       ref={svgEl!}
       class="h-full min-h-screen w-full"
-      onDblClick={e => {
-        const world = pointer(e, zoomedEl)
-        setStore(s => ({
-          tree: patching(s.tree, x => {
-            addNode(x, world)
-          }),
-        }))
-      }}
       onWheel={ev => {
         if (ev.ctrlKey) return
 
@@ -79,16 +70,29 @@ export const Diagram2: Component = () => {
           camera.translate(-ev.deltaX / camera.k, -ev.deltaY / camera.k),
         )
       }}
-      onMouseOver={ev => {
-        const hovering = dataset(ev.target.closest("[data-nodeID]"))?.nodeID as
-          | NodeID
-          | undefined
-        setStore({ hovering })
+      onMouseOver={({ target }) => {
+        setStore({ hovering: closestNodeID(target) })
+      }}
+      onDblClick={e => {
+        const target = e.target
+        const nid = closestNodeID(target)
+        const eid = closestEdgeID(target)
+        const editing = nid ?? eid
+        if (editing) {
+          setStore({ editing })
+        } else {
+          const world = pointer(e, zoomedEl)
+          setStore(s => ({
+            tree: patching(s.tree, x => {
+              addNode(x, world)
+            }),
+          }))
+        }
       }}
       onClick={ev => {
         const target = ev.target
-        const nid = dataset(target.closest("[data-nodeID]"))?.nodeID
-        const eid = dataset(target.closest("[data-edgeID]"))?.edgeID
+        const nid = closestNodeID(target)
+        const eid = closestEdgeID(target)
         const selected = nid ?? eid
         if (selected) {
           setStore({

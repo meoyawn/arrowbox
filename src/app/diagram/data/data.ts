@@ -32,11 +32,14 @@ interface NodeText {
   htmlHeight: number
 }
 
+export type NodeShape = "rect" | "ellipse"
+
 export interface Node {
   id: NodeID
   text: NodeText
   rect: Rect
   children: Array<NodeID>
+  shape: NodeShape
 }
 
 export interface IdRect extends Rect {
@@ -47,6 +50,21 @@ export type EdgeAnchor =
   | { type: "node"; id: NodeID }
   | { type: "relative"; id: NodeID; point: Vec2 }
 
+const pointOnShape = (
+  s: NodeShape,
+  { height, width, x, y }: Rect,
+  other: Rect,
+): Vec2 => {
+  const [mx, my] = midPoint(other)
+  switch (s) {
+    case "rect":
+      return pointOnRect(mx, my, x, y, x + width, y + height)
+
+    case "ellipse":
+      throw new Error("not implemented")
+  }
+}
+
 export function absEdgeAnchor(
   { data, index }: DataState,
   a: EdgeAnchor,
@@ -55,18 +73,8 @@ export function absEdgeAnchor(
   const r = absRect(data.nodes, index.paths[a.id])
   const other = absRect(data.nodes, index.paths[otherID])
   switch (a.type) {
-    case "node": {
-      const [mx, my] = midPoint(other)
-      const { x, y } = pointOnRect(
-        mx,
-        my,
-        r.x,
-        r.y,
-        r.x + r.width,
-        r.y + r.height,
-      )
-      return [x, y]
-    }
+    case "node":
+      return pointOnShape(data.nodes[a.id].shape, r, other)
 
     case "relative": {
       const [px, py] = a.point
@@ -111,6 +119,7 @@ export const emptyDiagram = (): NodesEdges => ({
       children: [],
       rect: { x: 0, y: 0, width: 0, height: 0 },
       text: { html: "", markdown: "", htmlHeight: 0, htmlWidth: 0 },
+      shape: "rect",
     },
   },
   edges: {},

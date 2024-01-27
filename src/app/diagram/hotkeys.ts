@@ -1,5 +1,5 @@
 import hotkeys from "hotkeys-js"
-import type { EdgeID, NodeID } from "./data/data.ts"
+import { toArr } from "../../lib/ts.ts"
 import { patching, redo, undo } from "./data/history.ts"
 import { setStore, store } from "./data/store.ts"
 import { del } from "./data/transactions.ts"
@@ -15,9 +15,10 @@ export const setupHotkeys = (): VoidFunction => {
   hotkeys("Escape", () => setStore({ selected: {} }))
 
   hotkeys("Enter", () => {
-    const arr = Object.keys(store.selected) as Array<NodeID | EdgeID>
+    const arr = toArr(store.selected)
     if (arr.length === 1) {
-      setStore({ editing: arr[0] })
+      const [editing] = arr
+      setStore({ editing })
 
       // WTF is this?
       return false

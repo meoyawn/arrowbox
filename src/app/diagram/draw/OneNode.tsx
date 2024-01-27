@@ -1,9 +1,11 @@
 import { destructure } from "@solid-primitives/destructure"
 import clsx from "clsx"
-import { For, Show, createMemo, type Component } from "solid-js"
+import { For, Show, createEffect, type Component } from "solid-js"
 import { type Rect } from "../../../lib/geometry.ts"
 import { type NodeID } from "../data/data.ts"
-import { store } from "../data/store.ts"
+import { patching } from "../data/history.ts"
+import { setStore, store } from "../data/store.ts"
+import { setMD } from "../data/transactions.ts"
 import { dragIDs } from "../drag.ts"
 import { ResizeSides, type ResizeSide } from "../drag/resize.ts"
 
@@ -72,6 +74,14 @@ const Corner: Component<{
   )
 }
 
+const saveMD = (id: NodeID, tArea: HTMLTextAreaElement): void =>
+  setStore(s => ({
+    tree: patching(s.tree, data => {
+      setMD(data, id, tArea.value)
+    }),
+    editing: undefined,
+  }))
+
 /**
  * (0,0) -------> X+
  *   |
@@ -81,13 +91,22 @@ const Corner: Component<{
  *  Y+
  */
 export const OneNode: Component<{ id: NodeID }> = props => {
-  const node = createMemo(() => store.tree.data.nodes[props.id])
-  const selected = createMemo(() => Boolean(store.selected[props.id]))
-  const rect = createMemo(() => node().rect)
+  const node = () => store.tree.data.nodes[props.id]
+  const isSelected = () => Boolean(store.selected[props.id])
+  const rect = () => node().rect
+  const children = () => node().children
+  const isEditing = () => props.id === store.editing
 
   const isDragging = () => store.dragging && props.id in store.dragging
 
   const { x, y, width, height } = destructure(rect)
+
+  let editor: HTMLTextAreaElement | undefined
+  createEffect(() => {
+    if (isEditing()) {
+      editor?.focus()
+    }
+  })
 
   return (
     <g data-nodeID={props.id} transform={`translate(${x()} ${y()})`}>
@@ -105,7 +124,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
           height={height()}
         />
 
-        <Show when={selected()}>
+        <Show when={isSelected()}>
           <rect
             x={-5}
             y={-5}
@@ -116,14 +135,46 @@ export const OneNode: Component<{ id: NodeID }> = props => {
           />
         </Show>
 
-        {/*TODO html -> md*/}
         <foreignObject
-          class="prose pointer-events-none"
+          class="pointer-events-none relative overflow-visible"
           width={width()}
           height={height()}
-          // eslint-disable-next-line solid/no-innerhtml
-          innerHTML={node().text.html}
-        />
+        >
+          <div
+            class={clsx("prose absolute inset-0 flex justify-center", {
+              "items-center": children().length === 0,
+            })}
+          >
+            <div
+              // eslint-disable-next-line solid/no-innerhtml
+              innerHTML={node().text.html}
+            />
+          </div>
+
+          <Show when={isEditing()}>
+            <textarea
+              ref={editor}
+              class="pointer-events-auto absolute inset-0 bg-white ring-1 ring-black"
+              value={node().text.markdown}
+              onBlur={({ currentTarget }) => {
+                saveMD(props.id, currentTarget)
+              }}
+              onKeyDown={({ currentTarget, key, shiftKey }) => {
+                switch (key) {
+                  case "Escape":
+                    setStore({ editing: undefined })
+                    break
+
+                  case "Enter":
+                    if (!shiftKey) {
+                      saveMD(props.id, currentTarget)
+                    }
+                    break
+                }
+              }}
+            />
+          </Show>
+        </foreignObject>
 
         <circle
           data-dragID={dragIDs.newArrow}
@@ -131,7 +182,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
             "group-hover:visible": !store.dragging,
           })}
           stroke="black"
-          fill="transparent"
+          fill="white"
           stroke-width={2}
           cx={width() / 2}
           cy={height() / 2}
@@ -146,26 +197,26 @@ export const OneNode: Component<{ id: NodeID }> = props => {
         <Corner
           rect={rect()}
           side={ResizeSides.NORTHWEST}
-          selected={selected()}
+          selected={isSelected()}
         />
         <Corner
           rect={rect()}
           side={ResizeSides.NORTHEAST}
-          selected={selected()}
+          selected={isSelected()}
         />
         <Corner
           rect={rect()}
           side={ResizeSides.SOUTHEAST}
-          selected={selected()}
+          selected={isSelected()}
         />
         <Corner
           rect={rect()}
           side={ResizeSides.SOUTHWEST}
-          selected={selected()}
+          selected={isSelected()}
         />
       </g>
 
-      <For each={node().children}>{nid => <OneNode id={nid} />}</For>
+      <For each={children()}>{nid => <OneNode id={nid} />}</For>
     </g>
   )
 }

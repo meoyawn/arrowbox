@@ -5,8 +5,8 @@ import { store } from "../data/store.ts"
 export const OneEdge: Component<{ id: EdgeID }> = props => {
   const e = () => store.tree.data.edges[props.id]
 
-  const from = createMemo(() => absEdgeAnchor(store.tree, e().from,e().to.id))
-  const to = createMemo(() => absEdgeAnchor(store.tree, e().to,e().from.id))
+  const from = createMemo(() => absEdgeAnchor(store.tree, e().from, e().to.id))
+  const to = createMemo(() => absEdgeAnchor(store.tree, e().to, e().from.id))
 
   return (
     <g data-edgeID={props.id}>
