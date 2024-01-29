@@ -9,7 +9,7 @@ import {
   type NodesEdges,
 } from "../data/data.ts"
 import { nonPatching, patching } from "../data/history.ts"
-import { type Store } from "../data/store.ts"
+import { type State } from "../data/state.ts"
 import { type DragBehavior2 } from "../drag.ts"
 
 /** world coordinates */
@@ -25,7 +25,7 @@ export const dragNode = (
     x: sx,
     y: sy,
 
-    onDrag: ({ tree }: Store, x: number, y: number): Partial<Store> => ({
+    onDrag: ({ tree }: State, x: number, y: number): Partial<State> => ({
       tree: nonPatching(tree, ({ nodes }) => {
         const dx = x - sx
         const dy = y - sy
@@ -42,7 +42,7 @@ export const dragNode = (
       dragging,
     }),
 
-    onEnd({ hovering, tree }: Store, x: number, y: number): Partial<Store> {
+    onEnd({ hovering, tree }: State, x: number, y: number): Partial<State> {
       const dx = x - sx
       const dy = y - sy
 

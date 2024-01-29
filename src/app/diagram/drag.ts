@@ -5,9 +5,10 @@ import {
   type DragContainerElement,
 } from "d3-drag"
 import { isEl } from "../../lib/dom.ts"
+import { toArr } from "../../lib/ts.ts"
 import { closestNodeID } from "./Diagram2.tsx"
-import { type EdgeID, type NodeID } from "./data/data.ts"
-import { setStore, store, type Store } from "./data/store.ts"
+import { type NodeID } from "./data/data.ts"
+import { setStore, store, type State } from "./data/state.ts"
 import { dragBrush } from "./drag/brush.ts"
 import { dragNewArrow } from "./drag/new-arrow.ts"
 import { dragNode } from "./drag/node.ts"
@@ -25,9 +26,9 @@ export interface DragBehavior2 {
   readonly x: number
   readonly y: number
 
-  onDrag(store: Store, x: number, y: number): Partial<Store>
+  onDrag(store: State, x: number, y: number): Partial<State>
 
-  onEnd(store: Store, x: number, y: number): Partial<Store>
+  onEnd(store: State, x: number, y: number): Partial<State>
 }
 
 export function behaviorDrag<T extends Element>(
@@ -55,6 +56,8 @@ interface D3Event<Subj> extends D3DragEvent<Element, unknown, Subj> {
 export const dragIDs = {
   node: "node",
   newArrow: "new-arrow",
+  edgeFrom: "edge-from",
+  edgeTo: "edge-to",
 } as const
 
 type DragID = (typeof dragIDs)[keyof typeof dragIDs]
@@ -88,10 +91,9 @@ export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
       const nid = getNodeID(ev.sourceEvent)
       if (!nid) throw new Error("no nid")
 
-      const { rect } = data.nodes[nid]
-      const selArr = Object.keys(store.selected) as Array<NodeID | EdgeID>
+      const selArr = toArr(store.selected)
       return shiftKey
-        ? dragNewArrow(nid, rect)
+        ? dragNewArrow(nid, ev.x, ev.y)
         : dragNode(ev.x, ev.y, data, selArr.length ? selArr : [nid])
     }
 
@@ -99,8 +101,10 @@ export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
       const nid = getNodeID(ev.sourceEvent)
       if (!nid) throw new Error("no nid")
 
-      const { rect } = data.nodes[nid]
-      return dragNewArrow(nid, rect)
+      return dragNewArrow(nid, ev.x, ev.y)
+    }
+
+    case dragIDs.edgeFrom: {
     }
   }
 }

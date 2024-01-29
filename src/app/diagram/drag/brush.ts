@@ -1,12 +1,12 @@
 import { type BBox } from "rbush"
 import { brushSelect } from "../brushing.ts"
-import { type Store } from "../data/store.ts"
+import { type State } from "../data/state.ts"
 import { type DragBehavior2 } from "../drag.ts"
 
 export const dragBrush = (sx: number, sy: number): DragBehavior2 => ({
   x: sx,
   y: sy,
-  onDrag(store: Store, x: number, y: number): Partial<Store> {
+  onDrag(store: State, x: number, y: number): Partial<State> {
     const brush: BBox = {
       minX: Math.min(sx, x),
       minY: Math.min(sy, y),
@@ -18,5 +18,5 @@ export const dragBrush = (sx: number, sy: number): DragBehavior2 => ({
       selected: brushSelect(store.tree.index.bush, brush),
     }
   },
-  onEnd: (): Partial<Store> => ({ brush: undefined }),
+  onEnd: (): Partial<State> => ({ brush: undefined }),
 })

@@ -11,7 +11,7 @@ import {
   type NodesEdges,
 } from "./data"
 
-export type ParentIndex = Record<NodeID | EdgeID, NodeID>
+export type ParentIndex = Record<NodeID, NodeID>
 export type DeepChildrenIndex = Record<NodeID, RSet<NodeID>>
 type FirstEdges = Record<NodeID, Edge[]>
 
@@ -21,7 +21,7 @@ interface EdgeIndex {
 }
 
 /** O(nodes) */
-const indexParents = ({ nodes }: NodesEdges): ParentIndex => {
+const indexParents = (nodes: Record<NodeID, Node>): ParentIndex => {
   const out: ParentIndex = {}
 
   for (const nodeID in nodes) {
@@ -35,7 +35,7 @@ const indexParents = ({ nodes }: NodesEdges): ParentIndex => {
 }
 
 /** O(edges) */
-const deriveEdges = ({ edges }: NodesEdges): EdgeIndex => {
+const deriveEdges = (edges: Record<EdgeID, Edge>): EdgeIndex => {
   const outEdges: FirstEdges = {}
   const inEdges: FirstEdges = {}
 
@@ -93,8 +93,8 @@ interface Queue<T> {
 
 type NodePath = readonly [id: NodeID, path: NestPath]
 
-// O(N) BFS
-const traverse = (nodes: Record<NodeID, Node>): ReadonlyArray<NodePath> => {
+/** O(N) BFS */
+export function traverse(nodes: Record<NodeID, Node>): ReadonlyArray<NodePath> {
   const queue: Queue<NodePath> = Array([rootID, []])
   const ret: Array<NodePath> = []
 
@@ -129,9 +129,9 @@ class IdRectBush extends RBush<IdRect> {
   compareMinY = (a: IdRect, b: IdRect): number => a.y - b.y
 }
 
-const getAbsRects = (
+function getAbsRects(
   nodes: Record<NodeID, Node>,
-): [Record<NodeID, NestPath>, Record<NodeID, IdRect>] => {
+): [Record<NodeID, NestPath>, Record<NodeID, IdRect>] {
   const rects: Record<NodeID, IdRect> = {}
   const paths: Record<NodeID, NestPath> = {}
 
@@ -143,7 +143,7 @@ const getAbsRects = (
   return [paths, rects]
 }
 
-const buildBush = (absRects: Record<NodeID, IdRect>): RBush<IdRect> => {
+function buildBush(absRects: Record<NodeID, IdRect>): RBush<IdRect> {
   const rBush = new IdRectBush()
   rBush.load(Object.values(absRects))
   return rBush
@@ -157,13 +157,13 @@ export interface GraphIndex {
   paths: Record<NodeID, NestPath>
 }
 
-export const buildIndex = (d: NodesEdges): GraphIndex => {
-  const [paths, absRects] = getAbsRects(d.nodes)
+export function buildIndex({ edges, nodes }: NodesEdges): GraphIndex {
+  const [paths, absRects] = getAbsRects(nodes)
 
   return {
-    parents: indexParents(d),
-    deepChildren: indexChildren(d.nodes, rootID),
-    edges: deriveEdges(d),
+    parents: indexParents(nodes),
+    deepChildren: indexChildren(nodes, rootID),
+    edges: deriveEdges(edges),
     bush: buildBush(absRects),
     paths,
   }

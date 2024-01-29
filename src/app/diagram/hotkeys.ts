@@ -1,8 +1,9 @@
 import hotkeys from "hotkeys-js"
 import { toArr } from "../../lib/ts.ts"
+import { isNodeID } from "./data/data.ts"
 import { patching, redo, undo } from "./data/history.ts"
-import { setStore, store } from "./data/store.ts"
-import { del } from "./data/transactions.ts"
+import { setStore, store } from "./data/state.ts"
+import { del, ungroup } from "./data/transactions.ts"
 
 export const setupHotkeys = (): VoidFunction => {
   hotkeys("Delete, Backspace", () =>
@@ -25,13 +26,44 @@ export const setupHotkeys = (): VoidFunction => {
     }
   })
 
-  hotkeys("ctrl+z, command+z", () =>
-    setStore(({ tree }) => ({ tree: undo(tree) })),
+  hotkeys("ctrl+z, command+z", e => {
+    e.preventDefault()
+
+    setStore(({ tree }) => ({ tree: undo(tree) }))
+  })
+
+  hotkeys("ctrl+shift+z, command+shift+z", e => {
+    e.preventDefault()
+
+    setStore(({ tree }) => ({ tree: redo(tree) }))
+  })
+
+  // group
+  hotkeys("ctrl+g,command+z", () =>
+    setStore(s => ({
+      tree: patching(s.tree, d => {
+        // TODO remove parent
+      }),
+    })),
   )
 
-  hotkeys("ctrl+shift+z, command+shift+z", () =>
-    setStore(({ tree }) => ({ tree: redo(tree) })),
-  )
+  // ungroup
+  hotkeys("ctrl+shift+g,command+shift+g", e => {
+    e.preventDefault()
+
+    const selected = toArr(store.selected)
+    if (selected.length !== 1) return
+
+    const [id] = selected
+    if (!isNodeID(id)) return
+    if (!store.tree.data.nodes[id].children.length) return
+
+    setStore({
+      tree: patching(store.tree, ({ nodes }) =>
+        ungroup(nodes, store.tree.index.parents, id),
+      ),
+    })
+  })
 
   return () => hotkeys.unbind()
 }

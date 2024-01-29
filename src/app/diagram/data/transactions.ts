@@ -1,13 +1,13 @@
 import { type Vec2 } from "../../../lib/geometry.ts"
 import type { RSet } from "../../../lib/ts.ts"
 import { md2html } from "../../markdown.ts"
-import { measureHtml } from "../label.tsx"
 import {
   genID,
   isEdgeID,
   isNodeID,
   rootID,
   type EdgeID,
+  type Node,
   type NodeID,
   type NodeShape,
   type NodesEdges,
@@ -23,12 +23,7 @@ export function addNode(
 
   data.nodes[id] = {
     id,
-    text: {
-      html: "",
-      markdown: "",
-      htmlWidth: 0,
-      htmlHeight: 0,
-    },
+    text: { html: "", markdown: "" },
     rect: { x, y, width: 100, height: 100 },
     children: [],
     shape,
@@ -57,22 +52,14 @@ export function addEdge(
 }
 
 export function setMD(
-  { nodes }: NodesEdges,
+  nodes: Record<NodeID, Node>,
   id: NodeID,
   markdown: string,
 ): void {
   const html = md2html(markdown)
-  const { width, height } = measureHtml(html)
-
-  const { text, rect } = nodes[id]
+  const { text } = nodes[id]
   text.markdown = markdown
   text.html = html
-  if (rect.width < width) {
-    rect.width = width
-  }
-  if (rect.height < height) {
-    rect.height = height
-  }
 }
 
 function deleteNode(
@@ -109,4 +96,26 @@ export function del(
       delete ne.edges[id]
     }
   }
+}
+
+export function ungroup(
+  nodes: Record<NodeID, Node>,
+  parents: Record<NodeID, NodeID>,
+  groupID: NodeID,
+): void {
+  const group = nodes[groupID]
+  const parent = nodes[parents[groupID]]
+
+  const { x, y } = group.rect
+  for (const c of group.children) {
+    const { rect: childRect } = nodes[c]
+    childRect.x += x
+    childRect.y += y
+  }
+
+  parent.children = parent.children
+    .filter(c => c !== groupID)
+    .concat(group.children)
+
+  delete nodes[groupID]
 }

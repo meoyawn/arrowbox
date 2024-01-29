@@ -1,13 +1,18 @@
 import { pointer, select, type Selection } from "d3-selection"
 import { zoom, type D3ZoomEvent, type ZoomTransform } from "d3-zoom"
-import type { BBox } from "rbush"
-import { createEffect, For, Show, type Component } from "solid-js"
+import { type BBox } from "rbush"
+import { createEffect, createMemo, For, Show, type Component } from "solid-js"
 import { dataset, svgTransform2 } from "../../lib/dom.ts"
-import { midPoint } from "../../lib/geometry.ts"
-import { memoize } from "../../lib/ts.ts"
-import { isNodeID, rootID, type EdgeID, type NodeID } from "./data/data.ts"
+import { memoize, toArr } from "../../lib/ts.ts"
+import {
+  absEdgeAnchor,
+  isNodeID,
+  rootID,
+  type EdgeID,
+  type NodeID,
+} from "./data/data.ts"
 import { patching } from "./data/history.ts"
-import { setStore, store, type NewArrow } from "./data/store.ts"
+import { setStore, store, type NewArrow } from "./data/state.ts"
 import { addNode } from "./data/transactions.ts"
 import { behaviorDrag, worldDragSubj } from "./drag.ts"
 import { OneEdge } from "./draw/OneEdge.tsx"
@@ -112,9 +117,7 @@ export const Diagram2: Component = () => {
         <For each={store.tree.data.nodes[rootID].children}>
           {id => <OneNode id={id} />}
         </For>
-        <For each={Object.keys(store.tree.data.edges)}>
-          {e => <OneEdge id={e as EdgeID} />}
-        </For>
+        <For each={toArr(store.tree.data.edges)}>{e => <OneEdge id={e} />}</For>
 
         <Show when={store.brush}>{b => <BrushRect bbox={b()} />}</Show>
         <Show when={store.newArrow}>
@@ -125,12 +128,25 @@ export const Diagram2: Component = () => {
   )
 }
 
+/**
+ * TODO:
+ * - respect shape
+ * - respect absolute coordinates
+ */
 const NewArrowC: Component<NewArrow> = props => {
-  const mid = () => midPoint(store.tree.data.nodes[props.from].rect)
+  const from = createMemo(() =>
+    absEdgeAnchor(
+      store.tree,
+      { type: "node", id: props.from },
+      props.toX,
+      props.toY,
+    ),
+  )
+
   return (
     <line
-      x1={mid()[0]}
-      y1={mid()[1]}
+      x1={from()[0]}
+      y1={from()[1]}
       x2={props.toX}
       y2={props.toY}
       stroke={"black"}

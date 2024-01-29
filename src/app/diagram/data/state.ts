@@ -15,7 +15,7 @@ export interface NewArrow {
   toY: number
 }
 
-export interface Store {
+export interface State {
   camera: ZoomTransform
   tree: DataState
 
@@ -36,7 +36,7 @@ export interface Store {
 }
 
 /** creates a proxied object that signals changes */
-export const [store, setStore] = createStore<Store>({
+export const [store, setStore] = createStore<State>({
   camera: zoomIdentity,
   tree: emptyDataState(),
   selected: {},

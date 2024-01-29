@@ -48,6 +48,7 @@
     "eslint": "^8.56.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-solid": "^0.13.1",
+    "fast-check": "^3.15.0",
     "postcss": "^8.4.33",
     "prettier": "^3.2.4",
     "prettier-plugin-organize-imports": "^3.2.4",

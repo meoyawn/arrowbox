@@ -4,7 +4,7 @@ import { For, Show, createEffect, type Component } from "solid-js"
 import { type Rect } from "../../../lib/geometry.ts"
 import { type NodeID } from "../data/data.ts"
 import { patching } from "../data/history.ts"
-import { setStore, store } from "../data/store.ts"
+import { setStore, store } from "../data/state.ts"
 import { setMD } from "../data/transactions.ts"
 import { dragIDs } from "../drag.ts"
 import { ResizeSides, type ResizeSide } from "../drag/resize.ts"
@@ -66,7 +66,7 @@ const Corner: Component<{
       width={sideArea}
       height={sideArea}
       fill="transparent"
-      stroke={props.selected ? "blue" : "transparent"}
+      stroke={props.selected ? "dodgerblue" : "transparent"}
       stroke-width={1}
       class={cls()}
       data-side={props.side}
@@ -75,10 +75,8 @@ const Corner: Component<{
 }
 
 const saveMD = (id: NodeID, tArea: HTMLTextAreaElement): void =>
-  setStore(s => ({
-    tree: patching(s.tree, data => {
-      setMD(data, id, tArea.value)
-    }),
+  setStore(({ tree }) => ({
+    tree: patching(tree, data => setMD(data.nodes, id, tArea.value)),
     editing: undefined,
   }))
 
@@ -99,7 +97,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
 
   const isDragging = () => store.dragging && props.id in store.dragging
 
-  const { x, y, width, height } = destructure(rect)
+  const { x, y, width, height } = destructure(rect, { memo: true })
 
   let editor: HTMLTextAreaElement | undefined
   createEffect(() => {
@@ -131,7 +129,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
             width={width() + 10}
             height={height() + 10}
             fill="none"
-            stroke="blue"
+            stroke="dodgerblue"
           />
         </Show>
 
@@ -179,7 +177,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
         <circle
           data-dragID={dragIDs.newArrow}
           class={clsx("invisible cursor-move", {
-            "group-hover:visible": !store.dragging,
+            "group-hover:visible": !store.dragging && !isEditing(),
           })}
           stroke="black"
           fill="white"

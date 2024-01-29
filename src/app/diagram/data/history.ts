@@ -24,11 +24,13 @@ export const emptyHistory = (): ImmerHistory => ({
   backward: [],
 })
 
-export const patching = (
-  { data, history }: DataState,
+export function patching(
+  ds: DataState,
   fn: (d: NodesEdges) => void,
-): DataState => {
+): DataState {
+  const { data, history } = ds
   const [next, fwd, bwd] = produceWithPatches(data, fn)
+  if (!fwd.length) return ds
 
   return {
     data: next,
@@ -51,6 +53,7 @@ export const undo = (ds: DataState): DataState => {
   if (history.index < 0) return ds
 
   const patch = history.backward[history.index]
+  if (!patch.length) throw new Error("empty patch")
 
   const prev = applyPatches(data, patch)
   return {
@@ -66,6 +69,7 @@ export const redo = (ds: DataState): DataState => {
   if (index >= history.forward.length) return ds
 
   const patch = history.forward[index]
+  if (!patch.length) throw new Error("empty patch")
 
   const next = applyPatches(data, patch)
   return {

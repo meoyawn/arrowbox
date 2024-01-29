@@ -1,7 +1,7 @@
 import type RBush from "rbush"
 import { type BBox } from "rbush"
 import { type Rect } from "../../lib/geometry.ts"
-import type { RSet } from "../../lib/ts.ts"
+import { type RSet } from "../../lib/ts.ts"
 import { rootID, type IdRect, type Node, type NodeID } from "./data/data.ts"
 
 export type NestPath = ReadonlyArray<number>

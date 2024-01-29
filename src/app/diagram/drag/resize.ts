@@ -2,7 +2,7 @@ import { type Rect } from "../../../lib/geometry.ts"
 import type { RSet } from "../../../lib/ts.ts"
 import { type NodeID, type NodesEdges } from "../data/data.ts"
 import { nonPatching, patching } from "../data/history.ts"
-import { type Store } from "../data/store.ts"
+import { type State } from "../data/state.ts"
 import { type DragBehavior2 } from "../drag.ts"
 
 export const dragConstraints = {
@@ -95,7 +95,7 @@ export const dragSide = (
     x: sx,
     y: sy,
 
-    onDrag: (store: Store, x: number, y: number): Partial<Store> => ({
+    onDrag: (store: State, x: number, y: number): Partial<State> => ({
       tree: nonPatching(store.tree, ({ nodes }) => {
         nodes[id].rect = onDragSide(
           sx,
@@ -109,7 +109,7 @@ export const dragSide = (
       dragging,
     }),
 
-    onEnd: (store: Store, x: number, y: number): Partial<Store> => ({
+    onEnd: (store: State, x: number, y: number): Partial<State> => ({
       tree: patching({ ...store.tree, data: beforeDrag }, ({ nodes }) => {
         nodes[id].rect = onDragSide(
           sx,

@@ -1,10 +1,5 @@
 import { type ZoomTransform } from "d3-zoom"
-import {
-  midPoint,
-  pointOnRect,
-  type Rect,
-  type Vec2,
-} from "../../../lib/geometry"
+import { pointOnRect, type Rect, type Vec2 } from "../../../lib/geometry"
 import { absRect } from "../brushing.ts"
 import { emptyHistory, type ImmerHistory } from "./history.ts"
 import { buildIndex, type GraphIndex } from "./indexing"
@@ -28,8 +23,6 @@ export const isEdgeID = (id: unknown): id is EdgeID =>
 interface NodeText {
   markdown: string
   html: string
-  htmlWidth: number
-  htmlHeight: number
 }
 
 export type NodeShape = "rect" | "ellipse"
@@ -53,12 +46,12 @@ export type EdgeAnchor =
 const pointOnShape = (
   s: NodeShape,
   { height, width, x, y }: Rect,
-  other: Rect,
+  lineX: number,
+  lineY: number,
 ): Vec2 => {
-  const [mx, my] = midPoint(other)
   switch (s) {
     case "rect":
-      return pointOnRect(mx, my, x, y, x + width, y + height)
+      return pointOnRect(lineX, lineY, x, y, x + width, y + height)
 
     case "ellipse":
       throw new Error("not implemented")
@@ -68,13 +61,13 @@ const pointOnShape = (
 export function absEdgeAnchor(
   { data, index }: DataState,
   a: EdgeAnchor,
-  otherID: NodeID,
+  lineX: number,
+  lineY: number,
 ): Vec2 {
   const r = absRect(data.nodes, index.paths[a.id])
-  const other = absRect(data.nodes, index.paths[otherID])
   switch (a.type) {
     case "node":
-      return pointOnShape(data.nodes[a.id].shape, r, other)
+      return pointOnShape(data.nodes[a.id].shape, r, lineX, lineY)
 
     case "relative": {
       const [px, py] = a.point
@@ -110,7 +103,7 @@ export const genStr = (): string => {
 export const genID = <P extends string>(prefix: P): `${P}${string}` =>
   `${prefix}${genStr()}`
 
-export const rootID = "nRoot"
+export const rootID = "nRoot" satisfies NodeID
 
 export const emptyDiagram = (): NodesEdges => ({
   nodes: {
@@ -118,7 +111,7 @@ export const emptyDiagram = (): NodesEdges => ({
       id: rootID,
       children: [],
       rect: { x: 0, y: 0, width: 0, height: 0 },
-      text: { html: "", markdown: "", htmlHeight: 0, htmlWidth: 0 },
+      text: { html: "", markdown: "" },
       shape: "rect",
     },
   },

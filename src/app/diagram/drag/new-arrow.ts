@@ -1,32 +1,33 @@
-import { midPoint, type Rect } from "../../../lib/geometry.ts"
 import { isNodeID, type EdgeID, type NodeID } from "../data/data.ts"
 import { patching } from "../data/history.ts"
-import type { Store } from "../data/store.ts"
+import type { State } from "../data/state.ts"
 import { addEdge } from "../data/transactions.ts"
 import type { DragBehavior2 } from "../drag.ts"
 
-export function dragNewArrow(id: NodeID, init: Rect): DragBehavior2 {
-  const [midX, midY] = midPoint(init)
-
+export function dragNewArrow(
+  id: NodeID,
+  sx: number,
+  sy: number,
+): DragBehavior2 {
   return {
-    x: midX,
-    y: midY,
-    onDrag: (store: Store, x: number, y: number): Partial<Store> => ({
+    x: sx,
+    y: sy,
+    onDrag: (_: State, x: number, y: number): Partial<State> => ({
       newArrow: { from: id, toX: x, toY: y },
       dragging: {},
     }),
-    onEnd(store: Store, x: number, y: number): Partial<Store> {
+    onEnd(store: State, x: number, y: number): Partial<State> {
       const above = isNodeID(store.hovering) ? store.hovering : undefined
 
-      let selected: NodeID | EdgeID
+      let editing: NodeID | EdgeID
 
       return {
         tree: patching(store.tree, data => {
-          selected = addEdge(data, { from: id, to: above, world: [x, y] })
+          editing = addEdge(data, { from: id, to: above, world: [x, y] })
         }),
         newArrow: undefined,
         dragging: undefined,
-        selected: { [selected!]: 1 } as const,
+        editing: editing!,
       }
     },
   }
