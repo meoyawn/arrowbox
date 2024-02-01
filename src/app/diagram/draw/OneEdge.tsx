@@ -1,28 +1,15 @@
-import { destructure } from "@solid-primitives/destructure"
-import { Show, createMemo, type Component } from "solid-js"
-import { midPoint } from "../../../lib/geometry.ts"
-import { absRect } from "../brushing.ts"
-import { absEdgeAnchor, type EdgeID } from "../data/data.ts"
+import { Show, type Component } from "solid-js"
+import { type EdgeID } from "../data/data.ts"
+import { createAnchors } from "../data/edge-anchor.ts"
 import { store } from "../data/state.ts"
 import { dragIDs } from "../drag.ts"
 
 export const OneEdge: Component<{ id: EdgeID }> = props => {
   const e = () => store.tree.data.edges[props.id]
 
-  const midFrom = createMemo(() =>
-    midPoint(
-      absRect(store.tree.data.nodes, store.tree.index.paths[e().from.id]),
-    ),
-  )
-  const midTo = createMemo(() =>
-    midPoint(absRect(store.tree.data.nodes, store.tree.index.paths[e().to.id])),
-  )
-
-  const from = () => absEdgeAnchor(store.tree, e().from, midTo()[0], midTo()[1])
-  const [fromX, fromY] = destructure(from)
-
-  const to = () => absEdgeAnchor(store.tree, e().to, midFrom()[0], midFrom()[1])
-  const [toX, toY] = destructure(to)
+  const from = () => e().from
+  const to = () => e().to
+  const { fromX, fromY, toX, toY } = createAnchors(store, from, to)
 
   return (
     <g data-edgeID={props.id} class="group cursor-pointer">
@@ -56,6 +43,17 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
         stroke-width={2}
         cx={fromX()}
         cy={fromY()}
+        r={5}
+      />
+
+      <circle
+        data-dragID={dragIDs.edgeTo}
+        class="invisible cursor-grab group-hover:visible"
+        fill="white"
+        stroke="black"
+        stroke-width={2}
+        cx={toX()}
+        cy={toY()}
         r={5}
       />
     </g>

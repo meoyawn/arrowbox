@@ -6,20 +6,20 @@ import {
 } from "d3-drag"
 import { isEl } from "../../lib/dom.ts"
 import { toArr } from "../../lib/ts.ts"
-import { closestNodeID } from "./Diagram2.tsx"
-import { type NodeID } from "./data/data.ts"
+import { closestEdgeID, closestNodeID } from "./Diagram2.tsx"
+import { type EdgeID, type NodeID } from "./data/data.ts"
 import { setStore, store, type State } from "./data/state.ts"
 import { dragBrush } from "./drag/brush.ts"
+import { dragEdge } from "./drag/edge.ts"
 import { dragNewArrow } from "./drag/new-arrow.ts"
 import { dragNode } from "./drag/node.ts"
 import { dragSide, type ResizeSide } from "./drag/resize.ts"
 
-export function getNodeID(ev: Event): NodeID | undefined {
-  const { target } = ev
-  if (!isEl(target)) return
+export const getNodeID = ({ target }: Event): NodeID | undefined =>
+  isEl(target) ? closestNodeID(target) : undefined
 
-  return closestNodeID(target)
-}
+export const getEdgeID = ({ target }: Event): EdgeID | undefined =>
+  isEl(target) ? closestEdgeID(target) : undefined
 
 /** world coordinates */
 export interface DragBehavior2 {
@@ -93,7 +93,7 @@ export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
 
       const selArr = toArr(store.selected)
       return shiftKey
-        ? dragNewArrow(nid, ev.x, ev.y)
+        ? dragNewArrow({ type: "node", id: nid }, ev.x, ev.y)
         : dragNode(ev.x, ev.y, data, selArr.length ? selArr : [nid])
     }
 
@@ -101,10 +101,21 @@ export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
       const nid = getNodeID(ev.sourceEvent)
       if (!nid) throw new Error("no nid")
 
-      return dragNewArrow(nid, ev.x, ev.y)
+      return dragNewArrow({ type: "node", id: nid }, ev.x, ev.y)
     }
 
     case dragIDs.edgeFrom: {
+      const eid = getEdgeID(ev.sourceEvent)
+      if (!eid) throw new Error("no nid")
+
+      return dragEdge(eid, "start", ev.x, ev.y)
+    }
+
+    case dragIDs.edgeTo: {
+      const eid = getEdgeID(ev.sourceEvent)
+      if (!eid) throw new Error("no nid")
+
+      return dragEdge(eid, "end", ev.x, ev.y)
     }
   }
 }

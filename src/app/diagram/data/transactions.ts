@@ -13,6 +13,7 @@ import {
   type NodesEdges,
 } from "./data.ts"
 import type { GraphIndex } from "./indexing.ts"
+import type { DraggingArrow } from "./state.ts"
 
 export function addNode(
   data: NodesEdges,
@@ -36,19 +37,30 @@ export function addNode(
 
 export function addEdge(
   data: NodesEdges,
-  { from, to, world }: { from: NodeID; to?: NodeID; world: Vec2 },
+  { from, to }: DraggingArrow,
 ): EdgeID | NodeID {
-  if (!to && !from) throw new Error("must specify from or to")
-
   const id: EdgeID = genID("e")
-  const toID: NodeID = to ?? addNode(data, world)
-  data.edges[id] = {
-    id,
-    from: { type: "node", id: from },
-    to: { type: "node", id: toID },
-  }
 
-  return to ? id : toID
+  switch (to.type) {
+    case "node":
+      data.edges[id] = {
+        id,
+        from,
+        to,
+      }
+      return id
+
+    case "relative": {
+      const { x, y } = to
+      const nid = addNode(data, [x, y])
+      data.edges[id] = {
+        id,
+        from,
+        to: { type: "node", id: nid },
+      }
+      return nid
+    }
+  }
 }
 
 export function setMD(

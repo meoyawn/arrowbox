@@ -17,21 +17,27 @@ export const dragNode = (
   sx: number,
   sy: number,
   beforeDrag: Readonly<NodesEdges>,
-  selected: ReadonlyArray<NodeID | EdgeID>,
+  selArr: ReadonlyArray<NodeID | EdgeID>,
 ): DragBehavior2 => {
-  const dragging = toSet(selected.filter(isNodeID))
+  const dragging = toSet(selArr.filter(isNodeID))
 
   return {
     x: sx,
     y: sy,
 
-    onDrag: ({ tree }: State, x: number, y: number): Partial<State> => ({
+    onDrag: (
+      { tree, selected }: State,
+      x: number,
+      y: number,
+    ): Partial<State> => ({
       tree: nonPatching(tree, ({ nodes }) => {
         const dx = x - sx
         const dy = y - sy
 
-        for (const id of selected) {
+        for (const id of selArr) {
           if (!isNodeID(id)) continue
+          const oldParentID = tree.index.parents[id]
+          if (oldParentID in selected) continue
 
           const oldR: Readonly<Rect> = beforeDrag.nodes[id].rect
           const newR: Rect = nodes[id].rect
@@ -42,7 +48,11 @@ export const dragNode = (
       dragging,
     }),
 
-    onEnd({ hovering, tree }: State, x: number, y: number): Partial<State> {
+    onEnd(
+      { hovering, tree, selected }: State,
+      x: number,
+      y: number,
+    ): Partial<State> {
       const dx = x - sx
       const dy = y - sy
 
@@ -55,10 +65,11 @@ export const dragNode = (
             tree.index.paths[newParentID],
           )
 
-          for (const id of selected) {
+          for (const id of selArr) {
             if (newParentID === id || !isNodeID(id)) continue
-
             const oldParentID = tree.index.parents[id]
+            if (oldParentID in selected) continue
+
             if (oldParentID !== newParentID) {
               const oldParent = nodes[oldParentID]
               oldParent.children = oldParent.children.filter(x => x !== id)

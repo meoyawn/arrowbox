@@ -1,6 +1,6 @@
 import hotkeys from "hotkeys-js"
-import { toArr } from "../../lib/ts.ts"
-import { isNodeID } from "./data/data.ts"
+import { toArr, toSet } from "../../lib/ts.ts"
+import { isNodeID, rootID } from "./data/data.ts"
 import { patching, redo, undo } from "./data/history.ts"
 import { setStore, store } from "./data/state.ts"
 import { del, ungroup } from "./data/transactions.ts"
@@ -48,7 +48,7 @@ export const setupHotkeys = (): VoidFunction => {
   )
 
   // ungroup
-  hotkeys("ctrl+shift+g,command+shift+g", e => {
+  hotkeys("ctrl+shift+g, command+shift+g", e => {
     e.preventDefault()
 
     const selected = toArr(store.selected)
@@ -63,6 +63,17 @@ export const setupHotkeys = (): VoidFunction => {
         ungroup(nodes, store.tree.index.parents, id),
       ),
     })
+  })
+
+  hotkeys("ctrl+a, command+a", e => {
+    e.preventDefault()
+
+    setStore(({ tree }) => ({
+      selected: toSet([
+        ...toArr(tree.data.nodes).filter(x => x !== rootID),
+        ...toArr(tree.data.edges),
+      ]),
+    }))
   })
 
   return () => hotkeys.unbind()

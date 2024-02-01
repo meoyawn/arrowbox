@@ -1,6 +1,6 @@
 import { type ZoomTransform } from "d3-zoom"
-import { pointOnRect, type Rect, type Vec2 } from "../../../lib/geometry"
-import { absRect } from "../brushing.ts"
+import { type Rect, type Vec2 } from "../../../lib/geometry"
+import type { EdgeAnchor } from "./edge-anchor.ts"
 import { emptyHistory, type ImmerHistory } from "./history.ts"
 import { buildIndex, type GraphIndex } from "./indexing"
 
@@ -37,44 +37,6 @@ export interface Node {
 
 export interface IdRect extends Rect {
   readonly id: NodeID
-}
-
-export type EdgeAnchor =
-  | { type: "node"; id: NodeID }
-  | { type: "relative"; id: NodeID; point: Vec2 }
-
-const pointOnShape = (
-  s: NodeShape,
-  { height, width, x, y }: Rect,
-  lineX: number,
-  lineY: number,
-): Vec2 => {
-  switch (s) {
-    case "rect":
-      return pointOnRect(lineX, lineY, x, y, x + width, y + height)
-
-    case "ellipse":
-      throw new Error("not implemented")
-  }
-}
-
-export function absEdgeAnchor(
-  { data, index }: DataState,
-  a: EdgeAnchor,
-  lineX: number,
-  lineY: number,
-): Vec2 {
-  const r = absRect(data.nodes, index.paths[a.id])
-  switch (a.type) {
-    case "node":
-      return pointOnShape(data.nodes[a.id].shape, r, lineX, lineY)
-
-    case "relative": {
-      const [px, py] = a.point
-      const { x, y } = r
-      return [px + x, py + y]
-    }
-  }
 }
 
 export interface Edge {

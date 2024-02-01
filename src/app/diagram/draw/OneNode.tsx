@@ -74,9 +74,9 @@ const Corner: Component<{
   )
 }
 
-const saveMD = (id: NodeID, tArea: HTMLTextAreaElement): void =>
+const setStoreMD = (id: NodeID, md: string): void =>
   setStore(({ tree }) => ({
-    tree: patching(tree, data => setMD(data.nodes, id, tArea.value)),
+    tree: patching(tree, data => setMD(data.nodes, id, md)),
     editing: undefined,
   }))
 
@@ -139,9 +139,12 @@ export const OneNode: Component<{ id: NodeID }> = props => {
           height={height()}
         >
           <div
-            class={clsx("prose absolute inset-0 flex justify-center", {
-              "items-center": children().length === 0,
-            })}
+            class={clsx(
+              "prose absolute inset-0 flex max-w-full justify-center",
+              {
+                "items-center": !children().length,
+              },
+            )}
           >
             <div
               // eslint-disable-next-line solid/no-innerhtml
@@ -155,7 +158,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
               class="pointer-events-auto absolute inset-0 bg-white ring-1 ring-black"
               value={node().text.markdown}
               onBlur={({ currentTarget }) => {
-                saveMD(props.id, currentTarget)
+                setStoreMD(props.id, currentTarget.value)
               }}
               onKeyDown={({ currentTarget, key, shiftKey }) => {
                 switch (key) {
@@ -165,7 +168,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
 
                   case "Enter":
                     if (!shiftKey) {
-                      saveMD(props.id, currentTarget)
+                      setStoreMD(props.id, currentTarget.value)
                     }
                     break
                 }

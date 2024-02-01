@@ -1,18 +1,13 @@
 import { pointer, select, type Selection } from "d3-selection"
 import { zoom, type D3ZoomEvent, type ZoomTransform } from "d3-zoom"
 import { type BBox } from "rbush"
-import { createEffect, createMemo, For, Show, type Component } from "solid-js"
+import { createEffect, For, Show, type Component } from "solid-js"
 import { dataset, svgTransform2 } from "../../lib/dom.ts"
 import { memoize, toArr } from "../../lib/ts.ts"
-import {
-  absEdgeAnchor,
-  isNodeID,
-  rootID,
-  type EdgeID,
-  type NodeID,
-} from "./data/data.ts"
+import { isNodeID, rootID, type EdgeID, type NodeID } from "./data/data.ts"
+import { createAnchors } from "./data/edge-anchor.ts"
 import { patching } from "./data/history.ts"
-import { setStore, store, type NewArrow } from "./data/state.ts"
+import { setStore, store, type DraggingArrow } from "./data/state.ts"
 import { addNode } from "./data/transactions.ts"
 import { behaviorDrag, worldDragSubj } from "./drag.ts"
 import { OneEdge } from "./draw/OneEdge.tsx"
@@ -42,7 +37,7 @@ export const zoomTo = (
   t: ZoomTransform,
 ): void => d3Zoom.transform(s, t)
 
-const closestEdgeID = (el: Element): EdgeID | undefined =>
+export const closestEdgeID = (el: Element): EdgeID | undefined =>
   dataset(el.closest("[data-edgeID]"))?.edgeID as EdgeID
 
 export const closestNodeID = (el: Element): NodeID | undefined =>
@@ -117,11 +112,17 @@ export const Diagram2: Component = () => {
         <For each={store.tree.data.nodes[rootID].children}>
           {id => <OneNode id={id} />}
         </For>
-        <For each={toArr(store.tree.data.edges)}>{e => <OneEdge id={e} />}</For>
+        <For
+          each={toArr(store.tree.data.edges).filter(
+            x => !store.dragging || !(x in store.dragging),
+          )}
+        >
+          {e => <OneEdge id={e} />}
+        </For>
 
         <Show when={store.brush}>{b => <BrushRect bbox={b()} />}</Show>
         <Show when={store.newArrow}>
-          {a => <NewArrowC from={a().from} toX={a().toX} toY={a().toY} />}
+          {a => <NewArrowC from={a().from} to={a().to} />}
         </Show>
       </g>
     </svg>
@@ -133,22 +134,17 @@ export const Diagram2: Component = () => {
  * - respect shape
  * - respect absolute coordinates
  */
-const NewArrowC: Component<NewArrow> = props => {
-  const from = createMemo(() =>
-    absEdgeAnchor(
-      store.tree,
-      { type: "node", id: props.from },
-      props.toX,
-      props.toY,
-    ),
-  )
+const NewArrowC: Component<DraggingArrow> = props => {
+  const from = () => props.from
+  const to = () => props.to
+  const { fromX, fromY, toX, toY } = createAnchors(store, from, to)
 
   return (
     <line
-      x1={from()[0]}
-      y1={from()[1]}
-      x2={props.toX}
-      y2={props.toY}
+      x1={fromX()}
+      y1={fromY()}
+      x2={toX()}
+      y2={toY()}
       stroke={"black"}
       stroke-width={2}
       marker-end={"url(#triangle)"}

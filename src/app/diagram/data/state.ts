@@ -8,11 +8,11 @@ import {
   type EdgeID,
   type NodeID,
 } from "./data.ts"
+import type { EdgeAnchor } from "./edge-anchor.ts"
 
-export interface NewArrow {
-  from: NodeID
-  toX: number
-  toY: number
+export interface DraggingArrow {
+  from: EdgeAnchor
+  to: EdgeAnchor
 }
 
 export interface State {
@@ -32,7 +32,7 @@ export interface State {
 
   selected: RSet<NodeID | EdgeID>
 
-  newArrow?: NewArrow
+  newArrow?: DraggingArrow
 }
 
 /** creates a proxied object that signals changes */
