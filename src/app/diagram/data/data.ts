@@ -80,8 +80,10 @@ export const emptyDiagram = (): NodesEdges => ({
   edges: {},
 })
 
-export const emptyDataState = (): DataState => ({
-  data: emptyDiagram(),
+export const emptyDataState = (
+  data: NodesEdges = emptyDiagram(),
+): DataState => ({
+  data,
   history: emptyHistory(),
-  index: buildIndex(emptyDiagram()),
+  index: buildIndex(data),
 })

@@ -95,7 +95,8 @@ export const OneNode: Component<{ id: NodeID }> = props => {
   const children = () => node().children
   const isEditing = () => props.id === store.editing
 
-  const isDragging = () => store.dragging && props.id in store.dragging
+  const draggingAny = () => store.dragging
+  const draggingMe = () => store.dragging && props.id in store.dragging
 
   const { x, y, width, height } = destructure(rect, { memo: true })
 
@@ -110,13 +111,15 @@ export const OneNode: Component<{ id: NodeID }> = props => {
     <g data-nodeID={props.id} transform={`translate(${x()} ${y()})`}>
       <g
         class={clsx("group hover:cursor-grab", {
-          "pointer-events-none cursor-grabbing": isDragging(),
+          "pointer-events-none cursor-grabbing": draggingMe(),
         })}
       >
         <rect
           data-dragID={dragIDs.node}
           stroke-width={2}
-          stroke="black"
+          class={clsx("stroke-black", {
+            "group-hover:stroke-blue-600": draggingAny(),
+          })}
           fill="transparent"
           width={width()}
           height={height()}

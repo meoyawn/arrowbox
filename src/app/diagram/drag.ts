@@ -7,7 +7,7 @@ import {
 import { isEl } from "../../lib/dom.ts"
 import { toArr } from "../../lib/ts.ts"
 import { closestEdgeID, closestNodeID } from "./Diagram2.tsx"
-import { type EdgeID, type NodeID } from "./data/data.ts"
+import { rootID, type EdgeID, type NodeID } from "./data/data.ts"
 import { setStore, store, type State } from "./data/state.ts"
 import { dragBrush } from "./drag/brush.ts"
 import { dragEdge } from "./drag/edge.ts"
@@ -83,7 +83,18 @@ export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
   }
 
   if (!isDragID(dragID)) {
-    return !shiftKey ? dragBrush(ev.x, ev.y) : null
+    return !shiftKey
+      ? dragBrush(ev.x, ev.y)
+      : dragNewArrow(
+          {
+            type: "relative",
+            id: rootID,
+            x: ev.x,
+            y: ev.y,
+          },
+          ev.x,
+          ev.y,
+        )
   }
 
   switch (dragID) {

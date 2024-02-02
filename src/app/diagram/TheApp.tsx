@@ -109,18 +109,6 @@ import { setupHotkeys } from "./hotkeys"
 export const TheApp: Component = () => {
   const routeParams = useParams()
 
-  // createEffect(() => {
-  //   const stored = localStorage.getItem(routeParams.id)
-  //   const data = stored ? (JSON.parse(stored) as NodesEdges) : emptyDiagram()
-  //   setStore({
-  //     data: { data, history: emptyHistory(), index: buildIndex(data) },
-  //   })
-  // })
-  //
-  // createEffect(() => {
-  //   localStorage.setItem(routeParams.id, JSON.stringify(store.data.data))
-  // })
-
   createEffect(() => {
     onCleanup(setupHotkeys())
   })
