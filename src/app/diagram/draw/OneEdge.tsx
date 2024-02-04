@@ -1,3 +1,4 @@
+import clsx from "clsx"
 import { Show, type Component } from "solid-js"
 import { type EdgeID } from "../data/data.ts"
 import { createAnchors } from "../data/edge-anchor.ts"
@@ -11,12 +12,13 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
   const to = () => e().to
   const { fromX, fromY, toX, toY } = createAnchors(store, from, to)
 
+  const isSelected = () => props.id in store.selected
+
   return (
     <g data-edgeID={props.id} class="group cursor-pointer">
-      <Show when={props.id in store.selected}>
+      <Show when={isSelected()}>
         <line
-          stroke-width={5}
-          stroke="dodgerblue"
+          class="stroke-blue-600 stroke-[5px]"
           x1={fromX()}
           y1={fromY()}
           x2={toX()}
@@ -26,8 +28,9 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
       </Show>
 
       <line
-        stroke-width={2}
-        stroke="black"
+        class={clsx("stroke-black stroke-2", {
+          "group-hover:stroke-blue-600": !isSelected(),
+        })}
         x1={fromX()}
         y1={fromY()}
         x2={toX()}

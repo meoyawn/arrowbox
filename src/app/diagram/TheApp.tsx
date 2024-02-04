@@ -1,4 +1,3 @@
-import { useParams } from "@solidjs/router"
 import { createEffect, onCleanup, type Component } from "solid-js"
 import icon from "../../assets/icon.svg"
 import { Anchor } from "../routes.tsx"
@@ -107,8 +106,6 @@ import { setupHotkeys } from "./hotkeys"
 // )
 
 export const TheApp: Component = () => {
-  const routeParams = useParams()
-
   createEffect(() => {
     onCleanup(setupHotkeys())
   })

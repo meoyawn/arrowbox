@@ -15,5 +15,3 @@ export function getStored(g: GraphID): DataState {
 export function store(g: GraphID, data: NodesEdges): void {
   localStorage.setItem(g, JSON.stringify(data))
 }
-
-export function

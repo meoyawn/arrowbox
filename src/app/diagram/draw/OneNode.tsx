@@ -115,17 +115,18 @@ export const OneNode: Component<{ id: NodeID }> = props => {
         })}
       >
         <rect
+          rx={3}
+          ry={3}
           data-dragID={dragIDs.node}
-          stroke-width={2}
-          class={clsx("stroke-black", {
-            "group-hover:stroke-blue-600": draggingAny(),
+          class={clsx("stroke-black stroke-2 group-hover:stroke-blue-600", {
+            "group-hover:stroke-[4px]": draggingAny(),
           })}
           fill="transparent"
           width={width()}
           height={height()}
         />
 
-        <Show when={isSelected()}>
+        <Show when={isSelected() && !isEditing()}>
           <rect
             x={-5}
             y={-5}
@@ -158,7 +159,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
           <Show when={isEditing()}>
             <textarea
               ref={editor}
-              class="pointer-events-auto absolute inset-0 bg-white ring-1 ring-black"
+              class="pointer-events-auto absolute inset-0 bg-white p-2 ring-1 ring-black"
               value={node().text.markdown}
               onBlur={({ currentTarget }) => {
                 setStoreMD(props.id, currentTarget.value)
@@ -198,26 +199,28 @@ export const OneNode: Component<{ id: NodeID }> = props => {
         <Side rect={rect()} side={ResizeSides.WEST} />
         <Side rect={rect()} side={ResizeSides.EAST} />
 
-        <Corner
-          rect={rect()}
-          side={ResizeSides.NORTHWEST}
-          selected={isSelected()}
-        />
-        <Corner
-          rect={rect()}
-          side={ResizeSides.NORTHEAST}
-          selected={isSelected()}
-        />
-        <Corner
-          rect={rect()}
-          side={ResizeSides.SOUTHEAST}
-          selected={isSelected()}
-        />
-        <Corner
-          rect={rect()}
-          side={ResizeSides.SOUTHWEST}
-          selected={isSelected()}
-        />
+        <Show when={!isEditing()}>
+          <Corner
+            rect={rect()}
+            side={ResizeSides.NORTHWEST}
+            selected={isSelected()}
+          />
+          <Corner
+            rect={rect()}
+            side={ResizeSides.NORTHEAST}
+            selected={isSelected()}
+          />
+          <Corner
+            rect={rect()}
+            side={ResizeSides.SOUTHEAST}
+            selected={isSelected()}
+          />
+          <Corner
+            rect={rect()}
+            side={ResizeSides.SOUTHWEST}
+            selected={isSelected()}
+          />
+        </Show>
       </g>
 
       <For each={children()}>{nid => <OneNode id={nid} />}</For>
