@@ -5,9 +5,9 @@ import { emptyHistory, type ImmerHistory } from "./history.ts"
 import { buildIndex, type GraphIndex } from "./indexing"
 
 export interface DataState {
-  data: NodesEdges
-  history: ImmerHistory
+  data: Graph
   index: GraphIndex
+  history: ImmerHistory
 }
 
 export type GraphID = `g${string}`
@@ -27,27 +27,30 @@ interface NodeText {
 
 export type NodeShape = "rect" | "ellipse"
 
+/** persisted */
 export interface Node {
-  id: NodeID
+  readonly id: NodeID
   text: NodeText
   rect: Rect
   children: Array<NodeID>
   shape: NodeShape
 }
 
-export interface IdRect extends Rect {
-  readonly id: NodeID
-}
-
+/** persisted */
 export interface Edge {
   id: EdgeID
   from: EdgeAnchor
   to: EdgeAnchor
 }
 
-export interface NodesEdges {
+/** persisted */
+export interface Graph {
   nodes: Record<NodeID, Node>
   edges: Record<EdgeID, Edge>
+}
+
+export interface IdRect extends Rect {
+  readonly id: NodeID
 }
 
 export const worldPos = (transform: ZoomTransform, screen: Vec2): Vec2 =>
@@ -67,7 +70,7 @@ export const genID = <P extends string>(prefix: P): `${P}${string}` =>
 
 export const rootID = "nRoot" satisfies NodeID
 
-export const emptyDiagram = (): NodesEdges => ({
+export const emptyGraph = (): Graph => ({
   nodes: {
     [rootID]: {
       id: rootID,
@@ -80,9 +83,7 @@ export const emptyDiagram = (): NodesEdges => ({
   edges: {},
 })
 
-export const emptyDataState = (
-  data: NodesEdges = emptyDiagram(),
-): DataState => ({
+export const emptyDataState = (data: Graph = emptyGraph()): DataState => ({
   data,
   history: emptyHistory(),
   index: buildIndex(data),

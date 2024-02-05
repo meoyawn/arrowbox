@@ -6,7 +6,7 @@ import {
   setAutoFreeze,
   type Patch,
 } from "immer"
-import { type DataState, type NodesEdges } from "./data"
+import { type DataState, type Graph } from "./data"
 import { buildIndex } from "./indexing"
 
 enablePatches()
@@ -24,10 +24,7 @@ export const emptyHistory = (): ImmerHistory => ({
   backward: [],
 })
 
-export function patching(
-  ds: DataState,
-  fn: (d: NodesEdges) => void,
-): DataState {
+export function patching(ds: DataState, fn: (d: Graph) => void): DataState {
   const { data, history } = ds
   const [next, fwd, bwd] = produceWithPatches(data, fn)
   if (!fwd.length) return ds
@@ -45,7 +42,7 @@ export function patching(
 
 export const nonPatching = (
   s: DataState,
-  fn: (d: NodesEdges) => void,
+  fn: (d: Graph) => void,
 ): DataState => ({ ...s, data: produce(s.data, fn) })
 
 export const undo = (ds: DataState): DataState => {

@@ -6,7 +6,7 @@ import {
   rootID,
   type EdgeID,
   type NodeID,
-  type NodesEdges,
+  type Graph,
 } from "../data/data.ts"
 import { nonPatching, patching } from "../data/history.ts"
 import { type State } from "../data/state.ts"
@@ -16,7 +16,7 @@ import { type DragBehavior2 } from "../drag.ts"
 export const dragNode = (
   sx: number,
   sy: number,
-  beforeDrag: Readonly<NodesEdges>,
+  beforeDrag: Readonly<Graph>,
   selArr: ReadonlyArray<NodeID | EdgeID>,
 ): DragBehavior2 => {
   const dragging = toSet(selArr.filter(isNodeID))

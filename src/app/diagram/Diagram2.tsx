@@ -2,7 +2,7 @@ import { pointer, select, type Selection } from "d3-selection"
 import { zoom, type D3ZoomEvent, type ZoomTransform } from "d3-zoom"
 import { type BBox } from "rbush"
 import { createEffect, For, Show, type Component } from "solid-js"
-import { dataset, svgTransform2 } from "../../lib/dom.ts"
+import { svgTransform2 } from "../../lib/dom.ts"
 import { memoize, toArr } from "../../lib/ts.ts"
 import { isNodeID, rootID, type EdgeID, type NodeID } from "./data/data.ts"
 import { createAnchors } from "./data/edge-anchor.ts"
@@ -37,11 +37,13 @@ export const zoomTo = (
   t: ZoomTransform,
 ): void => d3Zoom.transform(s, t)
 
-export const closestEdgeID = (el: Element): EdgeID | undefined =>
-  dataset(el.closest("[data-edgeID]"))?.edgeID as EdgeID
-
+/** svg.dataset not working in safari/firefox */
 export const closestNodeID = (el: Element): NodeID | undefined =>
-  dataset(el.closest("[data-nodeID]"))?.nodeID as NodeID
+  el.closest("[data-nodeID]")?.getAttribute("data-nodeID") as NodeID
+
+/** svg.dataset not working in safari/firefox */
+export const closestEdgeID = (el: Element): EdgeID | undefined =>
+  el.closest("[data-edgeID]")?.getAttribute("data-edgeID") as EdgeID
 
 export const Diagram2: Component = () => {
   let svgEl: SVGSVGElement

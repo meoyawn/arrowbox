@@ -15,8 +15,9 @@ import { dragNewArrow } from "./drag/new-arrow.ts"
 import { dragNode } from "./drag/node.ts"
 import { dragSide, type ResizeSide } from "./drag/resize.ts"
 
-export const getNodeID = ({ target }: Event): NodeID | undefined =>
-  isEl(target) ? closestNodeID(target) : undefined
+export function getNodeID({ target }: Event): NodeID | undefined {
+  return isEl(target) ? closestNodeID(target) : undefined
+}
 
 export const getEdgeID = ({ target }: Event): EdgeID | undefined =>
   isEl(target) ? closestEdgeID(target) : undefined
@@ -67,17 +68,22 @@ const dragIDSet: ReadonlySet<DragID> = new Set(Object.values(dragIDs))
 const isDragID = (id: unknown): id is DragID =>
   typeof id === "string" && dragIDSet.has(id as DragID)
 
-/** world coordinates */
+/**
+ * world coordinates.
+ *
+ * svg.dataset not working in safari/firefox
+ */
 export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
   const { target, shiftKey } = ev.sourceEvent
   if (!isEl(target)) return null
 
-  const { dragID, side } = target.dataset
+  const dragID = target.getAttribute("data-dragID") as DragID | null
+  const side = target.getAttribute("data-side") as ResizeSide | null
   const data = store.tree.data
 
   if (side) {
     const nid = getNodeID(ev.sourceEvent)
-    if (!nid) throw new Error("no nid")
+    if (!nid) throw new Error(`no nid on ${String(ev.sourceEvent.target)}`)
 
     return dragSide(data, nid, side as ResizeSide, ev.x, ev.y)
   }

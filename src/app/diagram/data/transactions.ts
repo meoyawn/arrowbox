@@ -7,16 +7,16 @@ import {
   isNodeID,
   rootID,
   type EdgeID,
+  type Graph,
   type Node,
   type NodeID,
   type NodeShape,
-  type NodesEdges,
 } from "./data.ts"
 import type { GraphIndex } from "./indexing.ts"
 import type { DraggingArrow } from "./state.ts"
 
 export function addNode(
-  data: NodesEdges,
+  data: Graph,
   [x, y]: Vec2,
   shape: NodeShape = "rect",
 ): NodeID {
@@ -36,7 +36,7 @@ export function addNode(
 }
 
 export function addEdge(
-  data: NodesEdges,
+  data: Graph,
   { from, to }: DraggingArrow,
 ): EdgeID | NodeID {
   const id: EdgeID = genID("e")
@@ -75,7 +75,7 @@ export function setMD(
 }
 
 function deleteNode(
-  { nodes, edges }: NodesEdges,
+  { nodes, edges }: Graph,
   { parents, deepChildren }: GraphIndex,
   nid: NodeID,
 ): void {
@@ -97,7 +97,7 @@ function deleteNode(
 }
 
 export function del(
-  ne: NodesEdges,
+  ne: Graph,
   index: GraphIndex,
   selected: RSet<NodeID | EdgeID>,
 ): void {

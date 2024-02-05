@@ -1,17 +1,36 @@
-import {
-  emptyDataState,
-  emptyDiagram,
-  type DataState,
-  type GraphID,
-  type NodesEdges,
-} from "./data.ts"
+import { emptyGraph, type Graph, type GraphID } from "./data.ts"
 
-export function getStored(g: GraphID): DataState {
-  const stored = localStorage.getItem(g)
-  const data = stored ? (JSON.parse(stored) as NodesEdges) : emptyDiagram()
-  return emptyDataState(data)
+const jsonParse = <T>(s: string): T => JSON.parse(s) as T
+
+export function getStored(g: GraphID): Graph {
+  const str = localStorage.getItem(g)
+  return str ? jsonParse(str) : emptyGraph()
 }
 
-export function store(g: GraphID, data: NodesEdges): void {
+export function storeGraph(g: GraphID, data: Graph): void {
   localStorage.setItem(g, JSON.stringify(data))
+  // TODO update lastModifiedMs
+}
+
+interface StoredGraph {
+  title: string
+  lastModifiedMs: number
+}
+
+type StoredGraphs = Record<GraphID, StoredGraph>
+
+export function getStoredGraphs(): StoredGraphs {
+  const str = localStorage.getItem("storedGraphs")
+  return str ? jsonParse(str) : {}
+}
+
+export function newTitle(gs: StoredGraphs): string {
+  const titles = Object.values(gs).map(g => g.title)
+  let i = 1
+  while (titles.includes(`Untitled ${i}`)) i++
+  return `Untitled ${i}`
+}
+
+export function storeGraphs(gs: StoredGraphs): void {
+  localStorage.setItem("storedGraphs", JSON.stringify(gs))
 }

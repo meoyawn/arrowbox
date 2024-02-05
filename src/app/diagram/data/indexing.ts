@@ -5,10 +5,10 @@ import {
   rootID,
   type Edge,
   type EdgeID,
+  type Graph,
   type IdRect,
   type Node,
   type NodeID,
-  type NodesEdges,
 } from "./data"
 
 export type ParentIndex = Record<NodeID, NodeID>
@@ -157,7 +157,7 @@ export interface GraphIndex {
   paths: Record<NodeID, NestPath>
 }
 
-export function buildIndex({ edges, nodes }: NodesEdges): GraphIndex {
+export function buildIndex({ edges, nodes }: Graph): GraphIndex {
   const [paths, absRects] = getAbsRects(nodes)
 
   return {

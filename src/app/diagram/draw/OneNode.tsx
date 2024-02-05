@@ -115,6 +115,8 @@ export const OneNode: Component<{ id: NodeID }> = props => {
         })}
       >
         <rect
+          x={0}
+          y={0}
           rx={3}
           ry={3}
           data-dragID={dragIDs.node}
@@ -138,17 +140,16 @@ export const OneNode: Component<{ id: NodeID }> = props => {
         </Show>
 
         <foreignObject
-          class="pointer-events-none relative overflow-visible"
+          x={0}
+          y={0}
+          class="pointer-events-none overflow-visible"
           width={width()}
           height={height()}
         >
           <div
-            class={clsx(
-              "prose absolute inset-0 flex max-w-full justify-center",
-              {
-                "items-center": !children().length,
-              },
-            )}
+            class={clsx("prose fixed inset-0 flex max-w-full justify-center", {
+              "items-center": !children().length,
+            })}
           >
             <div
               // eslint-disable-next-line solid/no-innerhtml
@@ -159,7 +160,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
           <Show when={isEditing()}>
             <textarea
               ref={editor}
-              class="pointer-events-auto absolute inset-0 bg-white p-2 ring-1 ring-black"
+              class="pointer-events-auto fixed inset-0 bg-white p-2 ring-1 ring-black"
               value={node().text.markdown}
               onBlur={({ currentTarget }) => {
                 setStoreMD(props.id, currentTarget.value)

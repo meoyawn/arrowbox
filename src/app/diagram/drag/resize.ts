@@ -1,6 +1,6 @@
 import { type Rect } from "../../../lib/geometry.ts"
 import type { RSet } from "../../../lib/ts.ts"
-import { type NodeID, type NodesEdges } from "../data/data.ts"
+import { type NodeID, type Graph } from "../data/data.ts"
 import { nonPatching, patching } from "../data/history.ts"
 import { type State } from "../data/state.ts"
 import { type DragBehavior2 } from "../drag.ts"
@@ -83,7 +83,7 @@ const onDragSide = (
 }
 
 export const dragSide = (
-  beforeDrag: NodesEdges,
+  beforeDrag: Graph,
   id: NodeID,
   side: ResizeSide,
   sx: number,
