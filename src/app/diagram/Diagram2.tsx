@@ -82,11 +82,15 @@ export const Diagram2: Component = () => {
           setStore({ editing })
         } else {
           const world = pointer(e, zoomedEl)
-          setStore(s => ({
-            tree: patching(s.tree, x => {
-              addNode(x, world)
-            }),
-          }))
+          setStore(s => {
+            let editing: NodeID | undefined
+            return {
+              tree: patching(s.tree, x => {
+                editing = addNode(x, world)
+              }),
+              editing,
+            }
+          })
         }
       }}
       onClick={ev => {
