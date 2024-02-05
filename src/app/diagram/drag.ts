@@ -15,11 +15,11 @@ import { dragNewArrow } from "./drag/new-arrow.ts"
 import { dragNode } from "./drag/node.ts"
 import { dragSide, type ResizeSide } from "./drag/resize.ts"
 
-export const getNodeID = ({ target }: Event): NodeID | undefined =>
-  isEl(target) ? closestNodeID(target) : undefined
+export const getNodeID = ({ target }: Event): NodeID | null =>
+  isEl(target) ? closestNodeID(target) : null
 
-export const getEdgeID = ({ target }: Event): EdgeID | undefined =>
-  isEl(target) ? closestEdgeID(target) : undefined
+export const getEdgeID = ({ target }: Event): EdgeID | null =>
+  isEl(target) ? closestEdgeID(target) : null
 
 export function draggingLast(
   children: readonly NodeID[],

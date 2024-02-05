@@ -27,11 +27,11 @@ export const zoomTo = (
 ): void => d3Zoom.transform(s, t)
 
 /** svg.dataset not working in safari/firefox */
-export const closestNodeID = (el: Element): NodeID | undefined =>
+export const closestNodeID = (el: Element): NodeID | null =>
   el.closest("[data-nodeID]")?.getAttribute("data-nodeID") as NodeID
 
 /** svg.dataset not working in safari/firefox */
-export const closestEdgeID = (el: Element): EdgeID | undefined =>
+export const closestEdgeID = (el: Element): EdgeID | null =>
   el.closest("[data-edgeID]")?.getAttribute("data-edgeID") as EdgeID
 
 export const Diagram2: Component = () => {
