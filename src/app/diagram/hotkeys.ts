@@ -39,13 +39,18 @@ export const setupHotkeys = (): VoidFunction => {
   })
 
   // group
-  hotkeys("ctrl+g,command+z", () =>
+  hotkeys("ctrl+g,command+z", e => {
+    e.preventDefault()
+
+    const selected = toArr(store.selected)
+    if (selected.length === 0) return
+
     setStore(s => ({
-      tree: patching(s.tree, d => {
-        // TODO remove parent
+      tree: patching(s.tree, g => {
+        throw new Error(`TODO group selected ${JSON.stringify(g)}`)
       }),
-    })),
-  )
+    }))
+  })
 
   // ungroup
   hotkeys("ctrl+shift+g, command+shift+g", e => {

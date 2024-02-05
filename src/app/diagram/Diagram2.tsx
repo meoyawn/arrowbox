@@ -4,7 +4,7 @@ import { type BBox } from "rbush"
 import { createEffect, For, Show, type Component } from "solid-js"
 import { svgTransform2 } from "../../lib/dom.ts"
 import { memoize, toArr } from "../../lib/ts.ts"
-import { isNodeID, rootID, type EdgeID, type NodeID } from "./data/data.ts"
+import { rootID, type EdgeID, type NodeID } from "./data/data.ts"
 import { createAnchors } from "./data/edge-anchor.ts"
 import { patching } from "./data/history.ts"
 import { setStore, store, type DraggingArrow } from "./data/state.ts"
@@ -13,17 +13,6 @@ import { behaviorDrag, worldDragSubj } from "./drag.ts"
 import { OneEdge } from "./draw/OneEdge.tsx"
 import { OneNode } from "./draw/OneNode.tsx"
 import { SvgDefs } from "./SvgDefs.tsx"
-
-const draggingLast = (
-  children: ReadonlyArray<NodeID>,
-  dragging: NodeID | EdgeID | undefined,
-): ReadonlyArray<NodeID> => {
-  if (!children.length || !isNodeID(dragging)) return children
-
-  const out = children.filter(k => k !== dragging)
-  out.push(dragging)
-  return out
-}
 
 const d3Zoom = zoom<Element, unknown>()
   .scaleExtent([0.05, 8])

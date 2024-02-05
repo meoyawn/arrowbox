@@ -7,7 +7,7 @@ import {
 import { isEl } from "../../lib/dom.ts"
 import { toArr } from "../../lib/ts.ts"
 import { closestEdgeID, closestNodeID } from "./Diagram2.tsx"
-import { rootID, type EdgeID, type NodeID } from "./data/data.ts"
+import { isNodeID, rootID, type EdgeID, type NodeID } from "./data/data.ts"
 import { setStore, store, type State } from "./data/state.ts"
 import { dragBrush } from "./drag/brush.ts"
 import { dragEdge } from "./drag/edge.ts"
@@ -15,12 +15,22 @@ import { dragNewArrow } from "./drag/new-arrow.ts"
 import { dragNode } from "./drag/node.ts"
 import { dragSide, type ResizeSide } from "./drag/resize.ts"
 
-export function getNodeID({ target }: Event): NodeID | undefined {
-  return isEl(target) ? closestNodeID(target) : undefined
-}
+export const getNodeID = ({ target }: Event): NodeID | undefined =>
+  isEl(target) ? closestNodeID(target) : undefined
 
 export const getEdgeID = ({ target }: Event): EdgeID | undefined =>
   isEl(target) ? closestEdgeID(target) : undefined
+
+export function draggingLast(
+  children: readonly NodeID[],
+  dragging: NodeID | EdgeID | undefined,
+): readonly NodeID[] {
+  if (!children.length || !isNodeID(dragging)) return children
+
+  const out = children.filter(k => k !== dragging)
+  out.push(dragging)
+  return out
+}
 
 /** world coordinates */
 export interface DragBehavior2 {
