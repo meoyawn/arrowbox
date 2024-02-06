@@ -5,8 +5,8 @@ import {
   isNodeID,
   rootID,
   type EdgeID,
-  type NodeID,
   type Graph,
+  type NodeID,
 } from "../data/data.ts"
 import { nonPatching, patching } from "../data/history.ts"
 import { type State } from "../data/state.ts"

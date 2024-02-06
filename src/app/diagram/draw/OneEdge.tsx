@@ -18,7 +18,7 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
     <g data-edgeID={props.id} class="group cursor-pointer">
       <Show when={isSelected()}>
         <line
-          class="stroke-blue-600 stroke-[5px]"
+          class="stroke-blue-600 stroke-2"
           x1={fromX()}
           y1={fromY()}
           x2={toX()}
@@ -28,7 +28,7 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
       </Show>
 
       <line
-        class={clsx("stroke-black stroke-2", {
+        class={clsx("stroke-black stroke-1", {
           "group-hover:stroke-blue-600": !isSelected(),
         })}
         x1={fromX()}
@@ -40,7 +40,9 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
 
       <circle
         data-dragID={dragIDs.edgeFrom}
-        class="invisible cursor-grab group-hover:visible"
+        class={clsx("cursor-grab", {
+          "invisible group-hover:visible": !isSelected(),
+        })}
         fill="white"
         stroke="black"
         stroke-width={2}
@@ -51,7 +53,9 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
 
       <circle
         data-dragID={dragIDs.edgeTo}
-        class="invisible cursor-grab group-hover:visible"
+        class={clsx("cursor-grab", {
+          "invisible group-hover:visible": !isSelected(),
+        })}
         fill="white"
         stroke="black"
         stroke-width={2}

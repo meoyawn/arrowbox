@@ -20,7 +20,7 @@ export interface State {
   tree: DataState
 
   /** to detect drag targets */
-  hovering?: NodeID | EdgeID
+  hovering?: NodeID | EdgeID | null
 
   /** drag end usually triggers text editing */
   editing?: NodeID | EdgeID

@@ -39,7 +39,7 @@ export const setupHotkeys = (): VoidFunction => {
   })
 
   // group
-  hotkeys("ctrl+g,command+z", e => {
+  hotkeys("ctrl+g, command+g", e => {
     e.preventDefault()
 
     const selected = toArr(store.selected)

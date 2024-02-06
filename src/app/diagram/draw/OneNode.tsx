@@ -120,8 +120,8 @@ export const OneNode: Component<{ id: NodeID }> = props => {
           rx={3}
           ry={3}
           data-dragID={dragIDs.node}
-          class={clsx("stroke-black stroke-2 group-hover:stroke-blue-600", {
-            "group-hover:stroke-[4px]": draggingAny(),
+          class={clsx("stroke-black stroke-1 group-hover:stroke-blue-600", {
+            "group-hover:stroke-2": draggingAny(),
           })}
           fill="transparent"
           width={width()}
@@ -162,6 +162,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
               ref={editor}
               class="pointer-events-auto fixed inset-0 bg-white p-2 ring-1 ring-black"
               value={node().text.markdown}
+              placeholder={"Markdown"}
               onBlur={({ currentTarget }) => {
                 setStoreMD(props.id, currentTarget.value)
               }}

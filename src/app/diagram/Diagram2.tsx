@@ -1,9 +1,10 @@
-import { pointer, select, type Selection } from "d3-selection"
+import { pointer, select } from "d3-selection"
 import { zoom, type D3ZoomEvent, type ZoomTransform } from "d3-zoom"
 import { type BBox } from "rbush"
-import { createEffect, For, Show, type Component } from "solid-js"
+import { For, Show, createEffect, type Component } from "solid-js"
 import { svgTransform2 } from "../../lib/dom.ts"
-import { memoize, toArr } from "../../lib/ts.ts"
+import { toArr } from "../../lib/ts.ts"
+import { SvgDefs } from "./SvgDefs.tsx"
 import { rootID, type EdgeID, type NodeID } from "./data/data.ts"
 import { createAnchors } from "./data/edge-anchor.ts"
 import { patching } from "./data/history.ts"
@@ -12,7 +13,6 @@ import { addNode } from "./data/transactions.ts"
 import { behaviorDrag, worldDragSubj } from "./drag.ts"
 import { OneEdge } from "./draw/OneEdge.tsx"
 import { OneNode } from "./draw/OneNode.tsx"
-import { SvgDefs } from "./SvgDefs.tsx"
 
 const d3Zoom = zoom<Element, unknown>()
   .scaleExtent([0.05, 8])
@@ -20,11 +20,6 @@ const d3Zoom = zoom<Element, unknown>()
   .on("zoom", (e: D3ZoomEvent<Element, unknown>) =>
     setStore({ camera: e.transform }),
   )
-
-export const zoomTo = (
-  s: Selection<Element, unknown, null, unknown>,
-  t: ZoomTransform,
-): void => d3Zoom.transform(s, t)
 
 /** svg.dataset not working in safari/firefox */
 export const closestNodeID = (el: Element): NodeID | null =>
@@ -34,14 +29,15 @@ export const closestNodeID = (el: Element): NodeID | null =>
 export const closestEdgeID = (el: Element): EdgeID | null =>
   el.closest("[data-edgeID]")?.getAttribute("data-edgeID") as EdgeID
 
+export const zoomTo = (t: ZoomTransform): void =>
+  d3Zoom.transform(select("#canvas"), t)
+
 export const Diagram2: Component = () => {
   let svgEl: SVGSVGElement
   let zoomedEl: SVGGElement
 
-  const svgSel = memoize(() => select(svgEl as Element))
-
   createEffect(() => {
-    svgSel()
+    select(svgEl as Element)
       .call(behaviorDrag(worldDragSubj, zoomedEl))
       .call(d3Zoom)
       .on("dblclick.zoom", null)
@@ -50,16 +46,14 @@ export const Diagram2: Component = () => {
 
   return (
     <svg
+      id="canvas"
       ref={svgEl!}
       class="h-full min-h-screen w-full"
       onWheel={ev => {
         if (ev.ctrlKey) return
 
         const camera = store.camera
-        zoomTo(
-          svgSel(),
-          camera.translate(-ev.deltaX / camera.k, -ev.deltaY / camera.k),
-        )
+        zoomTo(camera.translate(-ev.deltaX / camera.k, -ev.deltaY / camera.k))
       }}
       onMouseOver={({ target }) => {
         setStore({ hovering: closestNodeID(target) })
@@ -109,7 +103,7 @@ export const Diagram2: Component = () => {
         </For>
         <For
           each={toArr(store.tree.data.edges).filter(
-            x => !store.dragging || !(x in store.dragging),
+            eid => !store.dragging || !(eid in store.dragging),
           )}
         >
           {e => <OneEdge id={e} />}
