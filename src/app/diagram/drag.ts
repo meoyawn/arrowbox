@@ -52,12 +52,16 @@ export function behaviorDrag<T extends Element>(
   }
   return d
     .subject(subj)
-    .on("drag", ({ subject, x, y }: D3Event<DragBehavior2>) =>
-      setStore(subject.onDrag(store, x, y)),
-    )
-    .on("end", ({ subject, x, y }: D3Event<DragBehavior2>) =>
-      setStore(subject.onEnd(store, x, y)),
-    ) as DragBehavior<T, unknown, DragBehavior2>
+    .on("drag", ({ subject, x, y }: D3Event<DragBehavior2>) => {
+      if (x !== subject.x || y !== subject.y) {
+        setStore(subject.onDrag(store, x, y))
+      }
+    })
+    .on("end", ({ subject, x, y }: D3Event<DragBehavior2>) => {
+      if (x !== subject.x || y !== subject.y) {
+        setStore(subject.onEnd(store, x, y))
+      }
+    }) as DragBehavior<T, unknown, DragBehavior2>
 }
 
 interface D3Event<Subj> extends D3DragEvent<Element, unknown, Subj> {

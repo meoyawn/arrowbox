@@ -7,11 +7,12 @@ import { patching } from "../data/history.ts"
 import { setStore, store } from "../data/state.ts"
 import { setMD } from "../data/transactions.ts"
 
-const setStoreMD = (id: NodeID | EdgeID, markdown: string): void =>
+const setStoreMD = (id: NodeID | EdgeID, markdown: string): void => {
   setStore(({ tree }) => ({
     tree: patching(tree, g => setMD(g, id, markdown)),
     editing: undefined,
   }))
+}
 
 export const ForeignText: Component<{
   id: NodeID | EdgeID

@@ -29,24 +29,26 @@ export const dragNode = (
       { tree, selected }: State,
       x: number,
       y: number,
-    ): Partial<State> => ({
-      tree: nonPatching(tree, ({ nodes }) => {
-        const dx = x - sx
-        const dy = y - sy
+    ): Partial<State> => {
+      const dx = x - sx
+      const dy = y - sy
 
-        for (const id of selArr) {
-          if (!isNodeID(id)) continue
-          const oldParentID = tree.index.parents[id]
-          if (oldParentID in selected) continue
+      return {
+        tree: nonPatching(tree, ({ nodes }) => {
+          for (const id of selArr) {
+            if (!isNodeID(id)) continue
+            const oldParentID = tree.index.parents[id]
+            if (oldParentID in selected) continue
 
-          const oldR: Readonly<Rect> = beforeDrag.nodes[id].rect
-          const newR: Rect = nodes[id].rect
-          newR.x = oldR.x + dx
-          newR.y = oldR.y + dy
-        }
-      }),
-      dragging,
-    }),
+            const oldR: Readonly<Rect> = beforeDrag.nodes[id].rect
+            const newR: Rect = nodes[id].rect
+            newR.x = oldR.x + dx
+            newR.y = oldR.y + dy
+          }
+        }),
+        dragging,
+      }
+    },
 
     onEnd(
       { hovering, tree, selected }: State,
