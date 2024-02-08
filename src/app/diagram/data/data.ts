@@ -14,13 +14,14 @@ export type GraphID = `g${string}`
 export type NodeID = `n${string}`
 export type EdgeID = `e${string}`
 
-export const isNodeID = (id: unknown): id is NodeID =>
-  typeof id === "string" && id.startsWith("n")
+export const isPrefixID = (id: unknown, prefix: string): boolean =>
+  typeof id === "string" && id.length > prefix.length && id.startsWith(prefix)
 
-export const isEdgeID = (id: unknown): id is EdgeID =>
-  typeof id === "string" && id.startsWith("e")
+export const isNodeID = (id: unknown): id is NodeID => isPrefixID(id, "n")
 
-interface NodeText {
+export const isEdgeID = (id: unknown): id is EdgeID => isPrefixID(id, "e")
+
+export interface GraphText {
   markdown: string
   html: string
 }
@@ -30,7 +31,7 @@ export type NodeShape = "rect" | "ellipse"
 /** persisted */
 export interface Node {
   readonly id: NodeID
-  text: NodeText
+  text: GraphText
   rect: Rect
   children: Array<NodeID>
   shape: NodeShape
@@ -41,6 +42,7 @@ export interface Edge {
   id: EdgeID
   from: EdgeAnchor
   to: EdgeAnchor
+  text: GraphText
 }
 
 /** persisted */
@@ -85,6 +87,6 @@ export const emptyGraph = (): Graph => ({
 
 export const emptyDataState = (data: Graph = emptyGraph()): DataState => ({
   data,
-  history: emptyHistory(),
   index: buildIndex(data),
+  history: emptyHistory(),
 })

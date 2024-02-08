@@ -2,7 +2,6 @@ import { pointer, select } from "d3-selection"
 import { zoom, type D3ZoomEvent, type ZoomTransform } from "d3-zoom"
 import { type BBox } from "rbush"
 import { For, Show, createEffect, type Component } from "solid-js"
-import { svgTransform2 } from "../../lib/dom.ts"
 import { toArr } from "../../lib/ts.ts"
 import { SvgDefs } from "./SvgDefs.tsx"
 import { rootID, type EdgeID, type NodeID } from "./data/data.ts"
@@ -31,6 +30,9 @@ export const closestEdgeID = (el: Element): EdgeID | null =>
 
 export const zoomTo = (t: ZoomTransform): void =>
   d3Zoom.transform(select("#canvas"), t)
+
+const zoomTransform = ({ k, x, y }: ZoomTransform): string =>
+  `translate(${x} ${y}) scale(${k})`
 
 export const Diagram2: Component = () => {
   let svgEl: SVGSVGElement
@@ -97,7 +99,7 @@ export const Diagram2: Component = () => {
     >
       <SvgDefs />
 
-      <g ref={zoomedEl!} transform={svgTransform2(store.camera)}>
+      <g ref={zoomedEl!} transform={zoomTransform(store.camera)}>
         <For each={store.tree.data.nodes[rootID].children}>
           {id => <OneNode id={id} />}
         </For>

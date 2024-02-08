@@ -1,13 +1,12 @@
 import { destructure } from "@solid-primitives/destructure"
 import clsx from "clsx"
-import { For, Show, createEffect, type Component } from "solid-js"
+import { For, Show, type Component } from "solid-js"
 import { type Rect } from "../../../lib/geometry.ts"
 import { type NodeID } from "../data/data.ts"
-import { patching } from "../data/history.ts"
-import { setStore, store } from "../data/state.ts"
-import { setMD } from "../data/transactions.ts"
+import { store } from "../data/state.ts"
 import { dragIDs } from "../drag.ts"
 import { ResizeSides, type ResizeSide } from "../drag/resize.ts"
+import { ForeignText } from "./ForeignText.tsx"
 
 const sideArea = 14
 
@@ -74,12 +73,6 @@ const Corner: Component<{
   )
 }
 
-const setStoreMD = (id: NodeID, md: string): void =>
-  setStore(({ tree }) => ({
-    tree: patching(tree, data => setMD(data.nodes, id, md)),
-    editing: undefined,
-  }))
-
 /**
  * (0,0) -------> X+
  *   |
@@ -99,13 +92,6 @@ export const OneNode: Component<{ id: NodeID }> = props => {
   const draggingMe = () => store.dragging && props.id in store.dragging
 
   const { x, y, width, height } = destructure(rect, { memo: true })
-
-  let editor: HTMLTextAreaElement | undefined
-  createEffect(() => {
-    if (isEditing()) {
-      editor?.focus()
-    }
-  })
 
   return (
     <g data-nodeID={props.id} transform={`translate(${x()} ${y()})`}>
@@ -139,49 +125,13 @@ export const OneNode: Component<{ id: NodeID }> = props => {
           />
         </Show>
 
-        <foreignObject
-          x={0}
-          y={0}
-          class="pointer-events-none overflow-visible"
-          width={width()}
-          height={height()}
-        >
-          <div
-            class={clsx("prose fixed inset-0 flex max-w-full justify-center", {
-              "items-center": !children().length,
-            })}
-          >
-            <div
-              // eslint-disable-next-line solid/no-innerhtml
-              innerHTML={node().text.html}
-            />
-          </div>
-
-          <Show when={isEditing()}>
-            <textarea
-              ref={editor}
-              class="pointer-events-auto fixed inset-0 bg-white p-2 ring-1 ring-black"
-              value={node().text.markdown}
-              placeholder={"Markdown"}
-              onBlur={({ currentTarget }) => {
-                setStoreMD(props.id, currentTarget.value)
-              }}
-              onKeyDown={({ currentTarget, key, shiftKey }) => {
-                switch (key) {
-                  case "Escape":
-                    setStore({ editing: undefined })
-                    break
-
-                  case "Enter":
-                    if (!shiftKey) {
-                      setStoreMD(props.id, currentTarget.value)
-                    }
-                    break
-                }
-              }}
-            />
-          </Show>
-        </foreignObject>
+        <ForeignText
+          id={props.id}
+          text={node().text}
+          rect={{ x: 0, y: 0, width: width(), height: height() }}
+          isCenter={node().children.length === 0}
+          pointerEvents={false}
+        />
 
         <circle
           data-dragID={dragIDs.newArrow}

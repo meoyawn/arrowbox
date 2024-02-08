@@ -1,9 +1,11 @@
 import clsx from "clsx"
 import { Show, type Component } from "solid-js"
+import type { Rect } from "../../../lib/geometry.ts"
 import { type EdgeID } from "../data/data.ts"
 import { createAnchors } from "../data/edge-anchor.ts"
 import { store } from "../data/state.ts"
 import { dragIDs } from "../drag.ts"
+import { ForeignText } from "./ForeignText.tsx"
 
 export const OneEdge: Component<{ id: EdgeID }> = props => {
   const e = () => store.tree.data.edges[props.id]
@@ -11,6 +13,13 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
   const from = () => e().from
   const to = () => e().to
   const { fromX, fromY, toX, toY } = createAnchors(store, from, to)
+
+  const textRect = (): Rect => ({
+    x: Math.min(fromX(), toX()),
+    y: Math.min(fromY(), toY()),
+    width: Math.max(1, Math.abs(fromX() - toX())),
+    height: Math.max(1, Math.abs(fromY() - toY())),
+  })
 
   const isSelected = () => props.id in store.selected
 
@@ -62,6 +71,14 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
         cx={toX()}
         cy={toY()}
         r={5}
+      />
+
+      <ForeignText
+        id={props.id}
+        text={e().text}
+        isCenter={true}
+        rect={textRect()}
+        pointerEvents={true}
       />
     </g>
   )

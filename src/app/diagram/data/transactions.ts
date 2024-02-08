@@ -8,6 +8,7 @@ import {
   rootID,
   type EdgeID,
   type Graph,
+  type GraphText,
   type Node,
   type NodeID,
   type NodeShape,
@@ -40,14 +41,11 @@ export function addEdge(
   { from, to }: DraggingArrow,
 ): EdgeID | NodeID {
   const id: EdgeID = genID("e")
+  const text: GraphText = { markdown: "", html: "" }
 
   switch (to.type) {
     case "node":
-      data.edges[id] = {
-        id,
-        from,
-        to,
-      }
+      data.edges[id] = { id, from, to, text }
       return id
 
     case "relative": {
@@ -57,6 +55,7 @@ export function addEdge(
         id,
         from,
         to: { type: "node", id: nid },
+        text,
       }
       return nid
     }
@@ -64,14 +63,13 @@ export function addEdge(
 }
 
 export function setMD(
-  nodes: Record<NodeID, Node>,
-  id: NodeID,
+  { nodes, edges }: Graph,
+  id: NodeID | EdgeID,
   markdown: string,
 ): void {
-  const html = md2html(markdown)
-  const { text } = nodes[id]
+  const text = isNodeID(id) ? nodes[id].text : edges[id].text
   text.markdown = markdown
-  text.html = html
+  text.html = md2html(markdown)
 }
 
 function deleteNode(
