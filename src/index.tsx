@@ -2,7 +2,7 @@ import { Router } from "@solidjs/router"
 import { render } from "solid-js/web"
 import { GraphPage } from "./app/GraphPage.tsx"
 import { ListPage } from "./app/ListPage.tsx"
-import { DiagramPage } from "./app/diagram/draw/DiagramPage.tsx"
+import { DiagramPage } from "./app/diagram/DiagramPage.tsx"
 import { TypedRoute } from "./app/routes.tsx"
 import "./index.css"
 

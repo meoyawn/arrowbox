@@ -9,7 +9,7 @@ export const GraphPage: Component = () => {
 
   createEffect(() => {
     setLastGraph(params.id)
-    navigate("/")
+    navigate("/", { replace: true })
   })
 
   return null

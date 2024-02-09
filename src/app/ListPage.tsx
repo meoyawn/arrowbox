@@ -1,7 +1,7 @@
 import { A, useNavigate } from "@solidjs/router"
 import { For, createEffect, createSignal, type Component } from "solid-js"
 import logoLight from "../assets/logo_light.svg"
-import type { GraphID } from "./diagram/data/data.ts"
+import { type GraphID } from "./diagram/data/data.ts"
 import {
   createNewGraph,
   getStoredGraphs,
@@ -35,22 +35,42 @@ export const ListPage: Component = () => {
   })
 
   return (
-    <div class="mx-auto flex max-w-xl flex-col gap-4 py-4">
-      <img alt="Arrowbox" class="mx-auto h-8" src={logoLight} />
+    <div class="container">
+      <div class="py-4">
+        <A
+          href="/"
+          class="absolute left-2 top-2 h-12 w-12 rounded-full bg-white py-3 text-center shadow-xl duration-200 hover:bg-gray-100"
+        >
+          ⛌
+        </A>
 
-      <h1 class="mx-auto text-5xl font-medium">Welcome back</h1>
+        <img alt="Arrowbox" class="mx-auto h-8" src={logoLight} />
 
-      <NewGraph />
+        <a
+          class="absolute right-5 top-5"
+          href="https://github.com/arrowboxco/community/discussions"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Support
+        </a>
+      </div>
 
-      <ul>
-        <For each={sorted(list())}>
-          {id => (
-            <li>
-              <A href={`/graph/${id}`}>{list()[id].title}</A>
-            </li>
-          )}
-        </For>
-      </ul>
+      <div class="mx-auto flex max-w-2xl flex-col gap-4">
+        <h1 class="mx-auto text-5xl font-medium">Welcome back</h1>
+
+        <NewGraph />
+
+        <ul>
+          <For each={sorted(list())}>
+            {id => (
+              <li>
+                <A href={`/graph/${id}`}>{list()[id].title}</A>
+              </li>
+            )}
+          </For>
+        </ul>
+      </div>
     </div>
   )
 }
