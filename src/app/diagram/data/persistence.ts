@@ -39,6 +39,7 @@ export function storeGraph(data: Graph): void {
 interface StoredGraph {
   title: string
   lastModifiedMs: number
+  archived?: boolean
 }
 
 export type StoredGraphs = Record<GraphID, StoredGraph>

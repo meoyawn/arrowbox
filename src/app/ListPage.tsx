@@ -24,7 +24,7 @@ const NewGraph: Component = () => {
 function sorted(g: StoredGraphs): readonly GraphID[] {
   const es = Object.entries(g)
   es.sort(([, a], [, b]) => b.lastModifiedMs - a.lastModifiedMs)
-  return es.map(([id]) => id as GraphID)
+  return es.filter(([, x]) => !x.archived).map(([id]) => id as GraphID)
 }
 
 export const ListPage: Component = () => {

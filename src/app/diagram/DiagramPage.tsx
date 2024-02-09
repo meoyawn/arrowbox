@@ -1,3 +1,4 @@
+import { DropdownMenu } from "@kobalte/core"
 import { ZoomTransform } from "d3-zoom"
 import { createEffect, onCleanup, type Component } from "solid-js"
 import icon from "../../assets/icon.svg"
@@ -46,6 +47,38 @@ export const DiagramPage: Component = () => {
       >
         <img alt="Arrowbox" src={icon} />
       </TypedA>
+
+      <div class="absolute left-1/2 top-2">
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger class={"p-2"}>
+            <span>Hey</span>
+
+            <DropdownMenu.Icon />
+          </DropdownMenu.Trigger>
+
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content class="rounded border">
+              <DropdownMenu.Item
+                onClick={() => {
+                  // TODO replace dropdown with input
+                }}
+                class="cursor-pointer rounded p-2 focus:bg-blue-200"
+              >
+                <DropdownMenu.ItemLabel>Rename</DropdownMenu.ItemLabel>
+              </DropdownMenu.Item>
+
+              <DropdownMenu.Item
+                class="cursor-pointer rounded p-2 focus:bg-blue-200"
+                onClick={() => {
+                  // Easy. Delete.
+                }}
+              >
+                <DropdownMenu.ItemLabel>Delete</DropdownMenu.ItemLabel>
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
+      </div>
 
       <button
         class="absolute bottom-2 left-2 rounded-md border bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-300"
