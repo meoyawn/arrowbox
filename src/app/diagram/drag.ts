@@ -5,8 +5,8 @@ import {
   type DragContainerElement,
 } from "d3-drag"
 import { isEl } from "../../lib/dom.ts"
-import { toArr } from "../../lib/ts.ts"
-import { closestEdgeID, closestNodeID } from "./Diagram2.tsx"
+import { toKeysArray } from "../../lib/ts.ts"
+import { closestEdgeID, closestNodeID } from "./draw/DiagramSVG.tsx"
 import { isNodeID, rootID, type EdgeID, type NodeID } from "./data/data.ts"
 import { setStore, store, type State } from "./data/state.ts"
 import { dragBrush } from "./drag/brush.ts"
@@ -122,7 +122,7 @@ export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
       const nid = getNodeID(ev.sourceEvent)
       if (!nid) throw new Error("no nid")
 
-      const selArr = toArr(store.selected)
+      const selArr = toKeysArray(store.selected)
       return shiftKey
         ? dragNewArrow({ type: "node", id: nid }, ev.x, ev.y)
         : dragNode(ev.x, ev.y, data, selArr.length ? selArr : [nid])

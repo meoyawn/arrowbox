@@ -1,7 +1,7 @@
 import { zoomIdentity, type ZoomTransform } from "d3-zoom"
 import { type BBox } from "rbush"
 import { createStore } from "solid-js/store"
-import { type RSet } from "../../../lib/ts.ts"
+import { type KeySet } from "../../../lib/ts.ts"
 import {
   emptyDataState,
   type DataState,
@@ -9,6 +9,7 @@ import {
   type NodeID,
 } from "./data.ts"
 import type { EdgeAnchor } from "./edge-anchor.ts"
+import { getLastGraph } from "./persistence.ts"
 
 export interface DraggingArrow {
   from: EdgeAnchor
@@ -26,11 +27,11 @@ export interface State {
   editing?: NodeID | EdgeID
 
   /** empty object means dragging something without an id */
-  dragging?: RSet<NodeID>
+  dragging?: KeySet<NodeID>
 
   brush?: BBox
 
-  selected: RSet<NodeID | EdgeID>
+  selected: KeySet<NodeID | EdgeID>
 
   newArrow?: DraggingArrow
 }
@@ -38,6 +39,6 @@ export interface State {
 /** creates a proxied object that signals changes */
 export const [store, setStore] = createStore<State>({
   camera: zoomIdentity,
-  tree: emptyDataState(),
+  tree: emptyDataState(getLastGraph()),
   selected: {},
 })

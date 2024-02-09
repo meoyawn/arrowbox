@@ -1,5 +1,5 @@
 import RBush, { type BBox } from "rbush"
-import { type RSet } from "../../../lib/ts.ts"
+import { type KeySet } from "../../../lib/ts.ts"
 import { absRect, type NestPath } from "../brushing.ts"
 import {
   rootID,
@@ -12,7 +12,7 @@ import {
 } from "./data"
 
 export type ParentIndex = Record<NodeID, NodeID>
-export type DeepChildrenIndex = Record<NodeID, RSet<NodeID>>
+export type DeepChildrenIndex = Record<NodeID, KeySet<NodeID>>
 type FirstEdges = Record<NodeID, Edge[]>
 
 interface EdgeIndex {
@@ -63,8 +63,8 @@ const dfsChildren = (
   nodes: Record<NodeID, Node>,
   globalOut: DeepChildrenIndex,
   id: NodeID,
-): RSet<NodeID> => {
-  const localOut: RSet<NodeID> = {}
+): KeySet<NodeID> => {
+  const localOut: KeySet<NodeID> = {}
 
   for (const childID of nodes[id].children) {
     localOut[childID] = true

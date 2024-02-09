@@ -1,7 +1,7 @@
 import { A, useNavigate } from "@solidjs/router"
 import { For, createEffect, createSignal, type Component } from "solid-js"
-import logoLight from "../../assets/logo_light.svg"
-import { genID, type GraphID } from "../diagram/data/data"
+import logoLight from "../assets/logo_light.svg"
+import { genID, type GraphID } from "./diagram/data/data.ts"
 
 type GraphList = Record<GraphID, { title: string }>
 
@@ -31,7 +31,7 @@ const NewGraph: Component = () => {
   )
 }
 
-export const GraphList: Component = () => {
+export const ListPage: Component = () => {
   createEffect(() => {
     localStorage.setItem(storageK, JSON.stringify(list()))
   })

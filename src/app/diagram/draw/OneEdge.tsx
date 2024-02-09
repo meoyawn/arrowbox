@@ -1,4 +1,3 @@
-import clsx from "clsx"
 import { Show, type Component } from "solid-js"
 import type { Rect } from "../../../lib/geometry.ts"
 import { type EdgeID } from "../data/data.ts"
@@ -37,9 +36,10 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
       </Show>
 
       <line
-        class={clsx("stroke-black stroke-1", {
+        classList={{
+          "stroke-black stroke-1": true,
           "group-hover:stroke-blue-600": !isSelected(),
-        })}
+        }}
         x1={fromX()}
         y1={fromY()}
         x2={toX()}
@@ -49,9 +49,10 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
 
       <circle
         data-dragID={dragIDs.edgeFrom}
-        class={clsx("cursor-grab", {
+        classList={{
+          "cursor-grab": true,
           "invisible group-hover:visible": !isSelected(),
-        })}
+        }}
         fill="white"
         stroke="black"
         stroke-width={2}
@@ -62,9 +63,10 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
 
       <circle
         data-dragID={dragIDs.edgeTo}
-        class={clsx("cursor-grab", {
+        classList={{
+          "cursor-grab": true,
           "invisible group-hover:visible": !isSelected(),
-        })}
+        }}
         fill="white"
         stroke="black"
         stroke-width={2}

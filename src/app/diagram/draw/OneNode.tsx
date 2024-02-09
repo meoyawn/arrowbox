@@ -1,5 +1,4 @@
 import { destructure } from "@solid-primitives/destructure"
-import clsx from "clsx"
 import { For, Show, type Component } from "solid-js"
 import { type Rect } from "../../../lib/geometry.ts"
 import { type NodeID } from "../data/data.ts"
@@ -88,7 +87,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
   const children = () => node().children
   const isEditing = () => props.id === store.editing
 
-  const draggingAny = () => store.dragging
+  const draggingAny = () => Boolean(store.dragging)
   const draggingMe = () => store.dragging && props.id in store.dragging
 
   const { x, y, width, height } = destructure(rect, { memo: true })
@@ -96,9 +95,10 @@ export const OneNode: Component<{ id: NodeID }> = props => {
   return (
     <g data-nodeID={props.id} transform={`translate(${x()} ${y()})`}>
       <g
-        class={clsx("group hover:cursor-grab", {
+        classList={{
+          "group hover:cursor-grab": true,
           "pointer-events-none cursor-grabbing": draggingMe(),
-        })}
+        }}
       >
         <rect
           x={0}
@@ -106,9 +106,10 @@ export const OneNode: Component<{ id: NodeID }> = props => {
           rx={3}
           ry={3}
           data-dragID={dragIDs.node}
-          class={clsx("stroke-black stroke-1 group-hover:stroke-blue-600", {
+          classList={{
+            "stroke-black stroke-1 group-hover:stroke-blue-600": true,
             "group-hover:stroke-2": draggingAny(),
-          })}
+          }}
           fill="transparent"
           width={width()}
           height={height()}
@@ -135,9 +136,10 @@ export const OneNode: Component<{ id: NodeID }> = props => {
 
         <circle
           data-dragID={dragIDs.newArrow}
-          class={clsx("invisible cursor-move", {
+          classList={{
+            "invisible cursor-move": true,
             "group-hover:visible": !store.dragging && !isEditing(),
-          })}
+          }}
           stroke="black"
           fill="white"
           stroke-width={2}

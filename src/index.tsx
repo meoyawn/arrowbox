@@ -1,7 +1,10 @@
-import "./index.css"
-import { Route, Router } from "@solidjs/router"
+import { Router } from "@solidjs/router"
 import { render } from "solid-js/web"
-import { TheApp } from "./app/diagram/TheApp.tsx"
+import { GraphPage } from "./app/GraphPage.tsx"
+import { ListPage } from "./app/ListPage.tsx"
+import { DiagramPage } from "./app/diagram/draw/DiagramPage.tsx"
+import { TypedRoute } from "./app/routes.tsx"
+import "./index.css"
 
 const root = document.getElementById("root")
 if (!root) throw new Error("No #root")
@@ -9,7 +12,9 @@ if (!root) throw new Error("No #root")
 render(
   () => (
     <Router>
-      <Route path="/" component={TheApp} />
+      <TypedRoute path="/" component={DiagramPage} />
+      <TypedRoute path="/list" component={ListPage} />
+      <TypedRoute path="/graph/:id" component={GraphPage} />
     </Router>
   ),
   root,

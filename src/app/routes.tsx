@@ -1,11 +1,11 @@
-import { A, type AnchorProps } from "@solidjs/router"
-import { type Component } from "solid-js"
-import { type GraphID } from "./diagram/data/data.ts"
+import { A, Route, type AnchorProps, type RouteProps } from "@solidjs/router"
+import { type Component, type JSX } from "solid-js"
+import type { GraphID } from "./diagram/data/data.ts"
 
-export type Route = `/` | `/d/${GraphID}` | `/list`
+type Route = `/` | `/list` | `/graph/:id` | `/graph/${GraphID}`
 
-interface RouteProps extends AnchorProps {
-  href: Route
-}
+export const TypedA: Component<AnchorProps & { href: Route }> = A
 
-export const Anchor: Component<RouteProps> = A
+export const TypedRoute: <T = unknown>(
+  props: RouteProps<Route, T>,
+) => JSX.Element = Route

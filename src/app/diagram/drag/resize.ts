@@ -1,5 +1,5 @@
 import { type Rect } from "../../../lib/geometry.ts"
-import type { RSet } from "../../../lib/ts.ts"
+import type { KeySet } from "../../../lib/ts.ts"
 import { type Graph, type NodeID } from "../data/data.ts"
 import { nonPatching, patching } from "../data/history.ts"
 import { type State } from "../data/state.ts"
@@ -89,7 +89,7 @@ export const dragSide = (
   sx: number,
   sy: number,
 ): DragBehavior2 => {
-  const dragging: RSet<NodeID> = { [id]: 1 }
+  const dragging: KeySet<NodeID> = { [id]: 1 }
 
   return {
     x: sx,

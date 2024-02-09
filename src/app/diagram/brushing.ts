@@ -1,7 +1,7 @@
 import type RBush from "rbush"
 import { type BBox } from "rbush"
 import { type Rect } from "../../lib/geometry.ts"
-import { type RSet } from "../../lib/ts.ts"
+import { type KeySet } from "../../lib/ts.ts"
 import { rootID, type IdRect, type Node, type NodeID } from "./data/data.ts"
 
 export type NestPath = ReadonlyArray<number>
@@ -42,7 +42,7 @@ const rectExceedsBBox = (r: Rect, b: BBox): boolean =>
   r.x + r.width > b.maxX &&
   r.y + r.height > b.maxY
 
-export const brushSelect = (rBush: RBush<IdRect>, bbox: BBox): RSet<NodeID> => {
+export const brushSelect = (rBush: RBush<IdRect>, bbox: BBox): KeySet<NodeID> => {
   const reslt = rBush.search(bbox)
   if (!reslt.length) return {}
 

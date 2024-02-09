@@ -1,5 +1,4 @@
 import { destructure } from "@solid-primitives/destructure"
-import clsx from "clsx"
 import { Show, createEffect, type Component } from "solid-js"
 import { type Rect } from "../../../lib/geometry.ts"
 import { type EdgeID, type GraphText, type NodeID } from "../data/data.ts"
@@ -42,14 +41,16 @@ export const ForeignText: Component<{
       height={height()}
     >
       <div
-        class={clsx("prose fixed inset-0 flex max-w-none justify-center", {
+        classList={{
+          "prose fixed inset-0 flex max-w-none justify-center": true,
           "items-center": props.isCenter,
-        })}
+        }}
       >
         <div
-          class={clsx("max-h-none max-w-none bg-white", {
+          classList={{
+            "max-h-none max-w-none bg-white": true,
             "pointer-events-auto": props.pointerEvents,
-          })}
+          }}
           // eslint-disable-next-line solid/no-innerhtml
           innerHTML={props.text.html}
         />

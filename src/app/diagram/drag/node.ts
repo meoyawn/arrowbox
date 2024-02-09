@@ -1,5 +1,5 @@
 import { type Rect } from "../../../lib/geometry.ts"
-import { toSet } from "../../../lib/ts.ts"
+import { toKeySet } from "../../../lib/ts.ts"
 import { absRect } from "../brushing.ts"
 import {
   isNodeID,
@@ -19,7 +19,7 @@ export const dragNode = (
   beforeDrag: Readonly<Graph>,
   selArr: ReadonlyArray<NodeID | EdgeID>,
 ): DragBehavior2 => {
-  const dragging = toSet(selArr.filter(isNodeID))
+  const dragging = toKeySet(selArr.filter(isNodeID))
 
   return {
     x: sx,

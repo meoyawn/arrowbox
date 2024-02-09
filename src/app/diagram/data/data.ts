@@ -14,12 +14,17 @@ export type GraphID = `g${string}`
 export type NodeID = `n${string}`
 export type EdgeID = `e${string}`
 
-export const isPrefixID = (id: unknown, prefix: string): boolean =>
+export const isPrefix = <P extends string>(
+  id: unknown,
+  prefix: P,
+): id is `${P}${string}` =>
   typeof id === "string" && id.length > prefix.length && id.startsWith(prefix)
 
-export const isNodeID = (id: unknown): id is NodeID => isPrefixID(id, "n")
+export const isNodeID = (id: unknown): id is NodeID => isPrefix(id, "n")
 
-export const isEdgeID = (id: unknown): id is EdgeID => isPrefixID(id, "e")
+export const isEdgeID = (id: unknown): id is EdgeID => isPrefix(id, "e")
+
+export const isGraphID = (id: unknown): id is GraphID => isPrefix(id, "g")
 
 export interface GraphText {
   markdown: string
@@ -85,7 +90,7 @@ export const emptyGraph = (): Graph => ({
   edges: {},
 })
 
-export const emptyDataState = (data: Graph = emptyGraph()): DataState => ({
+export const emptyDataState = (data: Graph): DataState => ({
   data,
   index: buildIndex(data),
   history: emptyHistory(),

@@ -1,5 +1,5 @@
 import hotkeys from "hotkeys-js"
-import { toArr, toSet } from "../../lib/ts.ts"
+import { toKeysArray, toKeySet } from "../../lib/ts.ts"
 import { isNodeID, rootID } from "./data/data.ts"
 import { patching, redo, undo } from "./data/history.ts"
 import { setStore, store } from "./data/state.ts"
@@ -16,7 +16,7 @@ export const setupHotkeys = (): VoidFunction => {
   hotkeys("Escape", () => setStore({ selected: {} }))
 
   hotkeys("Enter", () => {
-    const arr = toArr(store.selected)
+    const arr = toKeysArray(store.selected)
     if (arr.length === 1) {
       const [editing] = arr
       setStore({ editing })
@@ -42,7 +42,7 @@ export const setupHotkeys = (): VoidFunction => {
   hotkeys("ctrl+g, command+g", e => {
     e.preventDefault()
 
-    const selected = toArr(store.selected)
+    const selected = toKeysArray(store.selected)
     if (selected.length === 0) return
 
     setStore(s => ({
@@ -56,7 +56,7 @@ export const setupHotkeys = (): VoidFunction => {
   hotkeys("ctrl+shift+g, command+shift+g", e => {
     e.preventDefault()
 
-    const selected = toArr(store.selected)
+    const selected = toKeysArray(store.selected)
     if (selected.length !== 1) return
 
     const [id] = selected
@@ -74,9 +74,9 @@ export const setupHotkeys = (): VoidFunction => {
     e.preventDefault()
 
     setStore(({ tree }) => ({
-      selected: toSet([
-        ...toArr(tree.data.nodes).filter(x => x !== rootID),
-        ...toArr(tree.data.edges),
+      selected: toKeySet([
+        ...toKeysArray(tree.data.nodes).filter(x => x !== rootID),
+        ...toKeysArray(tree.data.edges),
       ]),
     }))
   })

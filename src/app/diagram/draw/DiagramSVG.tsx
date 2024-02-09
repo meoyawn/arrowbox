@@ -2,16 +2,16 @@ import { pointer, select } from "d3-selection"
 import { zoom, type D3ZoomEvent, type ZoomTransform } from "d3-zoom"
 import { type BBox } from "rbush"
 import { For, Show, createEffect, type Component } from "solid-js"
-import { toArr } from "../../lib/ts.ts"
+import { toKeysArray } from "../../../lib/ts.ts"
 import { SvgDefs } from "./SvgDefs.tsx"
-import { rootID, type EdgeID, type NodeID } from "./data/data.ts"
-import { createAnchors } from "./data/edge-anchor.ts"
-import { patching } from "./data/history.ts"
-import { setStore, store, type DraggingArrow } from "./data/state.ts"
-import { addNode } from "./data/transactions.ts"
-import { behaviorDrag, worldDragSubj } from "./drag.ts"
-import { OneEdge } from "./draw/OneEdge.tsx"
-import { OneNode } from "./draw/OneNode.tsx"
+import { rootID, type EdgeID, type NodeID } from "../data/data.ts"
+import { createAnchors } from "../data/edge-anchor.ts"
+import { patching } from "../data/history.ts"
+import { setStore, store, type DraggingArrow } from "../data/state.ts"
+import { addNode } from "../data/transactions.ts"
+import { behaviorDrag, worldDragSubj } from "../drag.ts"
+import { OneEdge } from "./OneEdge.tsx"
+import { OneNode } from "./OneNode.tsx"
 
 const d3Zoom = zoom<Element, unknown>()
   .scaleExtent([0.05, 8])
@@ -34,7 +34,7 @@ export const zoomTo = (t: ZoomTransform): void =>
 const zoomTransform = ({ k, x, y }: ZoomTransform): string =>
   `translate(${x} ${y}) scale(${k})`
 
-export const Diagram2: Component = () => {
+export const DiagramSVG: Component = () => {
   let svgEl: SVGSVGElement
   let zoomedEl: SVGGElement
 
@@ -104,7 +104,7 @@ export const Diagram2: Component = () => {
           {id => <OneNode id={id} />}
         </For>
         <For
-          each={toArr(store.tree.data.edges).filter(
+          each={toKeysArray(store.tree.data.edges).filter(
             eid => !store.dragging || !(eid in store.dragging),
           )}
         >

@@ -1,5 +1,5 @@
 import { type Vec2 } from "../../../lib/geometry.ts"
-import type { RSet } from "../../../lib/ts.ts"
+import type { KeySet } from "../../../lib/ts.ts"
 import { md2html } from "../../markdown.ts"
 import {
   genID,
@@ -97,7 +97,7 @@ function deleteNode(
 export function del(
   ne: Graph,
   index: GraphIndex,
-  selected: RSet<NodeID | EdgeID>,
+  selected: KeySet<NodeID | EdgeID>,
 ): void {
   for (const id in selected) {
     if (isNodeID(id)) {
