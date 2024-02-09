@@ -18,6 +18,7 @@
     "strictFunctionTypes": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
+    "target": "ES2019",
     "verbatimModuleSyntax": true
   },
   "include": ["src/", "*.config.ts"]
