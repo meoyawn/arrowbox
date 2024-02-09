@@ -1,18 +1,12 @@
 import { A, useNavigate } from "@solidjs/router"
 import { For, createEffect, createSignal, type Component } from "solid-js"
 import logoLight from "../assets/logo_light.svg"
-import { genID, type GraphID } from "./diagram/data/data.ts"
-
-type GraphList = Record<GraphID, { title: string }>
-
-const storageK = "graph-list"
-
-const [list, setList] = createSignal(
-  (() => {
-    const stored = localStorage.getItem(storageK)
-    return stored ? (JSON.parse(stored) as GraphList) : ({} satisfies GraphList)
-  })(),
-)
+import type { GraphID } from "./diagram/data/data.ts"
+import {
+  createNewGraph,
+  getStoredGraphs,
+  type StoredGraphs,
+} from "./diagram/data/persistence.ts"
 
 const NewGraph: Component = () => {
   const nav = useNavigate()
@@ -20,20 +14,24 @@ const NewGraph: Component = () => {
   return (
     <button
       class="rounded bg-blue-600 px-4 py-2 font-bold text-white duration-200 hover:bg-blue-800"
-      onClick={() => {
-        const id = genID("g")
-        nav(`/graph/${id}`)
-        setList(old => ({ ...old, [id]: { title: "Untitled" } }))
-      }}
+      onClick={() => nav(`/graph/${createNewGraph()}`)}
     >
-      New graph
+      New diagram
     </button>
   )
 }
 
+function sorted(g: StoredGraphs): readonly GraphID[] {
+  const es = Object.entries(g)
+  es.sort(([, a], [, b]) => b.lastModifiedMs - a.lastModifiedMs)
+  return es.map(([id]) => id as GraphID)
+}
+
 export const ListPage: Component = () => {
+  const [list, setList] = createSignal<StoredGraphs>({})
+
   createEffect(() => {
-    localStorage.setItem(storageK, JSON.stringify(list()))
+    setList(getStoredGraphs())
   })
 
   return (
@@ -45,7 +43,7 @@ export const ListPage: Component = () => {
       <NewGraph />
 
       <ul>
-        <For each={Object.keys(list()) as ReadonlyArray<GraphID>}>
+        <For each={sorted(list())}>
           {id => (
             <li>
               <A href={`/graph/${id}`}>{list()[id].title}</A>

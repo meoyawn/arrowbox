@@ -52,6 +52,7 @@ export interface Edge {
 
 /** persisted */
 export interface Graph {
+  id: GraphID
   nodes: Record<NodeID, Node>
   edges: Record<EdgeID, Edge>
 }
@@ -77,7 +78,8 @@ export const genID = <P extends string>(prefix: P): `${P}${string}` =>
 
 export const rootID = "nRoot" satisfies NodeID
 
-export const emptyGraph = (): Graph => ({
+export const emptyGraph = (id: GraphID): Graph => ({
+  id,
   nodes: {
     [rootID]: {
       id: rootID,

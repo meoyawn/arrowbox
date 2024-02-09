@@ -48,8 +48,8 @@ export const ForeignText: Component<{
       >
         <div
           classList={{
-            "max-h-none max-w-none bg-white": true,
-            "pointer-events-auto": props.pointerEvents,
+            "max-h-none max-w-none": true,
+            "pointer-events-auto bg-white": props.pointerEvents,
           }}
           // eslint-disable-next-line solid/no-innerhtml
           innerHTML={props.text.html}

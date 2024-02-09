@@ -3,7 +3,7 @@ import { createEffect, onCleanup, type Component } from "solid-js"
 import icon from "../../../assets/icon.svg"
 import { TypedA } from "../../routes.tsx"
 import { emptyDataState, rootID, type DataState } from "../data/data.ts"
-import { getLastGraph } from "../data/persistence.ts"
+import { getLastGraph, storeGraph } from "../data/persistence.ts"
 import { setStore, store } from "../data/state.ts"
 import { setupHotkeys } from "../hotkeys.ts"
 import { DiagramSVG, zoomTo } from "./DiagramSVG.tsx"
@@ -24,6 +24,12 @@ export const DiagramPage: Component = () => {
     setStore({ tree: emptyDataState(getLastGraph()) })
 
     onCleanup(setupHotkeys())
+  })
+
+  createEffect(() => {
+    if (!store.dragging) {
+      storeGraph(store.tree.data)
+    }
   })
 
   return (
