@@ -6,7 +6,6 @@ import {
 } from "d3-drag"
 import { isEl } from "../../lib/dom.ts"
 import { toKeysArray } from "../../lib/ts.ts"
-import { closestEdgeID, closestNodeID } from "./draw/DiagramSVG.tsx"
 import { isNodeID, rootID, type EdgeID, type NodeID } from "./data/data.ts"
 import { setStore, store, type State } from "./data/state.ts"
 import { dragBrush } from "./drag/brush.ts"
@@ -14,6 +13,7 @@ import { dragEdge } from "./drag/edge.ts"
 import { dragNewArrow } from "./drag/new-arrow.ts"
 import { dragNode } from "./drag/node.ts"
 import { dragSide, type ResizeSide } from "./drag/resize.ts"
+import { closestEdgeID, closestNodeID } from "./draw/DiagramSVG.tsx"
 
 export const getNodeID = ({ target }: Event): NodeID | null =>
   isEl(target) ? closestNodeID(target) : null
