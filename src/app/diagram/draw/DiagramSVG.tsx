@@ -3,7 +3,6 @@ import { zoom, type D3ZoomEvent, type ZoomTransform } from "d3-zoom"
 import { type BBox } from "rbush"
 import { For, Show, createEffect, type Component } from "solid-js"
 import { toKeysArray } from "../../../lib/ts.ts"
-import { SvgDefs } from "./SvgDefs.tsx"
 import { rootID, type EdgeID, type NodeID } from "../data/data.ts"
 import { createAnchors } from "../data/edge-anchor.ts"
 import { patching } from "../data/history.ts"
@@ -12,6 +11,7 @@ import { addNode } from "../data/transactions.ts"
 import { behaviorDrag, worldDragSubj } from "../drag.ts"
 import { OneEdge } from "./OneEdge.tsx"
 import { OneNode } from "./OneNode.tsx"
+import { SvgDefs } from "./SvgDefs.tsx"
 
 const d3Zoom = zoom<Element, unknown>()
   .scaleExtent([0.05, 8])
@@ -138,7 +138,7 @@ const NewArrowC: Component<DraggingArrow> = props => {
       y2={toY()}
       stroke={"black"}
       stroke-width={2}
-      marker-end={"url(#triangle)"}
+      marker-end="url(#triangle)"
     />
   )
 }

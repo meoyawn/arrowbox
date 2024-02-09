@@ -1,7 +1,12 @@
 import { destructure } from "@solid-primitives/destructure"
 import { Show, createEffect, type Component } from "solid-js"
 import { type Rect } from "../../../lib/geometry.ts"
-import { type EdgeID, type GraphText, type NodeID } from "../data/data.ts"
+import {
+  isEdgeID,
+  type EdgeID,
+  type GraphText,
+  type NodeID,
+} from "../data/data.ts"
 import { patching } from "../data/history.ts"
 import { setStore, store } from "../data/state.ts"
 import { setMD } from "../data/transactions.ts"
@@ -18,7 +23,6 @@ export const ForeignText: Component<{
   text: GraphText
   rect: Rect
   isCenter: boolean
-  pointerEvents: boolean
 }> = props => {
   const isEditing = () => props.id === store.editing
 
@@ -49,7 +53,7 @@ export const ForeignText: Component<{
         <div
           classList={{
             "max-h-none max-w-none": true,
-            "pointer-events-auto bg-white": props.pointerEvents,
+            "pointer-events-auto bg-white": isEdgeID(props.id),
           }}
           // eslint-disable-next-line solid/no-innerhtml
           innerHTML={props.text.html}

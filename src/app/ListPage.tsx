@@ -1,4 +1,3 @@
-import { A, useNavigate } from "@solidjs/router"
 import { For, createEffect, createSignal, type Component } from "solid-js"
 import logoLight from "../assets/logo_light.svg"
 import { type GraphID } from "./diagram/data/data.ts"
@@ -7,9 +6,10 @@ import {
   getStoredGraphs,
   type StoredGraphs,
 } from "./diagram/data/persistence.ts"
+import { TypedA, useTypedNavigate } from "./routes.tsx"
 
 const NewGraph: Component = () => {
-  const nav = useNavigate()
+  const nav = useTypedNavigate()
 
   return (
     <button
@@ -37,12 +37,12 @@ export const ListPage: Component = () => {
   return (
     <div class="container">
       <div class="py-4">
-        <A
+        <TypedA
           href="/"
           class="absolute left-2 top-2 h-12 w-12 rounded-full bg-white py-3 text-center shadow-xl duration-200 hover:bg-gray-100"
         >
           ⛌
-        </A>
+        </TypedA>
 
         <img alt="Arrowbox" class="mx-auto h-8" src={logoLight} />
 
@@ -65,7 +65,7 @@ export const ListPage: Component = () => {
           <For each={sorted(list())}>
             {id => (
               <li>
-                <A href={`/graph/${id}`}>{list()[id].title}</A>
+                <TypedA href={`/graph/${id}`}>{list()[id].title}</TypedA>
               </li>
             )}
           </For>

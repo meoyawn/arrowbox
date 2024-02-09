@@ -80,7 +80,6 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
         text={e().text}
         isCenter={true}
         rect={textRect()}
-        pointerEvents={true}
       />
     </g>
   )

@@ -131,7 +131,6 @@ export const OneNode: Component<{ id: NodeID }> = props => {
           text={node().text}
           rect={{ x: 0, y: 0, width: width(), height: height() }}
           isCenter={node().children.length === 0}
-          pointerEvents={false}
         />
 
         <circle
