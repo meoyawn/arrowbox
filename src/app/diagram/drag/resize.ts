@@ -38,44 +38,44 @@ const onDragSide = (
   switch (side) {
     case ResizeSides.NORTH:
       ret.y += deltaY
-      ret.height -= deltaY
+      ret.height = Math.max(1, ret.height - deltaY)
       break
 
     case ResizeSides.SOUTH:
-      ret.height += deltaY
+      ret.height = Math.max(1, ret.height + deltaY)
       break
 
     case ResizeSides.WEST:
       ret.x += deltaX
-      ret.width -= deltaX
+      ret.width = Math.max(1, ret.width - deltaX)
       break
 
     case ResizeSides.EAST:
-      ret.width += deltaX
+      ret.width = Math.max(1, ret.width + deltaX)
       break
 
-    case "nw":
+    case ResizeSides.NORTHWEST:
       ret.x += deltaX
-      ret.width -= deltaX
+      ret.width = Math.max(1, ret.width - deltaX)
       ret.y += deltaY
-      ret.height -= deltaY
+      ret.height = Math.max(1, ret.height - deltaY)
       break
 
-    case "ne":
-      ret.width += deltaX
+    case ResizeSides.NORTHEAST:
+      ret.width = Math.max(1, ret.width + deltaX)
       ret.y += deltaY
-      ret.height -= deltaY
+      ret.height = Math.max(1, ret.height - deltaY)
       break
 
     case ResizeSides.SOUTHWEST:
       ret.x += deltaX
-      ret.width -= deltaX
-      ret.height += deltaY
+      ret.width = Math.max(1, ret.width - deltaX)
+      ret.height = Math.max(1, ret.height + deltaY)
       break
 
     case ResizeSides.SOUTHEAST:
-      ret.width += deltaX
-      ret.height += deltaY
+      ret.width = Math.max(1, ret.width + deltaX)
+      ret.height = Math.max(1, ret.height + deltaY)
       break
   }
 

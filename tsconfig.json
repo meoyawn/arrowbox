@@ -4,6 +4,7 @@
     "alwaysStrict": true,
     "downlevelIteration": true,
     "esModuleInterop": true,
+    "incremental": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "module": "ES2022",
