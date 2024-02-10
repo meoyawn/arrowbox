@@ -14,7 +14,7 @@ const NewGraph: Component = () => {
   return (
     <button
       class="rounded bg-blue-600 px-4 py-2 font-bold text-white duration-200 hover:bg-blue-800"
-      onClick={() => nav(`/graph/${createNewGraph()}`)}
+      onClick={() => nav(`/graph/${createNewGraph().id}`)}
     >
       New diagram
     </button>

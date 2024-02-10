@@ -50,7 +50,7 @@ export const DiagramPage: Component = () => {
 
       <div class="absolute left-1/2 top-2">
         <DropdownMenu.Root>
-          <DropdownMenu.Trigger class={"p-2"}>
+          <DropdownMenu.Trigger class="p-2">
             <span>Hey</span>
 
             <DropdownMenu.Icon />
