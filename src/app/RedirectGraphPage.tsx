@@ -6,11 +6,11 @@ import { useTypedNavigate } from "./routes.tsx"
 
 export const RedirectGraphPage: Component = () => {
   const params = useParams<{ id: GraphID }>()
-  const navigate = useTypedNavigate()
+  const nav = useTypedNavigate()
 
   createEffect(() => {
     setLastGraph(params.id)
-    navigate("/", { replace: true })
+    nav("/", { replace: true })
   })
 
   return null

@@ -6,6 +6,7 @@ import {
   emptyDataState,
   type DataState,
   type EdgeID,
+  type GraphID,
   type NodeID,
 } from "./data.ts"
 import type { EdgeAnchor } from "./edge-anchor.ts"
@@ -17,6 +18,9 @@ export interface DraggingArrow {
 }
 
 export interface State {
+  id: GraphID
+  title: string
+
   camera: ZoomTransform
   tree: DataState
 
@@ -36,9 +40,16 @@ export interface State {
   newArrow?: DraggingArrow
 }
 
+function createState(): State {
+  const { graph, title, id } = getLastGraph()
+  return {
+    camera: zoomIdentity,
+    tree: emptyDataState(graph),
+    selected: {},
+    title,
+    id,
+  }
+}
+
 /** creates a proxied object that signals changes */
-export const [store, setStore] = createStore<State>({
-  camera: zoomIdentity,
-  tree: emptyDataState(getLastGraph()),
-  selected: {},
-})
+export const [store, setStore] = createStore(createState())

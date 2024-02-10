@@ -12,52 +12,76 @@ function storeGraphs(gs: StoredGraphs): void {
   localStorage.setItem(kGraphList, JSON.stringify(gs))
 }
 
-export function storeGraph(data: Graph): void {
-  localStorage.setItem(data.id, JSON.stringify(data))
+export function storeGraph(id: GraphID, data: Graph): void {
+  localStorage.setItem(id, JSON.stringify(data))
 
   const gs = getStoredGraphs()
-  gs[data.id] = { ...gs[data.id], lastModifiedMs: Date.now() }
+  gs[id] = { ...gs[id], lastModifiedMs: Date.now() }
   storeGraphs(gs)
 }
 
-function addToList(id: GraphID) {
+function addToList(id: GraphID): string {
   const gs = getStoredGraphs()
+  const title = newTitle(gs)
   gs[id] = {
-    title: newTitle(gs),
+    title,
     lastModifiedMs: Date.now(),
   }
   storeGraphs(gs)
+  return title
 }
 
-export function createNewGraph(): Graph {
+export function createNewGraph(): { graph: Graph; id: GraphID; title: string } {
   const id = genID("g")
-  const g = emptyGraph(id)
-  storeGraph(g)
-  addToList(id)
+  const graph = emptyGraph()
+  storeGraph(id, graph)
+  const title = addToList(id)
   setLastGraph(id)
-  return g
+  return { graph, id, title }
 }
 
-export function getLastGraph(): Graph {
-  const lastID = localStorage.getItem(kLastGraph)
+export function getLastGraph(): { graph: Graph; id: GraphID; title: string } {
+  const lastID = localStorage.getItem(kLastGraph) as GraphID
   if (!lastID) return createNewGraph()
 
   const str = localStorage.getItem(lastID)
   if (str) {
-    return JSON.parse(str) as Graph
+    return {
+      graph: JSON.parse(str) as Graph,
+      id: lastID,
+      title: getStoredGraphs()[lastID].title,
+    }
   }
 
   throw new Error(`No graph found for ID ${lastID}`)
 }
 
-export function setLastGraph(id: GraphID): void {
-  localStorage.setItem(kLastGraph, id)
+export function setLastGraph(id: GraphID | null): void {
+  if (id) {
+    localStorage.setItem(kLastGraph, id)
+  } else {
+    localStorage.removeItem(kLastGraph)
+  }
 }
 
 interface StoredGraph {
   title: string
   lastModifiedMs: number
   archived?: boolean
+}
+
+export function saveTitle(id: GraphID, title: string): void {
+  const gs = getStoredGraphs()
+  gs[id].title = title
+  storeGraphs(gs)
+}
+
+export function archive(id: GraphID): void {
+  const gs = getStoredGraphs()
+  gs[id].archived = true
+  storeGraphs(gs)
+
+  setLastGraph(null)
 }
 
 export type StoredGraphs = Record<GraphID, StoredGraph>
@@ -70,7 +94,7 @@ export function newTitle(gs: StoredGraphs): string {
   return `Untitled ${i}`
 }
 
-function dumpStorage(): string {
+export function dumpStorage(): string {
   const len = localStorage.length
   const ret: Record<string, unknown> = {}
 
@@ -91,7 +115,7 @@ function dumpStorage(): string {
   return JSON.stringify(ret)
 }
 
-function loadStorage(s: string): void {
+export function loadStorage(s: string): void {
   const data = JSON.parse(s) as Record<string, unknown>
   for (const k in data) {
     localStorage.setItem(k, JSON.stringify(data[k]))
