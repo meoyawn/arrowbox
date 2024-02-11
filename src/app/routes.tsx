@@ -9,7 +9,7 @@ import {
 import { type Component, type JSX } from "solid-js"
 import { type GraphID } from "./diagram/data/data.ts"
 
-type Route = `/` | `/list` | `/graph/${GraphID}`
+type Route = "/" | "/list" | `/graph/${GraphID}` | "/new"
 
 export const TypedA: Component<AnchorProps & { href: Route }> = A
 

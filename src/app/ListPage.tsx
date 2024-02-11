@@ -1,4 +1,4 @@
-import { For, createEffect, createSignal, type Component } from "solid-js"
+import { For, type Component } from "solid-js"
 import logoLight from "../assets/logo_light.svg"
 import { type GraphID } from "./diagram/data/data.ts"
 import {
@@ -28,16 +28,13 @@ function sorted(g: StoredGraphs): readonly GraphID[] {
 }
 
 export const ListPage: Component = () => {
-  const [list, setList] = createSignal<StoredGraphs>({})
-
-  createEffect(() => {
-    setList(getStoredGraphs())
-  })
+  const list = getStoredGraphs()
 
   return (
     <div class="container">
       <div class="py-4">
         <TypedA
+          title="Back to diagram"
           href="/"
           class="absolute left-2 top-2 h-12 w-12 rounded-full bg-white py-3 text-center shadow-xl duration-200 hover:bg-gray-100"
         >
@@ -62,10 +59,10 @@ export const ListPage: Component = () => {
         <NewGraph />
 
         <ul>
-          <For each={sorted(list())}>
+          <For each={sorted(list)}>
             {id => (
               <li>
-                <TypedA href={`/graph/${id}`}>{list()[id].title}</TypedA>
+                <TypedA href={`/graph/${id}`}>{list[id].title}</TypedA>
               </li>
             )}
           </For>
