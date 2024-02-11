@@ -1,12 +1,28 @@
 import hotkeys from "hotkeys-js"
 import { toKeysArray, toKeySet } from "../../lib/ts.ts"
 import { isNodeID, rootID } from "./data/data.ts"
+import { layoutGraph } from "./data/elk.ts"
 import { patching, redo, undo } from "./data/history.ts"
 import { setStore, store } from "./data/state.ts"
-import { del, ungroup } from "./data/transactions.ts"
+import { del, setRect, ungroup } from "./data/transactions.ts"
+
+interface Hotkey {
+  label: string
+  hotkey: string
+}
+
+export const hotkeyTable = {
+  del: { label: "Delete", hotkey: "Delete, Backspace" },
+  undo: { label: "Undo", hotkey: "ctrl+z, command+z" },
+  redo: { label: "Redo", hotkey: "ctrl+shift+z, command+shift+z" },
+  selectAll: { label: "Select All", hotkey: "ctrl+a, command+a" },
+  layout: { label: "Layout", hotkey: "L" },
+  ungroup: { label: "Ungroup", hotkey: "ctrl+shift+g, command+shift+g" },
+  copyMermaid: { label: "Copy Mermaid", hotkey: "M" },
+} as const satisfies Record<string, Hotkey>
 
 export const setupHotkeys = (): VoidFunction => {
-  hotkeys("Delete, Backspace", () =>
+  hotkeys(hotkeyTable.del.hotkey, () =>
     setStore(s => ({
       tree: patching(s.tree, d => del(d, s.tree.index, s.selected)),
       selected: {},
@@ -26,13 +42,13 @@ export const setupHotkeys = (): VoidFunction => {
     }
   })
 
-  hotkeys("ctrl+z, command+z", e => {
+  hotkeys(hotkeyTable.undo.hotkey, e => {
     e.preventDefault()
 
     setStore(({ tree }) => ({ tree: undo(tree) }))
   })
 
-  hotkeys("ctrl+shift+z, command+shift+z", e => {
+  hotkeys(hotkeyTable.redo.hotkey, e => {
     e.preventDefault()
 
     setStore(({ tree }) => ({ tree: redo(tree) }))
@@ -52,8 +68,7 @@ export const setupHotkeys = (): VoidFunction => {
     }))
   })
 
-  // ungroup
-  hotkeys("ctrl+shift+g, command+shift+g", e => {
+  hotkeys(hotkeyTable.ungroup.hotkey, e => {
     e.preventDefault()
 
     const selected = toKeysArray(store.selected)
@@ -70,7 +85,7 @@ export const setupHotkeys = (): VoidFunction => {
     })
   })
 
-  hotkeys("ctrl+a, command+a", e => {
+  hotkeys(hotkeyTable.selectAll.hotkey, e => {
     e.preventDefault()
 
     setStore(({ tree }) => ({
@@ -79,6 +94,22 @@ export const setupHotkeys = (): VoidFunction => {
         ...toKeysArray(tree.data.edges),
       ]),
     }))
+  })
+
+  let layingOut = false
+  hotkeys(hotkeyTable.layout.hotkey, () => {
+    if (layingOut) return
+
+    layingOut = true
+    void layoutGraph(store.tree.data).then(dag => {
+      layingOut = false
+
+      setStore(({ tree }) => ({
+        tree: patching(tree, ({ nodes }) => {
+          setRect(nodes, dag)
+        }),
+      }))
+    })
   })
 
   return () => hotkeys.unbind()

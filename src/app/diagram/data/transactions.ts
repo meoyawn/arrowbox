@@ -1,5 +1,6 @@
+import { type ElkNode } from "elkjs/lib/elk-api"
 import { type Vec2 } from "../../../lib/geometry.ts"
-import type { KeySet } from "../../../lib/ts.ts"
+import { type KeySet } from "../../../lib/ts.ts"
 import { md2html } from "../../markdown.ts"
 import {
   genID,
@@ -13,8 +14,8 @@ import {
   type NodeID,
   type NodeShape,
 } from "./data.ts"
-import type { GraphIndex } from "./indexing.ts"
-import type { DraggingArrow } from "./state.ts"
+import { type GraphIndex } from "./indexing.ts"
+import { type DraggingArrow } from "./state.ts"
 
 export function addNode(
   data: Graph,
@@ -128,4 +129,21 @@ export function ungroup(
     .concat(group.children)
 
   delete nodes[groupID]
+}
+
+export function setRect(
+  nodes: Record<NodeID, Node>,
+  { children, height, width, x, y, id }: ElkNode,
+): void {
+  const r = nodes[id as NodeID].rect
+  r.x = x!
+  r.y = y!
+  r.width = width!
+  r.height = height!
+
+  if (!children) return
+
+  for (const c of children) {
+    setRect(nodes, c)
+  }
 }

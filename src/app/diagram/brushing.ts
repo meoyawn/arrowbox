@@ -42,11 +42,16 @@ const rectExceedsBBox = (r: Rect, b: BBox): boolean =>
   r.x + r.width > b.maxX &&
   r.y + r.height > b.maxY
 
-export const brushSelect = (rBush: RBush<IdRect>, bbox: BBox): KeySet<NodeID> => {
+export const brushSelect = (
+  rBush: RBush<IdRect>,
+  bbox: BBox,
+): KeySet<NodeID> => {
   const reslt = rBush.search(bbox)
   if (!reslt.length) return {}
 
   return Object.fromEntries(
-    reslt.filter(r => !rectExceedsBBox(r, bbox)).map(({ id }) => [id, 1]),
+    reslt
+      .filter(r => r.id !== rootID && !rectExceedsBBox(r, bbox))
+      .map(({ id }) => [id, 1]),
   )
 }

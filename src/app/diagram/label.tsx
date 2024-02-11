@@ -1,14 +1,18 @@
-import { memoize } from "../../lib/ts"
+/** .tsx because tailwind classes */
+function element(): HTMLElement {
+  const id = "measure"
+  const found = document.getElementById(id)
+  if (found) return found
 
-const lazyEl = memoize(() => {
   const div = document.createElement("div")
-  div.className = "prose invisible fixed max-w-none left-0 top-0"
+  div.id = id
+  div.className = "prose invisible fixed max-w-prose left-0 top-0"
   document.body.append(div)
   return div
-})
+}
 
 export const measureHtml = (html: string): DOMRect => {
-  const el = lazyEl()
+  const el = element()
   el.innerHTML = html
   return el.getBoundingClientRect()
 }

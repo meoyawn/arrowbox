@@ -4,15 +4,15 @@ import type { EdgeAnchor } from "./edge-anchor.ts"
 import { emptyHistory, type ImmerHistory } from "./history.ts"
 import { buildIndex, type GraphIndex } from "./indexing"
 
+export type GraphID = `g${string}`
+export type NodeID = `n${string}`
+export type EdgeID = `e${string}`
+
 export interface DataState {
   data: Graph
   index: GraphIndex
   history: ImmerHistory
 }
-
-export type GraphID = `g${string}`
-export type NodeID = `n${string}`
-export type EdgeID = `e${string}`
 
 export const isPrefix = <P extends string>(
   id: unknown,

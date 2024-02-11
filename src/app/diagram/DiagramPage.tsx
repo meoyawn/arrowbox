@@ -1,6 +1,7 @@
-import { DropdownMenu } from "@kobalte/core"
-import { ZoomTransform } from "d3-zoom"
+import { Dialog, DropdownMenu } from "@kobalte/core"
+import { ZoomTransform, zoomIdentity } from "d3-zoom"
 import {
+  For,
   Show,
   createEffect,
   createSignal,
@@ -9,6 +10,7 @@ import {
   type Setter,
 } from "solid-js"
 import icon from "../../assets/icon.svg"
+import { toKeysArray } from "../../lib/ts.ts"
 import { TypedA, useTypedNavigate } from "../routes.tsx"
 import { emptyDataState, rootID, type DataState } from "./data/data.ts"
 import {
@@ -19,7 +21,7 @@ import {
 } from "./data/persistence.ts"
 import { setStore, store } from "./data/state.ts"
 import { DiagramSVG, zoomTo } from "./draw/DiagramSVG.tsx"
-import { setupHotkeys } from "./hotkeys.ts"
+import { hotkeyTable, setupHotkeys } from "./hotkeys.ts"
 
 function hundredPercent({ data, index }: DataState): ZoomTransform {
   const nodes = Object.values(data.nodes).filter(
@@ -109,7 +111,7 @@ const Title: Component = () => {
 export const DiagramPage: Component = () => {
   createEffect(() => {
     const { graph, title, id } = getLastGraph()
-    setStore({ tree: emptyDataState(graph), title, id })
+    setStore({ tree: emptyDataState(graph), title, id, camera: zoomIdentity })
 
     onCleanup(setupHotkeys())
 
@@ -139,12 +141,35 @@ export const DiagramPage: Component = () => {
         <Title />
       </div>
 
-      <button
-        class="absolute bottom-2 left-2 rounded-md border bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-300"
-        onClick={() => zoomTo(hundredPercent(store.tree))}
-      >
-        {Math.round(store.camera.k * 100)}%
-      </button>
+      <div class="absolute bottom-2 left-2 flex flex-row divide-x rounded-md border">
+        <button
+          class="bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-300"
+          onClick={() => zoomTo(hundredPercent(store.tree))}
+        >
+          {Math.round(store.camera.k * 100)}%
+        </button>
+
+        <Dialog.Root>
+          <Dialog.Trigger class="bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-300">
+            ?
+          </Dialog.Trigger>
+
+          <Dialog.Portal>
+            <Dialog.Overlay class="fixed inset-0 bg-black bg-opacity-50" />
+
+            <Dialog.Content>
+              <Dialog.CloseButton />
+              <Dialog.Title />
+
+              <Dialog.Description>
+                <For each={toKeysArray(hotkeyTable)}>
+                  {k => <div>{hotkeyTable[k].label}</div>}
+                </For>
+              </Dialog.Description>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
+      </div>
     </div>
   )
 }
