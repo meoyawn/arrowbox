@@ -1,4 +1,5 @@
-import type { Graph } from "./data.ts"
+import { parse } from "@mermaid-js/parser"
+import { type Graph } from "./data.ts"
 
 export function toMermaid({ nodes }: Graph, title: string): string {
   return `---
@@ -10,4 +11,13 @@ export function toMermaid({ nodes }: Graph, title: string): string {
      .map(({ id, text }) => `${id}("${text.markdown}")`)
      .join("\n")}
   `
+}
+
+export function fromMermaid(str: string): unknown | undefined {
+  console.log(str)
+  try {
+    return parse("info", str)
+  } catch (e) {
+    console.error(e)
+  }
 }

@@ -13,6 +13,7 @@ import icon from "../../assets/icon.svg"
 import { toKeysArray } from "../../lib/ts.ts"
 import { TypedA, useTypedNavigate } from "../routes.tsx"
 import { emptyDataState, rootID, type DataState } from "./data/data.ts"
+import { fromMermaid } from "./data/mermaid.ts"
 import {
   archive,
   getLastGraph,
@@ -117,6 +118,15 @@ export const DiagramPage: Component = () => {
 
     document.body.classList.add("overscroll-none")
     onCleanup(() => document.body.classList.remove("overscroll-none"))
+
+    const paste = (e: ClipboardEvent) => {
+      const str = e.clipboardData?.getData("text/plain")
+      if (!str) return
+
+      fromMermaid(str)
+    }
+    document.addEventListener("paste", paste)
+    onCleanup(() => document.removeEventListener("paste", paste))
   })
 
   createEffect(() => {
