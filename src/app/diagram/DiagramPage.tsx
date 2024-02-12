@@ -12,7 +12,13 @@ import {
 import icon from "../../assets/icon.svg"
 import { toKeysArray } from "../../lib/ts.ts"
 import { TypedA, useTypedNavigate } from "../routes.tsx"
-import { emptyDataState, rootID, type DataState } from "./data/data.ts"
+import {
+  emptyDataState,
+  rootID,
+  type DataState,
+  type Graph,
+} from "./data/data.ts"
+import { layoutGraph } from "./data/elk.ts"
 import { fromMermaid } from "./data/mermaid.ts"
 import {
   archive,
@@ -21,6 +27,7 @@ import {
   storeGraph,
 } from "./data/persistence.ts"
 import { setStore, store } from "./data/state.ts"
+import { setRect } from "./data/transactions.ts"
 import { DiagramSVG, zoomTo } from "./draw/DiagramSVG.tsx"
 import { hotkeyTable, setupHotkeys } from "./hotkeys.ts"
 
@@ -118,15 +125,6 @@ export const DiagramPage: Component = () => {
 
     document.body.classList.add("overscroll-none")
     onCleanup(() => document.body.classList.remove("overscroll-none"))
-
-    const paste = (e: ClipboardEvent) => {
-      const str = e.clipboardData?.getData("text/plain")
-      if (!str) return
-
-      void fromMermaid(str).then(x => {})
-    }
-    document.addEventListener("paste", paste)
-    onCleanup(() => document.removeEventListener("paste", paste))
   })
 
   createEffect(() => {

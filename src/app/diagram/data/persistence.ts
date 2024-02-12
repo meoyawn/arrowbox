@@ -31,9 +31,12 @@ function addToList(id: GraphID): string {
   return title
 }
 
-export function createNewGraph(): { graph: Graph; id: GraphID; title: string } {
+export function createNewGraph(graph: Graph = emptyGraph()): {
+  graph: Graph
+  id: GraphID
+  title: string
+} {
   const id = genID("g")
-  const graph = emptyGraph()
   storeGraph(id, graph)
   const title = addToList(id)
   setLastGraph(id)

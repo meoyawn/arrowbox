@@ -2,7 +2,14 @@ import type { Diagram } from "mermaid/dist/Diagram"
 import type { DiagramDB } from "mermaid/dist/diagram-api/types"
 import { memoize } from "../../../lib/ts.ts"
 import { md2html } from "../../markdown.ts"
-import { emptyGraph, rootID, type Graph, type NodeID } from "./data.ts"
+import {
+  emptyGraph,
+  genID,
+  rootID,
+  type EdgeID,
+  type Graph,
+  type NodeID,
+} from "./data.ts"
 
 export function toMermaid({ nodes }: Graph, title: string): string {
   return `---
@@ -67,8 +74,10 @@ function calcHierarchy(
 
 function fromDiagram(diagram: Diagram): Graph {
   const db = diagram.getParser().parser.yy as FlowchartDB
+
   const vertices = db.getVertices()
   const subgraphs = db.getSubGraphs()
+  const edges = db.getEdges()
 
   const parents = calcHierarchy(subgraphs)
 
@@ -106,6 +115,19 @@ function fromDiagram(diagram: Diagram): Graph {
     }
   }
 
+  for (const edge of edges) {
+    const from: NodeID = `n${edge.start}`
+    const to: NodeID = `n${edge.end}`
+
+    const id: EdgeID = genID("e")
+    g.edges[id] = {
+      id,
+      from: { id: from, type: "node" },
+      to: { id: to, type: "node" },
+      text: { markdown: edge.text, html: md2html(edge.text) },
+    }
+  }
+
   return g
 }
 
@@ -115,7 +137,6 @@ export async function fromMermaid(str: string): Promise<Graph | undefined> {
     const diagram = await mermaid.mermaidAPI.getDiagramFromText(str)
     return fromDiagram(diagram)
   } catch (e) {
-    console.error(e)
     return undefined
   }
 }

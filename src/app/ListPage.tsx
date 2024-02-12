@@ -1,15 +1,34 @@
-import { For, type Component } from "solid-js"
+import { For, createEffect, onCleanup, type Component } from "solid-js"
 import logoLight from "../assets/logo_light.svg"
-import { type GraphID } from "./diagram/data/data.ts"
+import { type Graph, type GraphID } from "./diagram/data/data.ts"
+import { layoutGraph } from "./diagram/data/elk.ts"
+import { fromMermaid } from "./diagram/data/mermaid.ts"
 import {
   createNewGraph,
   getStoredGraphs,
   type StoredGraphs,
 } from "./diagram/data/persistence.ts"
+import { setRect } from "./diagram/data/transactions.ts"
 import { TypedA, useTypedNavigate } from "./routes.tsx"
 
 const NewGraph: Component = () => {
   const nav = useTypedNavigate()
+
+  createEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const str = e.clipboardData?.getData("text/plain")
+      if (!str) return
+
+      void laidOutMermaid(str).then(g => {
+        if (g) {
+          nav(`/graph/${createNewGraph(g).id}`)
+        }
+      })
+    }
+
+    document.addEventListener("paste", onPaste)
+    onCleanup(() => document.removeEventListener("paste", onPaste))
+  })
 
   return (
     <button
@@ -25,6 +44,16 @@ function sorted(g: StoredGraphs): readonly GraphID[] {
   const es = Object.entries(g)
   es.sort(([, a], [, b]) => b.lastModifiedMs - a.lastModifiedMs)
   return es.filter(([, x]) => !x.archived).map(([id]) => id as GraphID)
+}
+
+async function laidOutMermaid(str: string): Promise<Graph | undefined> {
+  const g = await fromMermaid(str)
+  if (!g) return
+
+  const elk = await layoutGraph(g)
+  setRect(g.nodes, elk)
+
+  return g
 }
 
 export const ListPage: Component = () => {

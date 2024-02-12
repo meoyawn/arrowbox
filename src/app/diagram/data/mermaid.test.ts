@@ -1,11 +1,15 @@
-import { expect, test } from "vitest"
+import { describe, expect, test } from "vitest"
 import { fromMermaid } from "./mermaid.ts"
 
-/**
- * @vitest-environment happy-dom
- */
-test("dynamic import", async () => {
-  const g = await fromMermaid(`
+/** @vitest-environment happy-dom */
+describe.concurrent("mermaid", () => {
+  test("bullshit", async () => {
+    const g = await fromMermaid("bullshit")
+    expect(g).toEqual(undefined)
+  })
+
+  test("nesting", async () => {
+    const g = await fromMermaid(`
 flowchart LR
 
 subgraph "One"
@@ -22,5 +26,6 @@ subgraph "\`**Two**\`"
   end
 end
 `)
-  expect(g!.nodes["n**Two**"].children.length).toEqual(3)
+    expect(g!.nodes["n**Two**"].children.length).toEqual(3)
+  })
 })
