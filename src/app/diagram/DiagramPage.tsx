@@ -123,7 +123,7 @@ export const DiagramPage: Component = () => {
       const str = e.clipboardData?.getData("text/plain")
       if (!str) return
 
-      fromMermaid(str)
+      void fromMermaid(str).then(x => {})
     }
     document.addEventListener("paste", paste)
     onCleanup(() => document.removeEventListener("paste", paste))
