@@ -5,7 +5,7 @@ import { Portal } from "solid-js/web"
 import logoLight from "../assets/logo_light.svg"
 import { type Graph, type GraphID } from "./diagram/data/data.ts"
 import { layoutGraph } from "./diagram/data/elk.ts"
-import { fromMermaid } from "./diagram/data/mermaid/mermaid.ts"
+import { fromMermaid } from "./diagram/data/mermaid/parse.ts"
 import {
   createNewGraph,
   getStoredGraphs,

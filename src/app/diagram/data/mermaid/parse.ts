@@ -91,6 +91,7 @@ function fromDiagram(diagram: Diagram): Graph {
   for (const k in vertices) {
     const v = vertices[k]
     const id: NodeID = `n${v.id}`
+    if (id in g.nodes) continue
     g.nodes[id] = {
       id,
       text: { markdown: v.text, html: md2html(v.text) },
@@ -121,8 +122,8 @@ function fromDiagram(diagram: Diagram): Graph {
 }
 
 export async function fromMermaid(str: string): Promise<Graph | undefined> {
+  const mermaid = await getMermaid()
   try {
-    const mermaid = await getMermaid()
     const diagram = await mermaid.mermaidAPI.getDiagramFromText(str)
     return fromDiagram(diagram)
   } catch (e) {

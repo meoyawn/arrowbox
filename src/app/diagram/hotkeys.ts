@@ -3,6 +3,7 @@ import { toKeysArray, toKeySet } from "../../lib/ts.ts"
 import { isNodeID, rootID } from "./data/data.ts"
 import { layoutGraph } from "./data/elk.ts"
 import { patching, redo, undo } from "./data/history.ts"
+import { toMermaid } from "./data/mermaid/stringify.ts"
 import { setStore, store } from "./data/state.ts"
 import { del, setRect, ungroup } from "./data/transactions.ts"
 
@@ -110,6 +111,10 @@ export const setupHotkeys = (): VoidFunction => {
         }),
       }))
     })
+  })
+
+  hotkeys(hotkeyTable.copyMermaid.hotkey, () => {
+    void navigator.clipboard.writeText(toMermaid(store.tree.data, store.title))
   })
 
   return () => hotkeys.unbind()

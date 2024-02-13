@@ -12,14 +12,7 @@ import {
 import icon from "../../assets/icon.svg"
 import { toKeysArray } from "../../lib/ts.ts"
 import { TypedA, useTypedNavigate } from "../routes.tsx"
-import {
-  emptyDataState,
-  rootID,
-  type DataState,
-  type Graph,
-} from "./data/data.ts"
-import { layoutGraph } from "./data/elk.ts"
-import { fromMermaid } from "./data/mermaid/mermaid.ts"
+import { emptyDataState, rootID, type DataState } from "./data/data.ts"
 import {
   archive,
   getLastGraph,
@@ -27,7 +20,6 @@ import {
   storeGraph,
 } from "./data/persistence.ts"
 import { setStore, store } from "./data/state.ts"
-import { setRect } from "./data/transactions.ts"
 import { DiagramSVG, zoomTo } from "./draw/DiagramSVG.tsx"
 import { hotkeyTable, setupHotkeys } from "./hotkeys.ts"
 
