@@ -19,7 +19,7 @@ import {
   type Graph,
 } from "./data/data.ts"
 import { layoutGraph } from "./data/elk.ts"
-import { fromMermaid } from "./data/mermaid.ts"
+import { fromMermaid } from "./data/mermaid/mermaid.ts"
 import {
   archive,
   getLastGraph,

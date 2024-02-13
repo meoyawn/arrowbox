@@ -1,8 +1,11 @@
+import { Toast, toaster } from "@kobalte/core"
+import type { ToastComponent } from "@kobalte/core/dist/types/toast/types"
 import { For, createEffect, onCleanup, type Component } from "solid-js"
+import { Portal } from "solid-js/web"
 import logoLight from "../assets/logo_light.svg"
 import { type Graph, type GraphID } from "./diagram/data/data.ts"
 import { layoutGraph } from "./diagram/data/elk.ts"
-import { fromMermaid } from "./diagram/data/mermaid.ts"
+import { fromMermaid } from "./diagram/data/mermaid/mermaid.ts"
 import {
   createNewGraph,
   getStoredGraphs,
@@ -10,6 +13,17 @@ import {
 } from "./diagram/data/persistence.ts"
 import { setRect } from "./diagram/data/transactions.ts"
 import { TypedA, useTypedNavigate } from "./routes.tsx"
+
+const CantParseMermaidToast: ToastComponent = props => (
+  <Toast.Root toastId={props.toastId}>
+    <Toast.CloseButton />
+    <Toast.Title />
+    <Toast.Description />
+    <Toast.ProgressTrack>
+      <Toast.ProgressFill />
+    </Toast.ProgressTrack>
+  </Toast.Root>
+)
 
 const NewGraph: Component = () => {
   const nav = useTypedNavigate()
@@ -22,6 +36,8 @@ const NewGraph: Component = () => {
       void laidOutMermaid(str).then(g => {
         if (g) {
           nav(`/graph/${createNewGraph(g).id}`)
+        } else {
+          toaster.show(CantParseMermaidToast)
         }
       })
     }
@@ -97,6 +113,12 @@ export const ListPage: Component = () => {
           </For>
         </ul>
       </div>
+
+      <Portal>
+        <Toast.Region>
+          <Toast.List class="toast__list" />
+        </Toast.Region>
+      </Portal>
     </div>
   )
 }

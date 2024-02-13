@@ -1,4 +1,4 @@
-import type { ElkLabel, ElkNode } from "elkjs/lib/elk-api"
+import type { ElkLabel, ElkNode, LayoutOptions } from "elkjs/lib/elk-api"
 import { memoize } from "../../../lib/ts.ts"
 import { measureHtml } from "../label.tsx"
 import {
@@ -36,6 +36,20 @@ function toELK(nodes: Record<NodeID, Node>, id: NodeID): ElkNode {
   }
 }
 
+const layoutOptions: LayoutOptions = {
+  "org.eclipse.elk.edge.type": "DIRECTED",
+  "org.eclipse.elk.edgeLabels.inline": "true",
+  "org.eclipse.elk.hierarchyHandling": "INCLUDE_CHILDREN",
+  "org.eclipse.elk.layered.unnecessaryBendpoints": "false",
+  "org.eclipse.elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP",
+  "org.eclipse.elk.nodeSize.constraints": "PORTS NODE_LABELS MINIMUM_SIZE",
+  // "org.eclipse.elk.layered.crossingMinimization.strategy": "INTERACTIVE",
+  // "org.eclipse.elk.layered.interactiveReferencePoint": "TOP_LEFT",
+  "org.eclipse.elk.nodeSize.options":
+    "ASYMMETRICAL OUTSIDE_NODE_LABELS_OVERHANG",
+  "org.eclipse.elk.spacing.labelLabel": "5",
+}
+
 export async function layoutGraph({ nodes, edges }: Graph): Promise<ElkNode> {
   const root = toELK(nodes, rootID)
 
@@ -53,19 +67,5 @@ export async function layoutGraph({ nodes, edges }: Graph): Promise<ElkNode> {
   }
 
   const elk = await getELK()
-  return elk.layout(root, {
-    layoutOptions: {
-      "org.eclipse.elk.edge.type": "DIRECTED",
-      "org.eclipse.elk.edgeLabels.inline": "true",
-      "org.eclipse.elk.hierarchyHandling": "INCLUDE_CHILDREN",
-      "org.eclipse.elk.layered.unnecessaryBendpoints": "false",
-      "org.eclipse.elk.nodeLabels.placement": "INSIDE H_CENTER V_TOP",
-      "org.eclipse.elk.nodeSize.constraints": "PORTS NODE_LABELS MINIMUM_SIZE",
-      // "org.eclipse.elk.layered.crossingMinimization.strategy": "INTERACTIVE",
-      // "org.eclipse.elk.layered.interactiveReferencePoint": "TOP_LEFT",
-      "org.eclipse.elk.nodeSize.options":
-        "ASYMMETRICAL OUTSIDE_NODE_LABELS_OVERHANG",
-      // "org.eclipse.elk.spacing.labelLabel": "18",
-    },
-  })
+  return await elk.layout(root, { layoutOptions })
 }

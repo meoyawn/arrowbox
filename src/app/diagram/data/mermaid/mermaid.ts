@@ -1,7 +1,7 @@
 import type { Diagram } from "mermaid/dist/Diagram"
 import type { DiagramDB } from "mermaid/dist/diagram-api/types"
-import { memoize } from "../../../lib/ts.ts"
-import { md2html } from "../../markdown.ts"
+import { memoize } from "../../../../lib/ts.ts"
+import { md2html } from "../../../markdown.ts"
 import {
   emptyGraph,
   genID,
@@ -9,18 +9,7 @@ import {
   type EdgeID,
   type Graph,
   type NodeID,
-} from "./data.ts"
-
-export function toMermaid({ nodes }: Graph, title: string): string {
-  return `---
-  title: ${title}
-  ---
-  flowchart LR
-   ${Object.values(nodes)
-     .map(({ id, text }) => `${id}("${text.markdown}")`)
-     .join("\n")}
-  `
-}
+} from "../data.ts"
 
 const getMermaid = memoize(() =>
   import("mermaid").then(m => {

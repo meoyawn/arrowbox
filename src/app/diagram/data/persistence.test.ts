@@ -2,7 +2,7 @@ import { expect, test } from "vitest"
 import { genID } from "./data.ts"
 import { newTitle } from "./persistence.ts"
 
-test("new title", () => {
+test.concurrent("new title", () => {
   expect(newTitle({})).toBe("Untitled 1")
 
   expect(
