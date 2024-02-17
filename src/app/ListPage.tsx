@@ -103,11 +103,16 @@ export const ListPage: Component = () => {
 
         <NewGraph />
 
-        <ul>
+        <ul class="flex w-full flex-col gap-2">
           <For each={sorted(list)}>
             {id => (
-              <li>
-                <TypedA href={`/graph/${id}`}>{list[id].title}</TypedA>
+              <li class="w-full">
+                <TypedA
+                  class="block w-full rounded-2xl border bg-amber-100 px-6 py-2 shadow-md hover:bg-amber-200"
+                  href={`/graph/${id}`}
+                >
+                  {list[id].title}
+                </TypedA>
               </li>
             )}
           </For>
