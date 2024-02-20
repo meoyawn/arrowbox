@@ -1,4 +1,4 @@
-import { sanitize } from "dompurify"
+import dompurify from "dompurify"
 import { marked, Renderer } from "marked"
 
 class ExternalLinkRenderer extends Renderer {
@@ -14,7 +14,10 @@ class ExternalLinkRenderer extends Renderer {
 const renderer = new ExternalLinkRenderer()
 
 export const md2html = (md: string): string =>
-  sanitize(marked(md, { gfm: true, async: false, renderer }) as string, {
-    /** prevent external links from stripping */
-    ADD_ATTR: ["target"],
-  })
+  dompurify.sanitize(
+    marked(md, { gfm: true, async: false, renderer }) as string,
+    {
+      /** prevent external links from stripping */
+      ADD_ATTR: ["target"],
+    },
+  )
