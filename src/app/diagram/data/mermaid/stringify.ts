@@ -66,7 +66,7 @@ title: ${title}
 
 export const toMermaid = ({ nodes, edges }: Graph, title: string): string =>
   `${frontMatter(title)}
-flowchart LR
+flowchart
 ${body(nodes, rootID, 0)}
 ${Object.values(edges).map(printE).join("\n")}
 `

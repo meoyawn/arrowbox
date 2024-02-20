@@ -26,6 +26,8 @@ export const ForeignText: Component<{
 }> = props => {
   const isEditing = () => props.id === store.editing
 
+  const isDraggingMe = () => store.dragging && props.id in store.dragging
+
   const rect = () => props.rect
   const { x, y, width, height } = destructure(rect, { memo: true })
 
@@ -53,7 +55,8 @@ export const ForeignText: Component<{
         <div
           classList={{
             "max-h-none max-w-none": true,
-            "pointer-events-auto bg-white": isEdgeID(props.id),
+            "pointer-events-auto": !isDraggingMe(),
+            "bg-white": isEdgeID(props.id),
           }}
           // eslint-disable-next-line solid/no-innerhtml
           innerHTML={props.text.html}

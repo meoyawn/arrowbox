@@ -93,45 +93,47 @@ export const OneNode: Component<{ id: NodeID }> = props => {
   const { x, y, width, height } = destructure(rect, { memo: true })
 
   return (
-    <g data-nodeID={props.id} transform={`translate(${x()} ${y()})`}>
+    <g transform={`translate(${x()} ${y()})`}>
       <g
+        data-nodeID={props.id}
         classList={{
           "group hover:cursor-grab": true,
           "pointer-events-none cursor-grabbing": draggingMe(),
         }}
       >
-        <rect
-          x={0}
-          y={0}
-          rx={3}
-          ry={3}
-          data-dragID={dragIDs.node}
-          classList={{
-            "stroke-black stroke-1 group-hover:stroke-blue-600": true,
-            "group-hover:stroke-2": draggingAny(),
-          }}
-          fill="transparent"
-          width={width()}
-          height={height()}
-        />
-
-        <Show when={isSelected() && !isEditing()}>
+        <g data-dragID={dragIDs.node}>
           <rect
-            x={-5}
-            y={-5}
-            width={width() + 10}
-            height={height() + 10}
-            fill="none"
-            stroke="dodgerblue"
+            x={0}
+            y={0}
+            rx={3}
+            ry={3}
+            classList={{
+              "stroke-black stroke-1 group-hover:stroke-blue-600": true,
+              "group-hover:stroke-2": draggingAny(),
+            }}
+            fill="transparent"
+            width={width()}
+            height={height()}
           />
-        </Show>
 
-        <ForeignText
-          id={props.id}
-          text={node().text}
-          rect={{ x: 0, y: 0, width: width(), height: height() }}
-          isCenter={node().children.length === 0}
-        />
+          <Show when={isSelected() && !isEditing()}>
+            <rect
+              x={-5}
+              y={-5}
+              width={width() + 10}
+              height={height() + 10}
+              fill="none"
+              stroke="dodgerblue"
+            />
+          </Show>
+
+          <ForeignText
+            id={props.id}
+            text={node().text}
+            rect={{ x: 0, y: 0, width: width(), height: height() }}
+            isCenter={node().children.length === 0}
+          />
+        </g>
 
         <circle
           data-dragID={dragIDs.newArrow}
@@ -147,33 +149,35 @@ export const OneNode: Component<{ id: NodeID }> = props => {
           r={5}
         />
 
-        <Side rect={rect()} side={ResizeSides.NORTH} />
-        <Side rect={rect()} side={ResizeSides.SOUTH} />
-        <Side rect={rect()} side={ResizeSides.WEST} />
-        <Side rect={rect()} side={ResizeSides.EAST} />
+        <g data-dragID={dragIDs.side}>
+          <Side rect={rect()} side={ResizeSides.NORTH} />
+          <Side rect={rect()} side={ResizeSides.SOUTH} />
+          <Side rect={rect()} side={ResizeSides.WEST} />
+          <Side rect={rect()} side={ResizeSides.EAST} />
 
-        <Show when={!isEditing()}>
-          <Corner
-            rect={rect()}
-            side={ResizeSides.NORTHWEST}
-            selected={isSelected()}
-          />
-          <Corner
-            rect={rect()}
-            side={ResizeSides.NORTHEAST}
-            selected={isSelected()}
-          />
-          <Corner
-            rect={rect()}
-            side={ResizeSides.SOUTHEAST}
-            selected={isSelected()}
-          />
-          <Corner
-            rect={rect()}
-            side={ResizeSides.SOUTHWEST}
-            selected={isSelected()}
-          />
-        </Show>
+          <Show when={!isEditing()}>
+            <Corner
+              rect={rect()}
+              side={ResizeSides.NORTHWEST}
+              selected={isSelected()}
+            />
+            <Corner
+              rect={rect()}
+              side={ResizeSides.NORTHEAST}
+              selected={isSelected()}
+            />
+            <Corner
+              rect={rect()}
+              side={ResizeSides.SOUTHEAST}
+              selected={isSelected()}
+            />
+            <Corner
+              rect={rect()}
+              side={ResizeSides.SOUTHWEST}
+              selected={isSelected()}
+            />
+          </Show>
+        </g>
       </g>
 
       <For each={children()}>{nid => <OneNode id={nid} />}</For>

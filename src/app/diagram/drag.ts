@@ -73,6 +73,7 @@ export const dragIDs = {
   newArrow: "new-arrow",
   edgeFrom: "edge-from",
   edgeTo: "edge-to",
+  side: "side",
 } as const
 
 type DragID = (typeof dragIDs)[keyof typeof dragIDs]
@@ -91,16 +92,9 @@ export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
   const { target, shiftKey } = ev.sourceEvent
   if (!isEl(target)) return null
 
-  const dragID = target.getAttribute("data-dragID") as DragID | null
-  const side = target.getAttribute("data-side") as ResizeSide | null
-  const data = store.tree.data
-
-  if (side) {
-    const nid = getNodeID(ev.sourceEvent)
-    if (!nid) throw new Error(`no nid on ${String(ev.sourceEvent.target)}`)
-
-    return dragSide(data, nid, side as ResizeSide, ev.x, ev.y)
-  }
+  const dragID = target
+    .closest("[data-dragID]")
+    ?.getAttribute("data-dragID") as DragID | null
 
   if (!isDragID(dragID)) {
     return !shiftKey
@@ -117,7 +111,22 @@ export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
         )
   }
 
+  const data = store.tree.data
+
   switch (dragID) {
+    case dragIDs.side: {
+      const nid = getNodeID(ev.sourceEvent)
+      if (!nid) throw new Error(`no nid on ${String(ev.sourceEvent.target)}`)
+
+      return dragSide(
+        data,
+        nid,
+        target.getAttribute("data-side") as ResizeSide,
+        ev.x,
+        ev.y,
+      )
+    }
+
     case dragIDs.node: {
       const nid = getNodeID(ev.sourceEvent)
       if (!nid) throw new Error("no nid")
