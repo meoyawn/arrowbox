@@ -8,4 +8,13 @@ describe.concurrent("markdown", () => {
       `<p><a href="https://example.com" rel="nofollow" target="_blank">example</a></p>\n`,
     )
   })
+
+  test("internal", () => {
+    expect(md2html(`[example](#example)`)).toEqual(
+      `<p><a href="#example">example</a></p>\n`,
+    )
+    expect(md2html(`[example](/example)`)).toEqual(
+      `<p><a href="/example">example</a></p>\n`,
+    )
+  })
 })
