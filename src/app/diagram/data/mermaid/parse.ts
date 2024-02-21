@@ -1,7 +1,7 @@
 import type { Diagram } from "mermaid/dist/Diagram"
 import type { DiagramDB } from "mermaid/dist/diagram-api/types"
-import { memoize } from "../../../../lib/ts.ts"
 import { md2html } from "../../../markdown.ts"
+import { ROOT_ID } from "../ROOT_ID.ts"
 import {
   emptyGraph,
   genID,
@@ -9,14 +9,11 @@ import {
   type Graph,
   type NodeID,
 } from "../data.ts"
-import { ROOT_ID } from "../ROOT_ID.ts"
 
-const getMermaid = memoize(() =>
-  import("mermaid").then(m => {
-    m.default.initialize({ flowchart: {}, startOnLoad: false })
-    return m.default
-  }),
-)
+const mermaidPromise = import("mermaid").then(m => {
+  m.default.initialize({ flowchart: {}, startOnLoad: false })
+  return m.default.mermaidAPI
+})
 
 interface MermaidNode {
   id: string
@@ -122,9 +119,9 @@ function fromDiagram(diagram: Diagram): Graph {
 }
 
 export async function fromMermaid(str: string): Promise<Graph | undefined> {
-  const mermaid = await getMermaid()
+  const mermaid = await mermaidPromise
   try {
-    const diagram = await mermaid.mermaidAPI.getDiagramFromText(str)
+    const diagram = await mermaid.getDiagramFromText(str)
     return fromDiagram(diagram)
   } catch (e) {
     return undefined

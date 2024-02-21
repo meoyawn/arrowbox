@@ -1,6 +1,6 @@
 import type { ElkLabel, ElkNode, LayoutOptions } from "elkjs/lib/elk-api"
-import { memoize } from "../../../lib/ts.ts"
 import { measureHtml } from "../label.tsx"
+import { ROOT_ID } from "./ROOT_ID.ts"
 import {
   type EdgeID,
   type Graph,
@@ -8,11 +8,8 @@ import {
   type Node,
   type NodeID,
 } from "./data.ts"
-import { ROOT_ID } from "./ROOT_ID.ts"
 
-const getELK = memoize(() =>
-  import("elkjs/lib/elk.bundled").then(x => new x.default({})),
-)
+const elkPromise = import("elkjs/lib/elk.bundled").then(x => new x.default({}))
 
 function toLabels({ html, markdown }: GraphText): ElkLabel[] {
   if (!markdown) return []
@@ -66,6 +63,6 @@ export async function layoutGraph({ nodes, edges }: Graph): Promise<ElkNode> {
     })
   }
 
-  const elk = await getELK()
+  const elk = await elkPromise
   return await elk.layout(root, { layoutOptions })
 }

@@ -1,4 +1,4 @@
-export const memoize = <T>(fn: () => T): (() => T) => {
+export function memoize<T>(fn: () => T): () => T {
   let val: T | undefined
 
   return () => {
