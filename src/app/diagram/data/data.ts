@@ -1,6 +1,6 @@
 import { type ZoomTransform } from "d3-zoom"
 import { type Rect, type Vec2 } from "../../../lib/geometry"
-import type { EdgeAnchor } from "./edge-anchor.ts"
+import { type EdgeAnchor } from "./edge-anchor.ts"
 import { emptyHistory, type ImmerHistory } from "./history.ts"
 import { buildIndex, type GraphIndex } from "./indexing"
 

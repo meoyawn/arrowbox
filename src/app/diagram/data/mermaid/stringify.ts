@@ -7,9 +7,9 @@ import {
   type NodeID,
 } from "../data.ts"
 
-const mdLabel = (text: GraphText): string => `"\`${text.markdown}\`"`
+const mdLabel = (text: GraphText): `"\`${string}\`"` => `"\`${text.markdown}\`"`
 
-const mermaidID = (id: `n${string}`): string => id.substring(1)
+const mermaidID = (id: NodeID): string => id.substring(1)
 
 function idLabel({ shape, text, id, children }: Node): string {
   const mID = mermaidID(id)
@@ -56,7 +56,7 @@ function printE({ from, to, text }: Edge): string {
   return text.markdown ? `${f} -- ${mdLabel(text)} --> ${t}` : `${f} --> ${t}`
 }
 
-function frontMatter(title: string): string {
+function frontMatter(title: string): `---\ntitle: ${string}\n---` | "" {
   if (!title || title.toLowerCase().includes("untitled")) return ""
 
   return `---

@@ -6,9 +6,7 @@ import { rootID, type IdRect, type Node, type NodeID } from "./data/data.ts"
 
 export type NestPath = ReadonlyArray<number>
 
-/**
- * O(log(N)) QUICK MATHS
- */
+/** O(log(N)) QUICK MATHS */
 export const absRect = (
   nodes: Record<NodeID, Node>,
   path: NestPath,
