@@ -12,20 +12,22 @@ import {
 import icon from "../../assets/icon.svg"
 import { toKeysArray } from "../../lib/ts.ts"
 import { TypedA, useTypedNavigate } from "../routes.tsx"
-import { emptyDataState, rootID, type DataState } from "./data/data.ts"
+import { ToastPortal } from "./Toasts.tsx"
+import { ROOT_ID } from "./data/ROOT_ID.ts"
+import type { DataState } from "./data/data.ts"
 import {
   archive,
   getLastGraph,
   saveTitle,
   storeGraph,
 } from "./data/persistence.ts"
-import { setStore, store } from "./data/state.ts"
+import { emptyDataState, setStore, store } from "./data/state.ts"
 import { DiagramSVG, zoomTo } from "./draw/DiagramSVG.tsx"
-import { hotkeyTable, setupHotkeys } from "./hotkeys.ts"
+import { hotkeyTable, setupHotkeys } from "./hotkeys.tsx"
 
-function hundredPercent({ data, index }: DataState): ZoomTransform {
+function hundredPctZoom({ data, index }: DataState): ZoomTransform {
   const nodes = Object.values(data.nodes).filter(
-    ({ id }) => index.parents[id] === rootID,
+    ({ id }) => index.parents[id] === ROOT_ID,
   )
   return new ZoomTransform(
     1,
@@ -108,15 +110,24 @@ const Title: Component = () => {
   )
 }
 
+function addClass(el: HTMLElement, cls: string): VoidFunction {
+  el.classList.add(cls)
+
+  return () => el.classList.remove(cls)
+}
+
 export const DiagramPage: Component = () => {
   createEffect(() => {
     const { graph, title, id } = getLastGraph()
-    setStore({ tree: emptyDataState(graph), title, id, camera: zoomIdentity })
+    setStore({
+      tree: emptyDataState(graph),
+      title,
+      id,
+      camera: zoomIdentity,
+    })
 
     onCleanup(setupHotkeys())
-
-    document.body.classList.add("overscroll-none")
-    onCleanup(() => document.body.classList.remove("overscroll-none"))
+    onCleanup(addClass(document.body, "overscroll-none"))
   })
 
   createEffect(() => {
@@ -144,7 +155,7 @@ export const DiagramPage: Component = () => {
       <div class="absolute bottom-2 left-2 flex flex-row divide-x rounded-md border">
         <button
           class="bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-300"
-          onClick={() => zoomTo(hundredPercent(store.tree))}
+          onClick={() => zoomTo(hundredPctZoom(store.tree))}
         >
           {Math.round(store.camera.k * 100)}%
         </button>
@@ -170,6 +181,8 @@ export const DiagramPage: Component = () => {
           </Dialog.Portal>
         </Dialog.Root>
       </div>
+
+      <ToastPortal />
     </div>
   )
 }

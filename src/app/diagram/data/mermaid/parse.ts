@@ -5,11 +5,11 @@ import { md2html } from "../../../markdown.ts"
 import {
   emptyGraph,
   genID,
-  rootID,
   type EdgeID,
   type Graph,
   type NodeID,
 } from "../data.ts"
+import { ROOT_ID } from "../ROOT_ID.ts"
 
 const getMermaid = memoize(() =>
   import("mermaid").then(m => {
@@ -71,7 +71,7 @@ function fromDiagram(diagram: Diagram): Graph {
   const parents = calcHierarchy(subgraphs)
 
   const g = emptyGraph()
-  const root = g.nodes[rootID]
+  const root = g.nodes[ROOT_ID]
 
   for (const sub of subgraphs) {
     const id: NodeID = `n${sub.id}`

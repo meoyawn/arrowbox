@@ -1,11 +1,14 @@
+import { toaster } from "@kobalte/core"
 import hotkeys from "hotkeys-js"
 import { toKeysArray, toKeySet } from "../../lib/ts.ts"
-import { isNodeID, rootID } from "./data/data.ts"
+import { isNodeID } from "./data/data.ts"
 import { layoutGraph } from "./data/elk.ts"
 import { patching, redo, undo } from "./data/history.ts"
 import { toMermaid } from "./data/mermaid/stringify.ts"
+import { ROOT_ID } from "./data/ROOT_ID.ts"
 import { setStore, store } from "./data/state.ts"
 import { del, setRect, ungroup } from "./data/transactions.ts"
+import { AbToast } from "./Toasts.tsx"
 
 interface Hotkey {
   label: string
@@ -18,6 +21,7 @@ export const hotkeyTable = {
   redo: { label: "Redo", hotkey: "ctrl+shift+z, command+shift+z" },
   selectAll: { label: "Select All", hotkey: "ctrl+a, command+a" },
   layout: { label: "Layout", hotkey: "L" },
+  group: { label: "Group", hotkey: "ctrl+g, command+g" },
   ungroup: { label: "Ungroup", hotkey: "ctrl+shift+g, command+shift+g" },
   copyMermaid: { label: "Copy Mermaid", hotkey: "M" },
 } as const satisfies Record<string, Hotkey>
@@ -55,18 +59,20 @@ export const setupHotkeys = (): VoidFunction => {
     setStore(({ tree }) => ({ tree: redo(tree) }))
   })
 
-  // group
-  hotkeys("ctrl+g, command+g", e => {
+  hotkeys(hotkeyTable.group.hotkey, e => {
     e.preventDefault()
 
-    const selected = toKeysArray(store.selected)
-    if (selected.length === 0) return
-
-    setStore(s => ({
-      tree: patching(s.tree, g => {
-        throw new Error(`TODO group selected ${JSON.stringify(g)}`)
-      }),
-    }))
+    toaster.show(props => (
+      <AbToast toastId={props.toastId} msg="Grouping isn't implemented yet" />
+    ))
+    // const selected = toKeysArray(store.selected)
+    // if (selected.length === 0) return
+    //
+    // setStore(s => ({
+    //   tree: patching(s.tree, g => {
+    //     throw new Error(`TODO group selected ${JSON.stringify(g)}`)
+    //   }),
+    // }))
   })
 
   hotkeys(hotkeyTable.ungroup.hotkey, e => {
@@ -91,7 +97,7 @@ export const setupHotkeys = (): VoidFunction => {
 
     setStore(({ tree }) => ({
       selected: toKeySet([
-        ...toKeysArray(tree.data.nodes).filter(x => x !== rootID),
+        ...toKeysArray(tree.data.nodes).filter(x => x !== ROOT_ID),
         ...toKeysArray(tree.data.edges),
       ]),
     }))
@@ -114,7 +120,13 @@ export const setupHotkeys = (): VoidFunction => {
   })
 
   hotkeys(hotkeyTable.copyMermaid.hotkey, () => {
-    void navigator.clipboard.writeText(toMermaid(store.tree.data, store.title))
+    void navigator.clipboard
+      .writeText(toMermaid(store.tree.data, store.title))
+      .then(() => {
+        toaster.show(props => (
+          <AbToast toastId={props.toastId} msg="Copied Mermaid diagram" />
+        ))
+      })
   })
 
   return () => hotkeys.unbind()

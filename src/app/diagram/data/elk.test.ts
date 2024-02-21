@@ -1,8 +1,9 @@
 import { expect, test } from "vitest"
-import { emptyGraph, rootID } from "./data.ts"
+import { emptyGraph } from "./data.ts"
 import { layoutGraph } from "./elk.ts"
+import { ROOT_ID } from "./ROOT_ID.ts"
 
 test("dynamic import", async () => {
   const x = await layoutGraph(emptyGraph())
-  expect(x.id).toEqual(rootID)
+  expect(x.id).toEqual(ROOT_ID)
 })

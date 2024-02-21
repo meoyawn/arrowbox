@@ -1,8 +1,8 @@
-import { Toast, toaster } from "@kobalte/core"
+import { toaster } from "@kobalte/core"
 import type { ToastComponent } from "@kobalte/core/dist/types/toast/types"
 import { For, createEffect, onCleanup, type Component } from "solid-js"
-import { Portal } from "solid-js/web"
 import logoLight from "../assets/logo_light.svg"
+import { AbToast, ToastPortal } from "./diagram/Toasts.tsx"
 import { type Graph, type GraphID } from "./diagram/data/data.ts"
 import { layoutGraph } from "./diagram/data/elk.ts"
 import { fromMermaid } from "./diagram/data/mermaid/parse.ts"
@@ -15,14 +15,7 @@ import { setRect } from "./diagram/data/transactions.ts"
 import { TypedA, useTypedNavigate } from "./routes.tsx"
 
 const CantParseMermaidToast: ToastComponent = props => (
-  <Toast.Root toastId={props.toastId}>
-    <Toast.CloseButton />
-    <Toast.Title />
-    <Toast.Description />
-    <Toast.ProgressTrack>
-      <Toast.ProgressFill />
-    </Toast.ProgressTrack>
-  </Toast.Root>
+  <AbToast toastId={props.toastId} msg={"Couldn't parse Mermaid diagram"} />
 )
 
 const NewGraph: Component = () => {
@@ -119,11 +112,7 @@ export const ListPage: Component = () => {
         </ul>
       </div>
 
-      <Portal>
-        <Toast.Region>
-          <Toast.List class="toast__list" />
-        </Toast.Region>
-      </Portal>
+      <ToastPortal />
     </div>
   )
 }

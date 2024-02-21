@@ -1,5 +1,5 @@
 import { destructure } from "@solid-primitives/destructure"
-import { type Accessor } from "solid-js"
+import type { Accessor } from "solid-js"
 import {
   midPoint,
   pointOnRect,
@@ -8,7 +8,7 @@ import {
 } from "../../../lib/geometry.ts"
 import { absRect } from "../brushing.ts"
 import type { DataState, NodeID, NodeShape } from "./data.ts"
-import { type State } from "./state.ts"
+import type { State } from "./state.ts"
 
 export type EdgeAnchor =
   | { type: "node"; id: NodeID }

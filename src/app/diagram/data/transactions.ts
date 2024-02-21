@@ -6,7 +6,6 @@ import {
   genID,
   isEdgeID,
   isNodeID,
-  rootID,
   type EdgeID,
   type Graph,
   type GraphText,
@@ -16,6 +15,7 @@ import {
 } from "./data.ts"
 import { type GraphIndex } from "./indexing.ts"
 import { type DraggingArrow } from "./state.ts"
+import { ROOT_ID } from "./ROOT_ID.ts"
 
 export function addNode(
   data: Graph,
@@ -32,7 +32,7 @@ export function addNode(
     shape,
   }
 
-  data.nodes[rootID].children.push(id)
+  data.nodes[ROOT_ID].children.push(id)
 
   return id
 }

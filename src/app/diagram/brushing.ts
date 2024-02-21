@@ -2,7 +2,8 @@ import type RBush from "rbush"
 import { type BBox } from "rbush"
 import { type Rect } from "../../lib/geometry.ts"
 import { type KeySet } from "../../lib/ts.ts"
-import { rootID, type IdRect, type Node, type NodeID } from "./data/data.ts"
+import { type IdRect, type Node, type NodeID } from "./data/data.ts"
+import { ROOT_ID } from "./data/ROOT_ID.ts"
 
 export type NestPath = ReadonlyArray<number>
 
@@ -16,7 +17,7 @@ export const absRect = (
     throw new Error(JSON.stringify({ path, offset }))
   }
 
-  let node = nodes[rootID]
+  let node = nodes[ROOT_ID]
   let x = 0
   let y = 0
 
@@ -49,7 +50,7 @@ export const brushSelect = (
 
   return Object.fromEntries(
     reslt
-      .filter(r => r.id !== rootID && !rectExceedsBBox(r, bbox))
+      .filter(r => r.id !== ROOT_ID && !rectExceedsBBox(r, bbox))
       .map(({ id }) => [id, 1]),
   )
 }

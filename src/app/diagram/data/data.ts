@@ -1,8 +1,9 @@
-import { type ZoomTransform } from "d3-zoom"
-import { type Rect, type Vec2 } from "../../../lib/geometry"
-import { type EdgeAnchor } from "./edge-anchor.ts"
-import { emptyHistory, type ImmerHistory } from "./history.ts"
-import { buildIndex, type GraphIndex } from "./indexing"
+import type { ZoomTransform } from "d3-zoom"
+import type { Rect, Vec2 } from "../../../lib/geometry"
+import { ROOT_ID } from "./ROOT_ID"
+import type { EdgeAnchor } from "./edge-anchor"
+import type { ImmerHistory } from "./history"
+import type { GraphIndex } from "./indexing"
 
 export type GraphID = `g${string}`
 export type NodeID = `n${string}`
@@ -75,12 +76,10 @@ export const genStr = (): string => {
 export const genID = <P extends string>(prefix: P): `${P}${string}` =>
   `${prefix}${genStr()}`
 
-export const rootID = "nRoot" satisfies NodeID
-
 export const emptyGraph = (): Graph => ({
   nodes: {
-    [rootID]: {
-      id: rootID,
+    [ROOT_ID]: {
+      id: ROOT_ID,
       children: [],
       rect: { x: 0, y: 0, width: 0, height: 0 },
       text: { html: "", markdown: "" },
@@ -88,10 +87,4 @@ export const emptyGraph = (): Graph => ({
     },
   },
   edges: {},
-})
-
-export const emptyDataState = (data: Graph): DataState => ({
-  data,
-  index: buildIndex(data),
-  history: emptyHistory(),
 })

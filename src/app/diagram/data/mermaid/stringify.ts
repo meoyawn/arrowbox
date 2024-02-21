@@ -1,11 +1,11 @@
 import {
-  rootID,
   type Edge,
   type Graph,
   type GraphText,
   type Node,
   type NodeID,
 } from "../data.ts"
+import { ROOT_ID } from "../ROOT_ID.ts"
 
 const mdLabel = (text: GraphText): `"\`${string}\`"` => `"\`${text.markdown}\`"`
 
@@ -67,6 +67,6 @@ title: ${title}
 export const toMermaid = ({ nodes, edges }: Graph, title: string): string =>
   `${frontMatter(title)}
 flowchart
-${body(nodes, rootID, 0)}
+${body(nodes, ROOT_ID, 0)}
 ${Object.values(edges).map(printE).join("\n")}
 `

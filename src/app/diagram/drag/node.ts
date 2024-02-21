@@ -3,7 +3,6 @@ import { toKeySet } from "../../../lib/ts.ts"
 import { absRect } from "../brushing.ts"
 import {
   isNodeID,
-  rootID,
   type EdgeID,
   type Graph,
   type NodeID,
@@ -11,6 +10,7 @@ import {
 import { nonPatching, patching } from "../data/history.ts"
 import { type State } from "../data/state.ts"
 import { type DragBehavior2 } from "../drag.ts"
+import { ROOT_ID } from "../data/ROOT_ID.ts"
 
 /** world coordinates */
 export const dragNode = (
@@ -58,7 +58,7 @@ export const dragNode = (
       const dx = x - sx
       const dy = y - sy
 
-      const newParentID = isNodeID(hovering) ? hovering : rootID
+      const newParentID = isNodeID(hovering) ? hovering : ROOT_ID
 
       return {
         tree: patching({ ...tree, data: beforeDrag }, ({ nodes }) => {

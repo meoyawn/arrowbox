@@ -1,9 +1,10 @@
-import { isNodeID, rootID, type EdgeID, type NodeID } from "../data/data.ts"
+import { isNodeID, type EdgeID, type NodeID } from "../data/data.ts"
 import { type EdgeAnchor } from "../data/edge-anchor.ts"
 import { patching } from "../data/history.ts"
 import { type State } from "../data/state.ts"
 import { addEdge } from "../data/transactions.ts"
 import { type DragBehavior2 } from "../drag.ts"
+import { ROOT_ID } from "../data/ROOT_ID.ts"
 
 export const dragNewArrow = (
   from: EdgeAnchor,
@@ -17,7 +18,7 @@ export const dragNewArrow = (
       from,
       to: isNodeID(s.hovering)
         ? { type: "node", id: s.hovering }
-        : { type: "relative", id: rootID, x, y },
+        : { type: "relative", id: ROOT_ID, x, y },
     },
     dragging: {},
   }),

@@ -2,7 +2,6 @@ import RBush, { type BBox } from "rbush"
 import { type KeySet } from "../../../lib/ts.ts"
 import { absRect, type NestPath } from "../brushing.ts"
 import {
-  rootID,
   type Edge,
   type EdgeID,
   type Graph,
@@ -10,6 +9,7 @@ import {
   type Node,
   type NodeID,
 } from "./data"
+import { ROOT_ID } from "./ROOT_ID.ts"
 
 export type ParentIndex = Record<NodeID, NodeID>
 export type DeepChildrenIndex = Record<NodeID, KeySet<NodeID>>
@@ -95,7 +95,7 @@ type NodePath = readonly [id: NodeID, path: NestPath]
 
 /** O(N) BFS */
 export function traverse(nodes: Record<NodeID, Node>): ReadonlyArray<NodePath> {
-  const queue: Queue<NodePath> = Array([rootID, []])
+  const queue: Queue<NodePath> = Array([ROOT_ID, []])
   const ret: Array<NodePath> = []
 
   for (;;) {
@@ -162,7 +162,7 @@ export function buildIndex({ edges, nodes }: Graph): GraphIndex {
 
   return {
     parents: indexParents(nodes),
-    deepChildren: indexChildren(nodes, rootID),
+    deepChildren: indexChildren(nodes, ROOT_ID),
     edges: deriveEdges(edges),
     bush: buildBush(absRects),
     paths,

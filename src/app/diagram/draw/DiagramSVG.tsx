@@ -3,7 +3,7 @@ import { zoom, type D3ZoomEvent, type ZoomTransform } from "d3-zoom"
 import { type BBox } from "rbush"
 import { For, Show, createEffect, type Component } from "solid-js"
 import { toKeysArray } from "../../../lib/ts.ts"
-import { rootID, type EdgeID, type NodeID } from "../data/data.ts"
+import { type EdgeID, type NodeID } from "../data/data.ts"
 import { createAnchors } from "../data/edge-anchor.ts"
 import { patching } from "../data/history.ts"
 import { setStore, store, type DraggingArrow } from "../data/state.ts"
@@ -12,6 +12,7 @@ import { behaviorDrag, worldDragSubj } from "../drag.ts"
 import { OneEdge } from "./OneEdge.tsx"
 import { OneNode } from "./OneNode.tsx"
 import { SvgDefs } from "./SvgDefs.tsx"
+import { ROOT_ID } from "../data/ROOT_ID.ts"
 
 const d3Zoom = zoom<Element, unknown>()
   .scaleExtent([0.05, 8])
@@ -100,7 +101,7 @@ export const DiagramSVG: Component = () => {
       <SvgDefs />
 
       <g ref={zoomedEl!} transform={zoomTransform(store.camera)}>
-        <For each={store.tree.data.nodes[rootID].children}>
+        <For each={store.tree.data.nodes[ROOT_ID].children}>
           {id => <OneNode id={id} />}
         </For>
         <For

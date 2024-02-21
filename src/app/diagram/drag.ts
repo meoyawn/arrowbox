@@ -6,7 +6,7 @@ import {
 } from "d3-drag"
 import { isEl } from "../../lib/dom.ts"
 import { toKeysArray } from "../../lib/ts.ts"
-import { isNodeID, rootID, type EdgeID, type NodeID } from "./data/data.ts"
+import { isNodeID, type EdgeID, type NodeID } from "./data/data.ts"
 import { setStore, store, type State } from "./data/state.ts"
 import { dragBrush } from "./drag/brush.ts"
 import { dragEdge } from "./drag/edge.ts"
@@ -14,6 +14,7 @@ import { dragNewArrow } from "./drag/new-arrow.ts"
 import { dragNode } from "./drag/node.ts"
 import { dragSide, type ResizeSide } from "./drag/resize.ts"
 import { closestEdgeID, closestNodeID } from "./draw/DiagramSVG.tsx"
+import { ROOT_ID } from "./data/ROOT_ID.ts"
 
 export const getNodeID = ({ target }: Event): NodeID | null =>
   isEl(target) ? closestNodeID(target) : null
@@ -102,7 +103,7 @@ export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
       : dragNewArrow(
           {
             type: "relative",
-            id: rootID,
+            id: ROOT_ID,
             x: ev.x,
             y: ev.y,
           },

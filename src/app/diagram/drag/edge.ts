@@ -1,8 +1,9 @@
-import { isNodeID, rootID, type Edge, type EdgeID } from "../data/data.ts"
+import { isNodeID, type Edge, type EdgeID } from "../data/data.ts"
 import { type EdgeAnchor } from "../data/edge-anchor.ts"
 import { patching } from "../data/history.ts"
 import { type DraggingArrow, type State } from "../data/state.ts"
 import { type DragBehavior2 } from "../drag.ts"
+import { ROOT_ID } from "../data/ROOT_ID.ts"
 
 type EdgeSide = "start" | "end"
 
@@ -37,7 +38,7 @@ export function dragEdge(
         side,
         isNodeID(hovering)
           ? { type: "node", id: hovering }
-          : { type: "relative", id: rootID, x, y },
+          : { type: "relative", id: ROOT_ID, x, y },
       ),
       dragging,
     }),
