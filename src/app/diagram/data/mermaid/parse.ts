@@ -10,7 +10,7 @@ import {
   type NodeID,
 } from "../data.ts"
 
-const mermaidPromise = import("mermaid").then(m => {
+const mermaidModule = import("mermaid").then(m => {
   m.default.initialize({ flowchart: {}, startOnLoad: false })
   return m.default.mermaidAPI
 })
@@ -119,7 +119,7 @@ function fromDiagram(diagram: Diagram): Graph {
 }
 
 export async function fromMermaid(str: string): Promise<Graph | undefined> {
-  const mermaid = await mermaidPromise
+  const mermaid = await mermaidModule
   try {
     const diagram = await mermaid.getDiagramFromText(str)
     return fromDiagram(diagram)

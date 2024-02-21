@@ -2,7 +2,7 @@ import { toaster } from "@kobalte/core"
 import type { ToastComponent } from "@kobalte/core/dist/types/toast/types"
 import { For, createEffect, onCleanup, type Component } from "solid-js"
 import logoLight from "../assets/logo_light.svg"
-import { AbToast, ToastPortal } from "./diagram/Toasts.tsx"
+import { AbToast, ToastPortal } from "./Toasts.tsx"
 import { type Graph, type GraphID } from "./diagram/data/data.ts"
 import { layoutGraph } from "./diagram/data/elk.ts"
 import { fromMermaid } from "./diagram/data/mermaid/parse.ts"
@@ -15,7 +15,7 @@ import { setRect } from "./diagram/data/transactions.ts"
 import { TypedA, useTypedNavigate } from "./routes.tsx"
 
 const CantParseMermaidToast: ToastComponent = props => (
-  <AbToast toastId={props.toastId} msg={"Couldn't parse Mermaid diagram"} />
+  <AbToast toastId={props.toastId}>Couldn't parse Mermaid diagram</AbToast>
 )
 
 const NewGraph: Component = () => {
@@ -26,7 +26,7 @@ const NewGraph: Component = () => {
       const str = e.clipboardData?.getData("text/plain")
       if (!str) return
 
-      void laidOutMermaid(str).then(g => {
+      void parseMermaid(str).then(g => {
         if (g) {
           nav(`/graph/${createNewGraph(g).id}`)
         } else {
@@ -55,7 +55,7 @@ function sorted(g: StoredGraphs): readonly GraphID[] {
   return es.filter(([, x]) => !x.archived).map(([id]) => id as GraphID)
 }
 
-async function laidOutMermaid(str: string): Promise<Graph | undefined> {
+async function parseMermaid(str: string): Promise<Graph | undefined> {
   const g = await fromMermaid(str)
   if (!g) return
 
@@ -70,7 +70,7 @@ export const ListPage: Component = () => {
 
   return (
     <div class="container">
-      <div class="py-4">
+      <div class="sticky top-0 py-4 backdrop-blur-lg">
         <TypedA
           title="Back to diagram"
           href="/"

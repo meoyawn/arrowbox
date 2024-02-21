@@ -9,7 +9,7 @@ import {
   type NodeID,
 } from "./data.ts"
 
-const elkPromise = import("elkjs/lib/elk.bundled").then(x => new x.default({}))
+const elkModule = import("elkjs/lib/elk.bundled").then(x => new x.default({}))
 
 function toLabels({ html, markdown }: GraphText): ElkLabel[] {
   if (!markdown) return []
@@ -63,6 +63,6 @@ export async function layoutGraph({ nodes, edges }: Graph): Promise<ElkNode> {
     })
   }
 
-  const elk = await elkPromise
+  const elk = await elkModule
   return await elk.layout(root, { layoutOptions })
 }

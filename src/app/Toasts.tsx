@@ -1,11 +1,10 @@
 import { Toast } from "@kobalte/core"
-import { Show, type Component } from "solid-js"
+import { Show, type Component, type ParentComponent } from "solid-js"
 import { Portal } from "solid-js/web"
 
 /** Arrowbox toast */
-export const AbToast: Component<{
+export const AbToast: ParentComponent<{
   toastId: number
-  msg: string
   title?: string
 }> = props => (
   <Toast.Root
@@ -22,13 +21,13 @@ export const AbToast: Component<{
           )}
         </Show>
 
-        <Toast.Description class="text-sm text-gray-700">
-          {props.msg}
+        <Toast.Description class="prose prose-sm prose-blue">
+          {props.children}
         </Toast.Description>
       </div>
 
       <Toast.CloseButton class="ml-auto h-4 w-4 flex-shrink-0 text-gray-600">
-        ╳
+        ✕
       </Toast.CloseButton>
     </div>
 

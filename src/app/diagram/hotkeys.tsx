@@ -1,6 +1,8 @@
 import { toaster } from "@kobalte/core"
 import hotkeys from "hotkeys-js"
 import { toKeysArray, toKeySet } from "../../lib/ts.ts"
+import { ExternalA } from "../ExternalA.tsx"
+import { AbToast } from "../Toasts.tsx"
 import { isNodeID } from "./data/data.ts"
 import { layoutGraph } from "./data/elk.ts"
 import { patching, redo, undo } from "./data/history.ts"
@@ -8,7 +10,6 @@ import { toMermaid } from "./data/mermaid/stringify.ts"
 import { ROOT_ID } from "./data/ROOT_ID.ts"
 import { setStore, store } from "./data/state.ts"
 import { del, setRect, ungroup } from "./data/transactions.ts"
-import { AbToast } from "./Toasts.tsx"
 
 interface Hotkey {
   label: string
@@ -63,7 +64,7 @@ export const setupHotkeys = (): VoidFunction => {
     e.preventDefault()
 
     toaster.show(props => (
-      <AbToast toastId={props.toastId} msg="Grouping isn't implemented yet" />
+      <AbToast toastId={props.toastId}>Grouping isn't implemented yet</AbToast>
     ))
     // const selected = toKeysArray(store.selected)
     // if (selected.length === 0) return
@@ -124,7 +125,10 @@ export const setupHotkeys = (): VoidFunction => {
       .writeText(toMermaid(store.tree.data, store.title))
       .then(() => {
         toaster.show(props => (
-          <AbToast toastId={props.toastId} msg="Copied Mermaid diagram" />
+          <AbToast toastId={props.toastId}>
+            <p>Copied Mermaid diagram</p>
+            <ExternalA href="https://mermaid.live/edit">Open Editor</ExternalA>
+          </AbToast>
         ))
       })
   })

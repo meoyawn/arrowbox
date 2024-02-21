@@ -12,7 +12,7 @@ import {
 import icon from "../../assets/icon.svg"
 import { toKeysArray } from "../../lib/ts.ts"
 import { TypedA, useTypedNavigate } from "../routes.tsx"
-import { ToastPortal } from "./Toasts.tsx"
+import { ToastPortal } from "../Toasts.tsx"
 import { ROOT_ID } from "./data/ROOT_ID.ts"
 import type { DataState } from "./data/data.ts"
 import {
