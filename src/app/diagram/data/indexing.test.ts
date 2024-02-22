@@ -19,7 +19,7 @@ const genNodes = (ns: Node[], children: NodeID[]): Record<NodeID, Node> => {
   return ret
 }
 
-describe("traverse", () => {
+describe.concurrent("traverse", () => {
   test("should return an empty array when nodes is empty", () => {
     expect(traverse(genNodes([], []))).toEqual([[ROOT_ID, []]])
   })

@@ -1,7 +1,11 @@
 import { describe, expect, test } from "vitest"
 import { fromMermaid } from "./parse.ts"
 
-/** @vitest-environment happy-dom */
+/**
+ * can't be concurrent
+ *
+ * @vitest-environment happy-dom
+ */
 describe("parse mermaid", () => {
   test("bullshit", async () => {
     const g = await fromMermaid("bullshit")

@@ -48,7 +48,7 @@
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-solid": "^0.13.1",
     "fast-check": "^3.15.1",
-    "happy-dom": "^13.3.8",
+    "happy-dom": "^13.4.1",
     "postcss": "^8.4.35",
     "prettier": "^3.2.5",
     "prettier-plugin-organize-imports": "^3.2.4",

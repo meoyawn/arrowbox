@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
 import { extendToFit } from "./geometry"
 
-describe("extendToFit", () => {
+describe.concurrent("extendToFit", () => {
   test("should extend parent rect to include child rect with padding", () => {
     const parent = { x: 0, y: 0, width: 100, height: 100 }
     const child = { x: 50, y: 50, width: 100, height: 100 }
