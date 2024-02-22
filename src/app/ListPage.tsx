@@ -3,6 +3,7 @@ import type { ToastComponent } from "@kobalte/core/dist/types/toast/types"
 import { For, createEffect, onCleanup, type Component } from "solid-js"
 import logoLight from "../assets/logo_light.svg"
 import { AbToast, ToastPortal } from "./Toasts.tsx"
+import { CloseIcon } from "./components.tsx"
 import { type Graph, type GraphID } from "./diagram/data/data.ts"
 import { layoutGraph } from "./diagram/data/elk.ts"
 import { fromMermaid } from "./diagram/data/mermaid/parse.ts"
@@ -76,7 +77,7 @@ export const ListPage: Component = () => {
           href="/"
           class="absolute left-2 top-2 h-12 w-12 rounded-full bg-white py-3 text-center shadow-xl duration-200 hover:bg-gray-100"
         >
-          ⛌
+          <CloseIcon />
         </TypedA>
 
         <img alt="Arrowbox" class="mx-auto h-8" src={logoLight} />

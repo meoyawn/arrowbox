@@ -1,6 +1,7 @@
 import { Toast } from "@kobalte/core"
 import { Show, type Component, type ParentComponent } from "solid-js"
 import { Portal } from "solid-js/web"
+import { CloseIcon } from "./components.tsx"
 
 /** Arrowbox toast */
 export const AbToast: ParentComponent<{
@@ -27,7 +28,7 @@ export const AbToast: ParentComponent<{
       </div>
 
       <Toast.CloseButton class="ml-auto h-4 w-4 flex-shrink-0 text-gray-600">
-        ✕
+        <CloseIcon />
       </Toast.CloseButton>
     </div>
 

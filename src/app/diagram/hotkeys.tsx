@@ -1,7 +1,7 @@
 import { toaster } from "@kobalte/core"
 import hotkeys from "hotkeys-js"
 import { toKeysArray, toKeySet } from "../../lib/ts.ts"
-import { ExternalA } from "../ExternalA.tsx"
+import { ExternalA } from "../components.tsx"
 import { AbToast } from "../Toasts.tsx"
 import { isNodeID } from "./data/data.ts"
 import { layoutGraph } from "./data/elk.ts"

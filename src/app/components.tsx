@@ -6,3 +6,5 @@ export const ExternalA: Component<
   // eslint-disable-next-line jsx-a11y/anchor-has-content
   <a {...props} target="_blank" rel="nofollow" />
 )
+
+export const CloseIcon: Component = () => "✕"
