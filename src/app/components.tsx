@@ -7,4 +7,6 @@ export const ExternalA: Component<
   <a {...props} target="_blank" rel="nofollow" />
 )
 
-export const CloseIcon: Component = () => "✕"
+export const CloseIcon: Component<{ class?: string }> = props => (
+  <span class={props.class}>✕</span>
+)

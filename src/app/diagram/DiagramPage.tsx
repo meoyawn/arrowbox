@@ -1,7 +1,6 @@
 import { Dialog, DropdownMenu } from "@kobalte/core"
 import { ZoomTransform, zoomIdentity } from "d3-zoom"
 import {
-  For,
   Show,
   createEffect,
   createSignal,
@@ -10,9 +9,9 @@ import {
   type Setter,
 } from "solid-js"
 import icon from "../../assets/icon.svg"
-import { toKeysArray } from "../../lib/ts.ts"
-import { TypedA, useTypedNavigate } from "../routes.tsx"
 import { ToastPortal } from "../Toasts.tsx"
+import { CloseIcon } from "../components.tsx"
+import { TypedA, useTypedNavigate } from "../routes.tsx"
 import { ROOT_ID } from "./data/ROOT_ID.ts"
 import type { DataState } from "./data/data.ts"
 import {
@@ -23,7 +22,7 @@ import {
 } from "./data/persistence.ts"
 import { emptyDataState, setStore, store } from "./data/state.ts"
 import { DiagramSVG, zoomTo } from "./draw/DiagramSVG.tsx"
-import { hotkeyTable, setupHotkeys } from "./hotkeys.tsx"
+import { setupHotkeys } from "./hotkeys.tsx"
 
 function hundredPctZoom({ data, index }: DataState): ZoomTransform {
   const nodes = Object.values(data.nodes).filter(
@@ -116,6 +115,37 @@ function addClass(el: HTMLElement, cls: string): VoidFunction {
   return () => el.classList.remove(cls)
 }
 
+const HelpButton: Component = () => (
+  <Dialog.Root>
+    <Dialog.Trigger class="bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-300">
+      ?
+    </Dialog.Trigger>
+
+    <Dialog.Portal>
+      <Dialog.Overlay class="fixed inset-0 z-50 bg-black bg-opacity-20" />
+
+      <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <Dialog.Content class="z-50 mx-4 w-full max-w-xs transform rounded-md border border-gray-200 bg-white p-4 shadow-lg transition-all duration-300">
+          <div class="mb-3 flex items-baseline justify-between">
+            <Dialog.Title class="text-lg font-semibold text-gray-900">
+              About Kobalte
+            </Dialog.Title>
+            <Dialog.CloseButton class="text-gray-600">
+              <CloseIcon class="h-4 w-4" />
+            </Dialog.CloseButton>
+          </div>
+          <Dialog.Description class="text-sm text-gray-700">
+            Kobalte is a UI toolkit for building accessible web apps and design
+            systems with SolidJS. It provides a set of low-level UI components
+            and primitives which can be the foundation for your design system
+            implementation.
+          </Dialog.Description>
+        </Dialog.Content>
+      </div>
+    </Dialog.Portal>
+  </Dialog.Root>
+)
+
 export const DiagramPage: Component = () => {
   createEffect(() => {
     const { graph, title, id } = getLastGraph()
@@ -160,26 +190,7 @@ export const DiagramPage: Component = () => {
           {Math.round(store.camera.k * 100)}%
         </button>
 
-        <Dialog.Root>
-          <Dialog.Trigger class="bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-300">
-            ?
-          </Dialog.Trigger>
-
-          <Dialog.Portal>
-            <Dialog.Overlay class="fixed inset-0 bg-black bg-opacity-50" />
-
-            <Dialog.Content>
-              <Dialog.CloseButton />
-              <Dialog.Title />
-
-              <Dialog.Description>
-                <For each={toKeysArray(hotkeyTable)}>
-                  {k => <div>{hotkeyTable[k].label}</div>}
-                </For>
-              </Dialog.Description>
-            </Dialog.Content>
-          </Dialog.Portal>
-        </Dialog.Root>
+        <HelpButton />
       </div>
 
       <ToastPortal />
