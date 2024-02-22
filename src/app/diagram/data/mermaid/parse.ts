@@ -1,5 +1,7 @@
 import type { Diagram } from "mermaid/dist/Diagram"
 import type { DiagramDB } from "mermaid/dist/diagram-api/types"
+import { sleep } from "../../../../lib/ts.ts"
+import { Config } from "../../../config.ts"
 import { md2html } from "../../../markdown.ts"
 import { ROOT_ID } from "../ROOT_ID.ts"
 import {
@@ -10,10 +12,12 @@ import {
   type NodeID,
 } from "../data.ts"
 
-const mermaidModule = import("mermaid").then(m => {
-  m.default.initialize({ flowchart: {}, startOnLoad: false })
-  return m.default.mermaidAPI
-})
+const mermaidModule = sleep(Config.heavyScriptDelayMs)
+  .then(() => import("mermaid"))
+  .then(m => {
+    m.default.initialize({ flowchart: {}, startOnLoad: false })
+    return m.default.mermaidAPI
+  })
 
 interface MermaidNode {
   id: string

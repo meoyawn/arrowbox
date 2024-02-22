@@ -22,3 +22,6 @@ export const toKeySet = <T extends keyof never>(arr: readonly T[]): KeySet<T> =>
 export const toKeysArray = <T extends keyof never>(
   obj: Partial<Record<T, unknown>>,
 ): readonly T[] => Object.keys(obj) as T[]
+
+export const sleep = (ms: number): Promise<void> =>
+  ms ? new Promise(r => setTimeout(r, ms)) : Promise.resolve()

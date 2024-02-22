@@ -1,4 +1,6 @@
 import type { ElkLabel, ElkNode, LayoutOptions } from "elkjs/lib/elk-api"
+import { sleep } from "../../../lib/ts.ts"
+import { Config } from "../../config.ts"
 import { measureHtml } from "../label.tsx"
 import { ROOT_ID } from "./ROOT_ID.ts"
 import {
@@ -9,7 +11,9 @@ import {
   type NodeID,
 } from "./data.ts"
 
-const elkModule = import("elkjs/lib/elk.bundled").then(x => new x.default({}))
+const elkModule = sleep(Config.heavyScriptDelayMs)
+  .then(() => import("elkjs/lib/elk.bundled"))
+  .then(x => new x.default({}))
 
 function toLabels({ html, markdown }: GraphText): ElkLabel[] {
   if (!markdown) return []
