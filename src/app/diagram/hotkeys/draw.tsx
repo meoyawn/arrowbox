@@ -31,19 +31,17 @@ const getByOS = (s: Shortcut, os?: OS): string => {
 
 const os = getOS()
 
-export const ShortcutTable: Component = () => {
-  return (
-    <table class="grid grid-cols-2 gap-3">
-      <For each={Object.values(Shortcuts)}>
-        {s => (
-          <>
-            <div class="font-medium">{s.label}</div>
-            <div>
-              <OneShortcut keys={getByOS(s, os)} />
-            </div>
-          </>
-        )}
-      </For>
-    </table>
-  )
-}
+export const ShortcutTable: Component = () => (
+  <div class="grid grid-cols-2 gap-3">
+    <For each={Object.values(Shortcuts)}>
+      {s => (
+        <>
+          <div class="font-medium">{s.label}</div>
+          <div>
+            <OneShortcut keys={getByOS(s, os)} />
+          </div>
+        </>
+      )}
+    </For>
+  </div>
+)

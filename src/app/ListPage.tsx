@@ -3,7 +3,7 @@ import type { ToastComponent } from "@kobalte/core/dist/types/toast/types"
 import { For, createEffect, onCleanup, type Component } from "solid-js"
 import logoLight from "../assets/logo_light.svg"
 import { AbToast, ToastPortal } from "./Toasts.tsx"
-import { CloseIcon } from "./components.tsx"
+import { CloseIcon, ExternalA } from "./components.tsx"
 import { type Graph, type GraphID } from "./diagram/data/data.ts"
 import { layoutGraph } from "./diagram/data/elk.ts"
 import { fromMermaid } from "./diagram/data/mermaid/parse.ts"
@@ -82,14 +82,12 @@ export const ListPage: Component = () => {
 
         <img alt="Arrowbox" class="mx-auto h-8" src={logoLight} />
 
-        <a
+        <ExternalA
           class="absolute right-5 top-5"
           href="https://github.com/arrowboxco/community/discussions"
-          target="_blank"
-          rel="noreferrer"
         >
           Support
-        </a>
+        </ExternalA>
       </div>
 
       <div class="mx-auto flex max-w-2xl flex-col gap-4">
