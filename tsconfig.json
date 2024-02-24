@@ -20,7 +20,8 @@
     "strictPropertyInitialization": true,
     "target": "ES2019",
     "types": ["vite/client"],
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "lib": ["DOM", "DOM.Iterable"]
   },
   "include": ["src/", "*.config.ts"]
 }

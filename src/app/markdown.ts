@@ -13,11 +13,11 @@ class ExternalLinkRenderer extends Renderer {
 
 const renderer = new ExternalLinkRenderer()
 
-export const md2html = (md: string): string =>
-  dompurify.sanitize(
-    marked(md, { gfm: true, async: false, renderer }) as string,
-    {
-      /** prevent external links from stripping */
-      ADD_ATTR: ["target"],
-    },
-  )
+export const md2html = (md: string): string => {
+  const html = marked(md, { gfm: true, async: false, renderer }) as string
+
+  return dompurify.sanitize(html, {
+    /** prevent external links from stripping */
+    ADD_ATTR: ["target"],
+  })
+}

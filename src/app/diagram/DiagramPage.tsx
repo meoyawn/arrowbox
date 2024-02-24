@@ -1,4 +1,4 @@
-import { Dialog, DropdownMenu } from "@kobalte/core"
+import { DropdownMenu } from "@kobalte/core"
 import { ZoomTransform, zoomIdentity } from "d3-zoom"
 import {
   Show,
@@ -8,6 +8,15 @@ import {
   type Component,
   type Setter,
 } from "solid-js"
+import {
+  Dialog,
+  DialogDescription,
+  DialogOverlay,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "terracotta"
 import icon from "../../assets/icon.svg"
 import { ToastPortal } from "../Toasts.tsx"
 import { CloseIcon } from "../components.tsx"
@@ -22,7 +31,8 @@ import {
 } from "./data/persistence.ts"
 import { emptyDataState, setStore, store } from "./data/state.ts"
 import { DiagramSVG, zoomTo } from "./draw/DiagramSVG.tsx"
-import { setupHotkeys } from "./hotkeys.tsx"
+import { ShortcutTable } from "./hotkeys/draw.tsx"
+import { setupHotkeys } from "./hotkeys/hotkeys.tsx"
 
 function hundredPctZoom({ data, index }: DataState): ZoomTransform {
   const nodes = Object.values(data.nodes).filter(
@@ -115,36 +125,76 @@ function addClass(el: HTMLElement, cls: string): VoidFunction {
   return () => el.classList.remove(cls)
 }
 
-const HelpButton: Component = () => (
-  <Dialog.Root>
-    <Dialog.Trigger class="bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-300">
-      ?
-    </Dialog.Trigger>
+const HelpButton: Component = () => {
+  const [isOpen, setIsOpen] = createSignal(false)
 
-    <Dialog.Portal>
-      <Dialog.Overlay class="fixed inset-0 z-50 bg-black bg-opacity-20" />
+  const closeModal = () => setIsOpen(false)
+  const openModal = () => setIsOpen(true)
 
-      <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <Dialog.Content class="z-50 mx-4 w-full max-w-xs transform rounded-md border border-gray-200 bg-white p-4 shadow-lg transition-all duration-300">
-          <div class="mb-3 flex items-baseline justify-between">
-            <Dialog.Title class="text-lg font-semibold text-gray-900">
-              About Kobalte
-            </Dialog.Title>
-            <Dialog.CloseButton class="text-gray-600">
-              <CloseIcon class="h-4 w-4" />
-            </Dialog.CloseButton>
+  return (
+    <>
+      <button
+        class="bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-300"
+        onClick={openModal}
+      >
+        ?
+      </button>
+
+      <Transition appear show={isOpen()}>
+        <Dialog
+          isOpen
+          class="fixed inset-0 z-10 overflow-y-auto"
+          onClose={closeModal}
+        >
+          <div class="flex min-h-screen items-center justify-center px-4">
+            <TransitionChild
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <DialogOverlay class="fixed inset-0 bg-gray-900 bg-opacity-50" />
+            </TransitionChild>
+
+            {/* This element is to trick the browser into centering the modal contents. */}
+            <span class="inline-block h-screen align-middle" aria-hidden="true">
+              &#8203;
+            </span>
+            <TransitionChild
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <DialogPanel class="my-8 flex w-full max-w-md transform flex-col gap-3 overflow-hidden rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all">
+                <div class="flex justify-between">
+                  <DialogTitle
+                    as="h3"
+                    class="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Keyboard shortcuts
+                  </DialogTitle>
+
+                  <button onClick={closeModal}>
+                    <CloseIcon />
+                  </button>
+                </div>
+
+                <DialogDescription>
+                  <ShortcutTable />
+                </DialogDescription>
+              </DialogPanel>
+            </TransitionChild>
           </div>
-          <Dialog.Description class="text-sm text-gray-700">
-            Kobalte is a UI toolkit for building accessible web apps and design
-            systems with SolidJS. It provides a set of low-level UI components
-            and primitives which can be the foundation for your design system
-            implementation.
-          </Dialog.Description>
-        </Dialog.Content>
-      </div>
-    </Dialog.Portal>
-  </Dialog.Root>
-)
+        </Dialog>
+      </Transition>
+    </>
+  )
+}
 
 export const DiagramPage: Component = () => {
   createEffect(() => {

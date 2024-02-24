@@ -1,34 +1,39 @@
 import { toaster } from "@kobalte/core"
 import hotkeys from "hotkeys-js"
-import { toKeysArray, toKeySet } from "../../lib/ts.ts"
-import { ExternalA } from "../components.tsx"
-import { AbToast } from "../Toasts.tsx"
-import { isNodeID } from "./data/data.ts"
-import { layoutGraph } from "./data/elk.ts"
-import { patching, redo, undo } from "./data/history.ts"
-import { toMermaid } from "./data/mermaid/stringify.ts"
-import { ROOT_ID } from "./data/ROOT_ID.ts"
-import { setStore, store } from "./data/state.ts"
-import { del, setRect, ungroup } from "./data/transactions.ts"
+import { toKeySet, toKeysArray } from "../../../lib/ts.ts"
+import { AbToast } from "../../Toasts.tsx"
+import { ExternalA } from "../../components.tsx"
+import { ROOT_ID } from "../data/ROOT_ID.ts"
+import { isNodeID } from "../data/data.ts"
+import { layoutGraph } from "../data/elk.ts"
+import { patching, redo, undo } from "../data/history.ts"
+import { toMermaid } from "../data/mermaid/stringify.ts"
+import { setStore, store } from "../data/state.ts"
+import { del, setRect, ungroup } from "../data/transactions.ts"
 
-interface Hotkey {
-  label: string
-  hotkey: string
-}
+export type Shortcut =
+  | { windows: `Ctrl+${string}`; macos: `⌘+${string}` }
+  | { hotkey: string }
 
-export const hotkeyTable = {
+export type LabeledShortcut = Shortcut & { label: string }
+
+const toKey = (x: Shortcut) =>
+  "hotkey" in x ? x.hotkey : `${x.windows}, ${x.macos}`
+
+export const Shortcuts = {
   del: { label: "Delete", hotkey: "Delete, Backspace" },
-  undo: { label: "Undo", hotkey: "ctrl+z, command+z" },
-  redo: { label: "Redo", hotkey: "ctrl+shift+z, command+shift+z" },
-  selectAll: { label: "Select All", hotkey: "ctrl+a, command+a" },
-  layout: { label: "Layout", hotkey: "L" },
-  group: { label: "Group", hotkey: "ctrl+g, command+g" },
-  ungroup: { label: "Ungroup", hotkey: "ctrl+shift+g, command+shift+g" },
+  layout: { label: "Auto layout", hotkey: "L" },
   copyMermaid: { label: "Copy Mermaid", hotkey: "M" },
-} as const satisfies Record<string, Hotkey>
+
+  undo: { label: "Undo", windows: "Ctrl+Z", macos: "⌘+Z" },
+  redo: { label: "Redo", windows: "Ctrl+⇧+Z, Ctrl+Y", macos: "⌘+⇧+Z" },
+  selectAll: { label: "Select All", windows: "Ctrl+A", macos: "⌘+A" },
+  group: { label: "Group selected", windows: "Ctrl+G", macos: "⌘+G" },
+  ungroup: { label: "Ungroup", windows: "Ctrl+⇧+G", macos: "⌘+⇧+G" },
+} as const satisfies Record<string, LabeledShortcut>
 
 export const setupHotkeys = (): VoidFunction => {
-  hotkeys(hotkeyTable.del.hotkey, () =>
+  hotkeys(toKey(Shortcuts.del), () =>
     setStore(s => ({
       tree: patching(s.tree, d => del(d, s.tree.index, s.selected)),
       selected: {},
@@ -48,19 +53,19 @@ export const setupHotkeys = (): VoidFunction => {
     }
   })
 
-  hotkeys(hotkeyTable.undo.hotkey, e => {
+  hotkeys(toKey(Shortcuts.undo), e => {
     e.preventDefault()
 
     setStore(({ tree }) => ({ tree: undo(tree) }))
   })
 
-  hotkeys(hotkeyTable.redo.hotkey, e => {
+  hotkeys(toKey(Shortcuts.redo), e => {
     e.preventDefault()
 
     setStore(({ tree }) => ({ tree: redo(tree) }))
   })
 
-  hotkeys(hotkeyTable.group.hotkey, e => {
+  hotkeys(toKey(Shortcuts.group), e => {
     e.preventDefault()
 
     toaster.show(props => (
@@ -76,7 +81,7 @@ export const setupHotkeys = (): VoidFunction => {
     // }))
   })
 
-  hotkeys(hotkeyTable.ungroup.hotkey, e => {
+  hotkeys(toKey(Shortcuts.ungroup), e => {
     e.preventDefault()
 
     const selected = toKeysArray(store.selected)
@@ -93,7 +98,7 @@ export const setupHotkeys = (): VoidFunction => {
     })
   })
 
-  hotkeys(hotkeyTable.selectAll.hotkey, e => {
+  hotkeys(toKey(Shortcuts.selectAll), e => {
     e.preventDefault()
 
     setStore(({ tree }) => ({
@@ -105,7 +110,7 @@ export const setupHotkeys = (): VoidFunction => {
   })
 
   let layingOut = false
-  hotkeys(hotkeyTable.layout.hotkey, () => {
+  hotkeys(toKey(Shortcuts.layout), () => {
     if (layingOut) return
 
     layingOut = true
@@ -120,7 +125,7 @@ export const setupHotkeys = (): VoidFunction => {
     })
   })
 
-  hotkeys(hotkeyTable.copyMermaid.hotkey, () => {
+  hotkeys(toKey(Shortcuts.copyMermaid), () => {
     void navigator.clipboard
       .writeText(toMermaid(store.tree.data, store.title))
       .then(() => {
