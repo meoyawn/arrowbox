@@ -30,11 +30,6 @@ export function extendToFit(
   return { x, y, width, height }
 }
 
-export const rectLeft = ({ x }: Rect): number => x
-export const rectTop = ({ y }: Rect): number => y
-export const rectRight = ({ width, x }: Rect): number => x + width
-export const rectBottom = ({ height, y }: Rect): number => y + height
-
 /** https://stackoverflow.com/a/31254199/1032286 */
 export function pointOnRect(
   x: number,
