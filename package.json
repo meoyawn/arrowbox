@@ -9,6 +9,7 @@
     "chk:test": "vitest run",
     "chk:types": "tsc",
     "clean": "rm -rf dist/",
+    "deps": "bunx npm-check-updates -i",
     "dev": "vite",
     "dpl": "bun chk && rm -rf dist/ && vite build && wrangler pages deploy dist/ --commit-dirty=true"
   },
