@@ -9,12 +9,12 @@
     "chk:test": "vitest run",
     "chk:types": "tsc",
     "clean": "rm -rf dist/",
-    "deps": "bunx npm-check-updates -i",
+    "deps": "bunx npm-check-updates -i --install always",
     "dev": "vite",
     "dpl": "bun chk && rm -rf dist/ && vite build && wrangler pages deploy dist/ --commit-dirty=true"
   },
   "dependencies": {
-    "@kobalte/core": "^0.12.1",
+    "@kobalte/core": "^0.12.2",
     "@mermaid-js/parser": "0.1.0-rc.1",
     "@solid-primitives/destructure": "^0.1.16",
     "@solidjs/router": "^0.12.4",
