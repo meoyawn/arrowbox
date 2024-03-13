@@ -1,10 +1,10 @@
 import { DropdownMenu } from "@kobalte/core"
-import { ZoomTransform, zoomIdentity } from "d3-zoom"
+import { zoomIdentity, ZoomTransform } from "d3-zoom"
 import {
-  Show,
   createEffect,
   createSignal,
   onCleanup,
+  Show,
   type Component,
   type Setter,
 } from "solid-js"
@@ -18,10 +18,9 @@ import {
   TransitionChild,
 } from "terracotta"
 import icon from "../../assets/icon.svg"
-import { ToastPortal } from "../Toasts.tsx"
 import { CloseIcon } from "../components.tsx"
 import { TypedA, useTypedNavigate } from "../routes.tsx"
-import { ROOT_ID } from "./data/ROOT_ID.ts"
+import { ToastPortal } from "../Toasts.tsx"
 import type { DataState } from "./data/data.ts"
 import {
   archive,
@@ -29,6 +28,7 @@ import {
   saveTitle,
   storeGraph,
 } from "./data/persistence.ts"
+import { ROOT_ID } from "./data/ROOT_ID.ts"
 import { emptyDataState, setStore, store } from "./data/state.ts"
 import { DiagramSVG, zoomTo } from "./draw/DiagramSVG.tsx"
 import { ShortcutTable } from "./hotkeys/draw.tsx"
@@ -38,11 +38,14 @@ function hundredPctZoom({ data, index }: DataState): ZoomTransform {
   const nodes = Object.values(data.nodes).filter(
     ({ id }) => index.parents[id] === ROOT_ID,
   )
-  return new ZoomTransform(
-    1,
-    -Math.min(...nodes.map(({ rect }) => rect.x)),
-    -Math.min(...nodes.map(({ rect }) => rect.y)),
-  )
+
+  return nodes.length
+    ? new ZoomTransform(
+        1,
+        -Math.min(...nodes.map(({ rect }) => rect.x)),
+        -Math.min(...nodes.map(({ rect }) => rect.y)),
+      )
+    : zoomIdentity
 }
 
 const Dropdown: Component<{ setEditing: Setter<boolean> }> = props => {

@@ -1,16 +1,11 @@
 import { type Rect } from "../../../lib/geometry.ts"
 import { toKeySet } from "../../../lib/ts.ts"
 import { absRect } from "../brushing.ts"
-import {
-  isNodeID,
-  type EdgeID,
-  type Graph,
-  type NodeID,
-} from "../data/data.ts"
+import { ROOT_ID } from "../data/ROOT_ID.ts"
+import { isNodeID, type EdgeID, type Graph, type NodeID } from "../data/data.ts"
 import { nonPatching, patching } from "../data/history.ts"
 import { type State } from "../data/state.ts"
 import { type DragBehavior2 } from "../drag.ts"
-import { ROOT_ID } from "../data/ROOT_ID.ts"
 
 /** world coordinates */
 export const dragNode = (
@@ -37,6 +32,7 @@ export const dragNode = (
         tree: nonPatching(tree, ({ nodes }) => {
           for (const id of selArr) {
             if (!isNodeID(id)) continue
+
             const oldParentID = tree.index.parents[id]
             if (oldParentID in selected) continue
 

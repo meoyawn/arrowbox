@@ -24,9 +24,11 @@ export const emptyHistory = (): ImmerHistory => ({
   backward: [],
 })
 
+const clean = <T>(t: T): T => JSON.parse(JSON.stringify(t)) as T
+
 export function patching(ds: DataState, fn: (d: Graph) => void): DataState {
   const { data, history } = ds
-  const [next, fwd, bwd] = produceWithPatches(data, fn)
+  const [next, fwd, bwd] = produceWithPatches(clean(data), fn)
   if (!fwd.length) return ds
 
   return {
@@ -43,7 +45,7 @@ export function patching(ds: DataState, fn: (d: Graph) => void): DataState {
 export const nonPatching = (
   s: DataState,
   fn: (d: Graph) => void,
-): DataState => ({ ...s, data: produce(s.data, fn) })
+): DataState => ({ ...s, data: produce(clean(s.data), fn) })
 
 export const undo = (ds: DataState): DataState => {
   const { data, history } = ds
@@ -52,7 +54,7 @@ export const undo = (ds: DataState): DataState => {
   const patch = history.backward[history.index]
   if (!patch.length) throw new Error("empty patch")
 
-  const prev = applyPatches(data, patch)
+  const prev = applyPatches(clean(data), patch)
   return {
     data: prev,
     index: buildIndex(prev),
@@ -68,7 +70,7 @@ export const redo = (ds: DataState): DataState => {
   const patch = history.forward[index]
   if (!patch.length) throw new Error("empty patch")
 
-  const next = applyPatches(data, patch)
+  const next = applyPatches(clean(data), patch)
   return {
     data: next,
     index: buildIndex(next),
