@@ -2,6 +2,7 @@ import { type ElkNode } from "elkjs/lib/elk-api"
 import { type Vec2 } from "../../../lib/geometry.ts"
 import { type KeySet } from "../../../lib/ts.ts"
 import { md2html } from "../../markdown.ts"
+import { ROOT_ID } from "./ROOT_ID.ts"
 import {
   genID,
   isEdgeID,
@@ -15,7 +16,8 @@ import {
 } from "./data.ts"
 import { type GraphIndex } from "./indexing.ts"
 import { type DraggingArrow } from "./state.ts"
-import { ROOT_ID } from "./ROOT_ID.ts"
+
+const DEFAULT_SIZE = 100
 
 export function addNode(
   data: Graph,
@@ -27,7 +29,12 @@ export function addNode(
   data.nodes[id] = {
     id,
     text: { html: "", markdown: "" },
-    rect: { x, y, width: 100, height: 100 },
+    rect: {
+      x: x - DEFAULT_SIZE / 2,
+      y: y - DEFAULT_SIZE / 2,
+      width: DEFAULT_SIZE,
+      height: DEFAULT_SIZE,
+    },
     children: [],
     shape,
   }
@@ -43,6 +50,18 @@ export function addEdge(
 ): EdgeID | NodeID {
   const id: EdgeID = genID("e")
   const text: GraphText = { markdown: "", html: "" }
+
+  if (from.type === "relative") {
+    const { x, y } = from
+    const nid = addNode(data, [x, y])
+    data.edges[id] = {
+      id,
+      from: { type: "node", id: nid },
+      to,
+      text,
+    }
+    return nid
+  }
 
   switch (to.type) {
     case "node":
