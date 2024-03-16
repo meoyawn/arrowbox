@@ -1,11 +1,11 @@
-import { type Rect } from "../../../lib/geometry.ts"
+import type { Rect } from "../../../lib/geometry.ts"
 import { toKeySet } from "../../../lib/ts.ts"
 import { absRect } from "../brushing.ts"
 import { ROOT_ID } from "../data/ROOT_ID.ts"
 import { isNodeID, type EdgeID, type Graph, type NodeID } from "../data/data.ts"
 import { nonPatching, patching } from "../data/history.ts"
-import { type State } from "../data/state.ts"
-import { type DragBehavior2 } from "../drag.ts"
+import type { State } from "../data/state.ts"
+import type { DragBehavior2 } from "../drag.ts"
 
 /** world coordinates */
 export const dragNode = (
