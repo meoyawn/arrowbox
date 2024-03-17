@@ -14,7 +14,7 @@
     "dpl": "bun chk && rm -rf dist/ && vite build && wrangler pages deploy dist/ --commit-dirty=true"
   },
   "dependencies": {
-    "@kobalte/core": "^0.12.5",
+    "@kobalte/core": "^0.12.6",
     "@mermaid-js/parser": "0.1.0-rc.1",
     "@solid-primitives/destructure": "^0.1.17",
     "@solidjs/router": "^0.13.0",

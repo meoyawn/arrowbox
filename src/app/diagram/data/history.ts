@@ -6,7 +6,8 @@ import {
   setAutoFreeze,
   type Patch,
 } from "immer"
-import { type DataState, type Graph } from "./data"
+import { unwrap } from "solid-js/store"
+import type { DataState, Graph } from "./data"
 import { buildIndex } from "./indexing"
 
 enablePatches()
@@ -24,7 +25,8 @@ export const emptyHistory = (): ImmerHistory => ({
   backward: [],
 })
 
-const clean = <T>(t: T): T => JSON.parse(JSON.stringify(t)) as T
+/** removing solid store proxy's circular references before passing to immer */
+const clean = <T>(t: T): T => structuredClone(unwrap(t))
 
 export function patching(ds: DataState, fn: (d: Graph) => void): DataState {
   const { data, history } = ds
