@@ -29,10 +29,10 @@ function toELK(nodes: Record<NodeID, Node>, id: NodeID): ElkNode {
   return {
     id,
     labels: toLabels(text),
-    width,
-    height,
     x,
     y,
+    width,
+    height,
     children: children.map(cid => toELK(nodes, cid)),
   }
 }
@@ -49,6 +49,7 @@ const layoutOptions: LayoutOptions = {
   "org.eclipse.elk.nodeSize.options":
     "ASYMMETRICAL OUTSIDE_NODE_LABELS_OVERHANG",
   "org.eclipse.elk.spacing.labelLabel": "5",
+  "org.eclipse.elk.nodeSize.minimum": "(30, 30)",
 }
 
 export async function layoutGraph({ nodes, edges }: Graph): Promise<ElkNode> {

@@ -7,7 +7,8 @@ import {
 } from "../data.ts"
 import { ROOT_ID } from "../ROOT_ID.ts"
 
-const mdLabel = (text: GraphText): `"\`${string}\`"` => `"\`${text.markdown}\`"`
+const mdLabel = (text: GraphText): `"\`${string}\`"` | `" "` =>
+  text.markdown ? `"\`${text.markdown}\`"` : `" "`
 
 const mermaidID = (id: NodeID): string => id.substring(1)
 

@@ -17,7 +17,7 @@ import {
 import { type GraphIndex } from "./indexing.ts"
 import { type DraggingArrow } from "./state.ts"
 
-const DEFAULT_SIZE = 100
+export const DEFAULT_SIZE = 100
 
 export function addNode(
   data: Graph,

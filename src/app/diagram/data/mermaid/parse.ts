@@ -81,7 +81,7 @@ function fromDiagram(diagram: Diagram): Graph {
       text: { markdown: sub.title, html: md2html(sub.title) },
       children: sub.nodes.map(c => `n${c}` as const),
       shape: "rect",
-      rect: { x: 0, y: 0, width: 0, height: 0 },
+      rect: { x: 0, y: 0, width: 1, height: 1 },
     }
 
     if (!parents[id]) {
@@ -97,7 +97,7 @@ function fromDiagram(diagram: Diagram): Graph {
       id,
       text: { markdown: v.text, html: md2html(v.text) },
       shape: "rect",
-      rect: { x: 0, y: 0, width: 0, height: 0 },
+      rect: { x: 0, y: 0, width: 1, height: 1 },
       children: [],
     }
 
