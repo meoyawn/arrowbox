@@ -19,6 +19,7 @@ render(
         path={`/graph/${":id" as GraphID}`}
         component={RedirectGraphPage}
       />
+      <TypedRoute path="/new" component={DiagramPage} />
     </Router>
   ),
   root,
