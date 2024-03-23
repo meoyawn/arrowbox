@@ -56,7 +56,8 @@ export const ForeignText: Component<{
           classList={{
             "max-h-none max-w-none": true,
             "pointer-events-auto": !isDraggingMe(),
-            "bg-white": isEdgeID(props.id),
+            // apply to children
+            "[&>*]:bg-white": isEdgeID(props.id),
           }}
           // eslint-disable-next-line solid/no-innerhtml
           innerHTML={props.text.html}
