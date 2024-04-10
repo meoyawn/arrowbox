@@ -19,7 +19,7 @@
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
     "target": "ES2019",
-    "types": ["vite/client"],
+    "types": ["vite/client", "vitest/importMeta","vitest/config"],
     "verbatimModuleSyntax": true
   },
   "include": ["src/", "*.config.ts"]
