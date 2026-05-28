@@ -1,3 +1,4 @@
+import { md2html } from "../../../markdown.ts"
 import {
   type Edge,
   type Graph,
@@ -7,8 +8,8 @@ import {
 } from "../data.ts"
 import { ROOT_ID } from "../ROOT_ID.ts"
 
-const mdLabel = (text: GraphText): `"\`${string}\`"` | `" "` =>
-  text.markdown ? `"\`${text.markdown}\`"` : `" "`
+const mdLabel = (text: GraphText): `"${string}"` | `" "` =>
+  text.markdown ? `"${md2html(text.markdown).trim()}"` : `" "`
 
 const mermaidID = (id: NodeID): string => id.substring(1)
 

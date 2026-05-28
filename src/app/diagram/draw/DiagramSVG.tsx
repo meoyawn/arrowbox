@@ -1,18 +1,18 @@
 import { pointer, select } from "d3-selection"
-import { zoom, type D3ZoomEvent, type ZoomTransform } from "d3-zoom"
+import { type D3ZoomEvent, zoom, type ZoomTransform } from "d3-zoom"
 import { type BBox } from "rbush"
-import { For, Show, createEffect, type Component } from "solid-js"
+import { type Component, createEffect, For, Show } from "solid-js"
 import { toKeysArray } from "../../../lib/ts.ts"
 import { type EdgeID, type NodeID } from "../data/data.ts"
 import { createAnchors } from "../data/edge-anchor.ts"
 import { patching } from "../data/history.ts"
-import { setStore, store, type DraggingArrow } from "../data/state.ts"
+import { ROOT_ID } from "../data/ROOT_ID.ts"
+import { type DraggingArrow, setStore, store } from "../data/state.ts"
 import { addNode } from "../data/transactions.ts"
 import { behaviorDrag, worldDragSubj } from "../drag.ts"
 import { OneEdge } from "./OneEdge.tsx"
 import { OneNode } from "./OneNode.tsx"
 import { SvgDefs } from "./SvgDefs.tsx"
-import { ROOT_ID } from "../data/ROOT_ID.ts"
 
 const d3Zoom = zoom<Element, unknown>()
   .scaleExtent([0.05, 8])
@@ -29,8 +29,9 @@ export const closestNodeID = (el: Element): NodeID | null =>
 export const closestEdgeID = (el: Element): EdgeID | null =>
   el.closest("[data-edgeID]")?.getAttribute("data-edgeID") as EdgeID
 
-export const zoomTo = (t: ZoomTransform): void =>
-  d3Zoom.transform(select("#canvas"), t)
+export function zoomTo(t: ZoomTransform): void {
+  d3Zoom.transform(select("#canvas") as never, t)
+}
 
 const zoomTransform = ({ k, x, y }: ZoomTransform): string =>
   `translate(${x} ${y}) scale(${k})`
