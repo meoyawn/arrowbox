@@ -14,7 +14,7 @@ import { OneEdge } from "./OneEdge.tsx"
 import { OneNode } from "./OneNode.tsx"
 import { SvgDefs } from "./SvgDefs.tsx"
 
-const d3Zoom = zoom<Element, unknown>()
+const d3Zoom = zoom<SVGSVGElement, unknown>()
   .scaleExtent([0.05, 8])
   .filter((ev: UIEvent) => (ev instanceof WheelEvent ? ev.ctrlKey : true))
   .on("zoom", (e: D3ZoomEvent<Element, unknown>) =>
@@ -41,11 +41,14 @@ export const DiagramSVG: Component = () => {
   let zoomedEl: SVGGElement
 
   createEffect(() => {
-    select(svgEl as Element)
-      .call(behaviorDrag(worldDragSubj, zoomedEl))
-      .call(d3Zoom)
-      .on("dblclick.zoom", null)
-      .on("mousedown.zoom", null)
+    const svg = select<SVGSVGElement, unknown>(svgEl)
+    const drag = behaviorDrag(worldDragSubj, zoomedEl) as unknown as (
+      selection: typeof svg,
+    ) => void
+    const applyZoom = d3Zoom as unknown as (selection: typeof svg) => void
+    drag(svg)
+    applyZoom(svg)
+    svg.on("dblclick.zoom", null).on("mousedown.zoom", null)
   })
 
   return (
