@@ -1,0 +1,1 @@
+- `.tsx` files are solid-js, not react-js

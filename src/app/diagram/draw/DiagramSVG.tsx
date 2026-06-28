@@ -1,7 +1,7 @@
 import { pointer, select } from "d3-selection"
 import { type D3ZoomEvent, zoom, type ZoomTransform } from "d3-zoom"
 import { type BBox } from "rbush"
-import { type Component, createEffect, For, Show } from "solid-js"
+import { type Component, createEffect, For, onCleanup, Show } from "solid-js"
 import { toKeysArray } from "../../../lib/ts.ts"
 import { type EdgeID, type NodeID } from "../data/data.ts"
 import { createAnchors } from "../data/edge-anchor.ts"
@@ -10,6 +10,7 @@ import { ROOT_ID } from "../data/ROOT_ID.ts"
 import { type DraggingArrow, setStore, store } from "../data/state.ts"
 import { addNode } from "../data/transactions.ts"
 import { behaviorDrag, worldDragSubj } from "../drag.ts"
+import { DotGrid } from "./DotGrid.tsx"
 import { OneEdge } from "./OneEdge.tsx"
 import { OneNode } from "./OneNode.tsx"
 import { SvgDefs } from "./SvgDefs.tsx"
@@ -51,6 +52,18 @@ export const DiagramSVG: Component = () => {
     drag(svg)
     applyZoom(svg)
     svg.on("dblclick.zoom", null).on("mousedown.zoom", null)
+
+    function preventPageZoom(ev: WheelEvent): void {
+      if (ev.ctrlKey) ev.preventDefault()
+    }
+
+    svgEl.addEventListener("wheel", preventPageZoom, {
+      capture: true,
+      passive: false,
+    })
+    onCleanup(() => {
+      svgEl?.removeEventListener("wheel", preventPageZoom, true)
+    })
   })
 
   return (
@@ -116,6 +129,7 @@ export const DiagramSVG: Component = () => {
       }}
     >
       <SvgDefs />
+      <DotGrid camera={store.camera} />
 
       <g ref={zoomedEl} transform={zoomTransform(store.camera)}>
         <For each={store.tree.data.nodes[ROOT_ID].children}>

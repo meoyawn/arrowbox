@@ -17,9 +17,21 @@ tasks:
     run: once
     cmd: bun playwright test
 
+  build:
+    run: once
+    cmd: bun vite build
+
+  deploy:
+    deps:
+      - build
+      - check
+    cmd: bun wrangler pages deploy dist/ --branch master --commit-dirty=true
+
   check:
     deps:
       - typecheck
       - lint
       - test:unit
       - test:playwright
+
+  dev: bun vite dev

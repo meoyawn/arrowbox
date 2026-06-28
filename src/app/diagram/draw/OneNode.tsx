@@ -1,27 +1,27 @@
-import { destructure } from "@solid-primitives/destructure";
-import { For, Show, type Component } from "solid-js";
-import { type Rect } from "../../../lib/geometry.ts";
-import { type NodeID } from "../data/data.ts";
-import { store } from "../data/state.ts";
-import { dragIDs } from "../drag.ts";
-import { ResizeSides, type ResizeSide } from "../drag/resize.ts";
-import { ForeignText } from "./ForeignText.tsx";
+import { destructure } from "@solid-primitives/destructure"
+import { For, Show, type Component } from "solid-js"
+import { type Rect } from "../../../lib/geometry.ts"
+import { type NodeID } from "../data/data.ts"
+import { store } from "../data/state.ts"
+import { dragIDs } from "../drag.ts"
+import { ResizeSides, type ResizeSide } from "../drag/resize.ts"
+import { ForeignText } from "./ForeignText.tsx"
 
-const sideArea = 14;
+const sideArea = 14
 
 const Side: Component<{
-  rect: Rect;
-  side: ResizeSide;
-}> = (props) => {
-  const x1 = () => (props.side === ResizeSides.EAST ? props.rect.width : 0);
-  const y1 = () => (props.side === ResizeSides.SOUTH ? props.rect.height : 0);
-  const x2 = () => (props.side === ResizeSides.WEST ? 0 : props.rect.width);
-  const y2 = () => (props.side === ResizeSides.NORTH ? 0 : props.rect.height);
+  rect: Rect
+  side: ResizeSide
+}> = props => {
+  const x1 = () => (props.side === ResizeSides.EAST ? props.rect.width : 0)
+  const y1 = () => (props.side === ResizeSides.SOUTH ? props.rect.height : 0)
+  const x2 = () => (props.side === ResizeSides.WEST ? 0 : props.rect.width)
+  const y2 = () => (props.side === ResizeSides.NORTH ? 0 : props.rect.height)
 
   const cls = () =>
     props.side === ResizeSides.EAST || props.side === ResizeSides.WEST
       ? "hover:cursor-ew-resize"
-      : "hover:cursor-ns-resize";
+      : "hover:cursor-ns-resize"
 
   return (
     <line
@@ -34,28 +34,28 @@ const Side: Component<{
       class={cls()}
       data-side={props.side}
     />
-  );
-};
+  )
+}
 
 const Corner: Component<{
-  rect: Rect;
-  side: ResizeSide;
-  selected?: boolean;
-}> = (props) => {
+  rect: Rect
+  side: ResizeSide
+  selected?: boolean
+}> = props => {
   const x = () =>
     props.side === ResizeSides.NORTHEAST || props.side === ResizeSides.SOUTHEAST
       ? props.rect.width
-      : 0;
+      : 0
 
   const y = () =>
     props.side === ResizeSides.SOUTHWEST || props.side === ResizeSides.SOUTHEAST
       ? props.rect.height
-      : 0;
+      : 0
 
   const cls = () =>
     props.side === ResizeSides.NORTHEAST || props.side === ResizeSides.SOUTHWEST
       ? "hover:cursor-nesw-resize"
-      : "hover:cursor-nwse-resize";
+      : "hover:cursor-nwse-resize"
 
   return (
     <rect
@@ -69,8 +69,8 @@ const Corner: Component<{
       class={cls()}
       data-side={props.side}
     />
-  );
-};
+  )
+}
 
 /**
  * (0,0) -------> X+
@@ -80,17 +80,17 @@ const Corner: Component<{
  *   v
  *  Y+
  */
-export const OneNode: Component<{ id: NodeID }> = (props) => {
-  const node = () => store.tree.data.nodes[props.id];
-  const isSelected = () => Boolean(store.selected[props.id]);
-  const rect = () => node().rect;
-  const children = () => node().children;
-  const isEditing = () => props.id === store.editing;
+export const OneNode: Component<{ id: NodeID }> = props => {
+  const node = () => store.tree.data.nodes[props.id]
+  const isSelected = () => Boolean(store.selected[props.id])
+  const rect = () => node().rect
+  const children = () => node().children
+  const isEditing = () => props.id === store.editing
 
-  const draggingAny = () => Boolean(store.dragging);
-  const draggingMe = () => store.dragging && props.id in store.dragging;
+  const draggingAny = () => Boolean(store.dragging)
+  const draggingMe = () => store.dragging && props.id in store.dragging
 
-  const { x, y, width, height } = destructure(rect, { memo: true });
+  const { x, y, width, height } = destructure(rect, { memo: true })
 
   return (
     <g transform={`translate(${x()} ${y()})`}>
@@ -180,7 +180,7 @@ export const OneNode: Component<{ id: NodeID }> = (props) => {
         </g>
       </g>
 
-      <For each={children()}>{(nid) => <OneNode id={nid} />}</For>
+      <For each={children()}>{nid => <OneNode id={nid} />}</For>
     </g>
-  );
-};
+  )
+}
