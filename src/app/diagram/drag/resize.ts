@@ -82,6 +82,31 @@ const onDragSide = (
   return ret
 }
 
+function resizeNode(
+  nodes: Graph["nodes"],
+  beforeDrag: Readonly<Graph>,
+  id: NodeID,
+  side: ResizeSide,
+  sx: number,
+  sy: number,
+  x: number,
+  y: number,
+): void {
+  const original = beforeDrag.nodes[id].rect
+  const next = onDragSide(sx, sy, original, side, x, y)
+  const childX = (next.width - original.width) / 2
+  const childY = (next.height - original.height) / 2
+
+  nodes[id].rect = next
+
+  for (const childID of beforeDrag.nodes[id].children) {
+    const rect = nodes[childID].rect
+    const originalChild = beforeDrag.nodes[childID].rect
+    rect.x = originalChild.x + childX
+    rect.y = originalChild.y + childY
+  }
+}
+
 export const dragSide = (
   beforeDrag: Graph,
   id: NodeID,
@@ -97,28 +122,14 @@ export const dragSide = (
 
     onDrag: (store: State, x: number, y: number): Partial<State> => ({
       tree: nonPatching(store.tree, ({ nodes }) => {
-        nodes[id].rect = onDragSide(
-          sx,
-          sy,
-          beforeDrag.nodes[id].rect,
-          side,
-          x,
-          y,
-        )
+        resizeNode(nodes, beforeDrag, id, side, sx, sy, x, y)
       }),
       dragging,
     }),
 
     onEnd: (store: State, x: number, y: number): Partial<State> => ({
       tree: patching({ ...store.tree, data: beforeDrag }, ({ nodes }) => {
-        nodes[id].rect = onDragSide(
-          sx,
-          sy,
-          beforeDrag.nodes[id].rect,
-          side,
-          x,
-          y,
-        )
+        resizeNode(nodes, beforeDrag, id, side, sx, sy, x, y)
       }),
       dragging: undefined,
     }),
