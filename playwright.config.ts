@@ -7,7 +7,7 @@ export default defineConfig({
   fullyParallel: true,
   testDir: "src/",
   testMatch: "**/*.pw.ts",
-  workers: "100%",
+  workers: 8,
   projects: [
     {
       name: "desktop-chrome",
