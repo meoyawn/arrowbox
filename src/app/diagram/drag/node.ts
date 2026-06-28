@@ -229,8 +229,9 @@ export const dragNode = (
               newParentID,
             )
             const newR = nodes[id].rect
+            const isNewChild = oldParentID !== newParentID
 
-            if (oldParentID !== newParentID) {
+            if (isNewChild) {
               const oldParent = nodes[oldParentID]
               oldParent.children = oldParent.children.filter(x => x !== id)
               nodes[newParentID].children.push(id)
@@ -239,7 +240,9 @@ export const dragNode = (
             newR.x = oldAbs.x + dx - newParentAbs.x
             newR.y = oldAbs.y + dy - newParentAbs.y
 
-            extendAncestorsToFit(nodes, tree.index.parents, newParentID, newR)
+            if (isNewChild) {
+              extendAncestorsToFit(nodes, tree.index.parents, newParentID, newR)
+            }
           }
         }),
         hovering: hoveringTarget,

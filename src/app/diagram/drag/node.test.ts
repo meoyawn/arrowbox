@@ -73,6 +73,56 @@ describe("dragNode", () => {
     })
   })
 
+  test("should not expand parent when moving existing child", () => {
+    const graph: Graph = {
+      edges: {},
+      nodes: {
+        [ROOT_ID]: {
+          children: ["nParent"],
+          id: ROOT_ID,
+          rect: { x: 0, y: 0, width: 0, height: 0 },
+          shape: "rect",
+          text: { html: "", markdown: "" },
+        },
+        nParent: {
+          children: ["nDragged"],
+          id: "nParent",
+          rect: { x: 100, y: 100, width: 100, height: 100 },
+          shape: "rect",
+          text: { html: "", markdown: "" },
+        },
+        nDragged: {
+          children: [],
+          id: "nDragged",
+          rect: { x: 10, y: 10, width: 80, height: 80 },
+          shape: "rect",
+          text: { html: "", markdown: "" },
+        },
+      },
+    }
+
+    const next = dragNode(0, 0, graph, ["nDragged"]).onEnd(
+      testState(graph, "nParent"),
+      50,
+      50,
+    ).tree!.data
+
+    expect(next.nodes[ROOT_ID].children).toEqual(["nParent"])
+    expect(next.nodes.nParent.children).toEqual(["nDragged"])
+    expect(next.nodes.nParent.rect).toEqual({
+      x: 100,
+      y: 100,
+      width: 100,
+      height: 100,
+    })
+    expect(next.nodes.nDragged.rect).toEqual({
+      x: 60,
+      y: 60,
+      width: 80,
+      height: 80,
+    })
+  })
+
   test("should expand every ancestor until root and preserve world positions", () => {
     const graph: Graph = {
       edges: {},
