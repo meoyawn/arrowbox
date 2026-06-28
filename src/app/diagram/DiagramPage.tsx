@@ -261,7 +261,7 @@ export const DiagramPage: Component = () => {
         title="Open menu"
         href="/list"
         data-testid="diagram-menu-link"
-        class="fixed left-2 h-12 w-12 rounded-full bg-white p-2 shadow-xl duration-200 hover:bg-gray-100"
+        class="fixed left-2 z-20 h-12 w-12 rounded-full bg-white p-2 shadow-xl duration-200 hover:bg-gray-100"
         style={{
           top: "calc(var(--arrowbox-viewport-top, 0px) + 0.5rem)",
         }}
@@ -270,7 +270,7 @@ export const DiagramPage: Component = () => {
       </TypedA>
 
       <div
-        class="fixed left-1/2"
+        class="fixed left-1/2 z-20"
         data-testid="diagram-title"
         style={{
           top: "calc(var(--arrowbox-viewport-top, 0px) + 0.5rem)",
@@ -280,7 +280,7 @@ export const DiagramPage: Component = () => {
       </div>
 
       <div
-        class="fixed left-2 flex flex-row overflow-hidden rounded-md"
+        class="fixed left-2 z-20 flex flex-row overflow-hidden rounded-md"
         data-testid="diagram-bottom-controls"
         style={{
           bottom: "calc(var(--arrowbox-viewport-bottom, 0px) + 0.5rem)",

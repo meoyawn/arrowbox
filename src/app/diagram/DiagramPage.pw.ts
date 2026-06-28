@@ -129,18 +129,20 @@ test.describe("diagram page", () => {
     )
 
     const editMetrics = await page
-      .locator("[data-nodeID=nText] textarea")
+      .locator("[data-testid=foreign-text-editor]")
       .evaluate(textarea => {
         const rect = textarea.getBoundingClientRect()
 
         return {
+          insideSvg: Boolean(textarea.closest("svg")),
           height: rect.height,
           position: getComputedStyle(textarea).position,
           width: rect.width,
         }
       })
 
-    expect(editMetrics.position).not.toEqual("fixed")
+    expect(editMetrics.insideSvg).toEqual(false)
+    expect(editMetrics.position).toEqual("fixed")
     expect(editMetrics.width).toBeGreaterThan(0)
     expect(editMetrics.height).toBeGreaterThan(0)
   })
@@ -199,6 +201,361 @@ test.describe("diagram page", () => {
     await expect(
       page.locator("[data-edgeID=eMain] .stroke-blue-600.stroke-2"),
     ).toHaveCount(1)
+  })
+
+  test("restores foreign text when escaping portal editor", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const graphID = "g-portal-editor-escape"
+      localStorage.setItem("last-graph", graphID)
+      localStorage.setItem(
+        "graph-list",
+        JSON.stringify({
+          [graphID]: { title: "Portal editor escape", lastModifiedMs: 0 },
+        }),
+      )
+      localStorage.setItem(
+        graphID,
+        JSON.stringify({
+          nodes: {
+            nRoot: {
+              id: "nRoot",
+              children: ["nEscape"],
+              rect: { x: 0, y: 0, width: 0, height: 0 },
+              text: { html: "", markdown: "" },
+              shape: "rect",
+            },
+            nEscape: {
+              id: "nEscape",
+              children: [],
+              rect: { x: 180, y: 160, width: 260, height: 180 },
+              text: {
+                html: "<h1>Original</h1>",
+                markdown: "# Original",
+              },
+              shape: "rect",
+            },
+          },
+          edges: {},
+        }),
+      )
+    })
+    await page.goto("/")
+
+    const nodeShape = page.locator(
+      "[data-nodeID=nEscape] [data-dragID=node] > rect",
+    )
+    const nodeBox = await nodeShape.boundingBox()
+    if (!nodeBox) throw new Error("Missing node box")
+
+    await page.mouse.dblclick(
+      nodeBox.x + nodeBox.width / 2,
+      nodeBox.y + nodeBox.height / 2,
+    )
+
+    const editor = page.locator("[data-testid=foreign-text-editor]")
+    await expect(editor).toBeFocused()
+    await editor.fill("# Dirty")
+    await page.keyboard.press("Escape")
+
+    await expect(editor).toHaveCount(0)
+    await expect(
+      page.locator("[data-nodeID=nEscape] [data-testid=foreign-text-content]"),
+    ).toHaveText("Original")
+
+    const storedMarkdown = await page.evaluate(() => {
+      const graph = JSON.parse(localStorage.getItem("g-portal-editor-escape")!)
+
+      return graph.nodes.nEscape.text.markdown
+    })
+    expect(storedMarkdown).toEqual("# Original")
+  })
+
+  test("keeps portal text editor locked to node while panning", async ({
+    page,
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== "desktop-chrome",
+      "mouse.wheel is not supported in mobile WebKit",
+    )
+
+    await page.addInitScript(() => {
+      const graphID = "g-portal-editor-pan"
+      localStorage.setItem("last-graph", graphID)
+      localStorage.setItem(
+        "graph-list",
+        JSON.stringify({
+          [graphID]: { title: "Portal editor pan", lastModifiedMs: 0 },
+        }),
+      )
+      localStorage.setItem(
+        graphID,
+        JSON.stringify({
+          nodes: {
+            nRoot: {
+              id: "nRoot",
+              children: ["nPan"],
+              rect: { x: 0, y: 0, width: 0, height: 0 },
+              text: { html: "", markdown: "" },
+              shape: "rect",
+            },
+            nPan: {
+              id: "nPan",
+              children: [],
+              rect: { x: 220, y: 180, width: 220, height: 140 },
+              text: {
+                html: "<p>Editable during pan</p>",
+                markdown: "Editable during pan",
+              },
+              shape: "rect",
+            },
+          },
+          edges: {},
+        }),
+      )
+    })
+    await page.goto("/")
+
+    const nodeShape = page.locator(
+      "[data-nodeID=nPan] [data-dragID=node] > rect",
+    )
+    const nodeBox = await nodeShape.boundingBox()
+    if (!nodeBox) throw new Error("Missing node box")
+
+    await page.mouse.dblclick(
+      nodeBox.x + nodeBox.width / 2,
+      nodeBox.y + nodeBox.height / 2,
+    )
+
+    const editor = page.locator("[data-testid=foreign-text-editor]")
+    await expect(editor).toBeFocused()
+
+    async function editorAlignment(): Promise<{
+      dx: number
+      dy: number
+      heightDelta: number
+      nodeX: number
+      widthDelta: number
+    }> {
+      const shape = await nodeShape.boundingBox()
+      const textarea = await editor.boundingBox()
+      if (!shape || !textarea) throw new Error("Missing alignment boxes")
+
+      return {
+        dx: textarea.x - shape.x,
+        dy: textarea.y - shape.y,
+        heightDelta: textarea.height - shape.height,
+        nodeX: shape.x,
+        widthDelta: textarea.width - shape.width,
+      }
+    }
+
+    const before = await editorAlignment()
+    expect(Math.abs(before.dx)).toBeLessThan(2)
+    expect(Math.abs(before.dy)).toBeLessThan(2)
+    expect(Math.abs(before.widthDelta)).toBeLessThan(2)
+    expect(Math.abs(before.heightDelta)).toBeLessThan(2)
+
+    await page.mouse.move(700, 500)
+    await page.mouse.wheel(120, 80)
+    await expect
+      .poll(async () => (await editorAlignment()).nodeX)
+      .not.toEqual(before.nodeX)
+
+    const after = await editorAlignment()
+    expect(Math.abs(after.dx)).toBeLessThan(2)
+    expect(Math.abs(after.dy)).toBeLessThan(2)
+    expect(Math.abs(after.widthDelta)).toBeLessThan(2)
+    expect(Math.abs(after.heightDelta)).toBeLessThan(2)
+  })
+
+  test("scales portal text editor typography with canvas zoom", async ({
+    page,
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== "desktop-chrome",
+      "mouse.wheel is not supported in mobile WebKit",
+    )
+
+    await page.addInitScript(() => {
+      const graphID = "g-portal-editor-zoom"
+      localStorage.setItem("last-graph", graphID)
+      localStorage.setItem(
+        "graph-list",
+        JSON.stringify({
+          [graphID]: { title: "Portal editor zoom", lastModifiedMs: 0 },
+        }),
+      )
+      localStorage.setItem(
+        graphID,
+        JSON.stringify({
+          nodes: {
+            nRoot: {
+              id: "nRoot",
+              children: ["nZoom"],
+              rect: { x: 0, y: 0, width: 0, height: 0 },
+              text: { html: "", markdown: "" },
+              shape: "rect",
+            },
+            nZoom: {
+              id: "nZoom",
+              children: [],
+              rect: { x: 220, y: 180, width: 220, height: 140 },
+              text: {
+                html: "<p>###</p><p># h4</p>",
+                markdown: "###\n# h4",
+              },
+              shape: "rect",
+            },
+          },
+          edges: {},
+        }),
+      )
+    })
+    await page.goto("/")
+
+    function parseScale(transform: string | null): number {
+      const match = transform?.match(/scale\((-?\d+(?:\.\d+)?)\)$/)
+      if (!match) throw new Error(`Invalid canvas transform: ${transform}`)
+
+      return Number(match[1])
+    }
+
+    async function canvasScale(): Promise<number> {
+      return parseScale(
+        await page.locator("#canvas > g").getAttribute("transform"),
+      )
+    }
+
+    const nodeShape = page.locator(
+      "[data-nodeID=nZoom] [data-dragID=node] > rect",
+    )
+    const nodeBox = await nodeShape.boundingBox()
+    if (!nodeBox) throw new Error("Missing node box")
+
+    await page.mouse.dblclick(
+      nodeBox.x + nodeBox.width / 2,
+      nodeBox.y + nodeBox.height / 2,
+    )
+
+    const editor = page.locator("[data-testid=foreign-text-editor]")
+    await expect(editor).toBeFocused()
+
+    await page.mouse.move(700, 500)
+    await page.keyboard.down("Control")
+    await page.mouse.wheel(0, -400)
+    await page.keyboard.up("Control")
+
+    await expect.poll(canvasScale).toBeGreaterThan(1)
+    const scale = await canvasScale()
+
+    const metrics = await editor.evaluate(textarea => {
+      const style = getComputedStyle(textarea)
+      const rect = textarea.getBoundingClientRect()
+
+      return {
+        borderTopWidth: Number.parseFloat(style.borderTopWidth),
+        fontSize: Number.parseFloat(style.fontSize),
+        height: rect.height,
+        lineHeight: Number.parseFloat(style.lineHeight),
+        paddingTop: Number.parseFloat(style.paddingTop),
+        width: rect.width,
+      }
+    })
+    const shape = await nodeShape.boundingBox()
+    if (!shape) throw new Error("Missing zoomed node box")
+
+    expect(Math.abs(metrics.fontSize - 16 * scale)).toBeLessThan(0.5)
+    expect(Math.abs(metrics.lineHeight - 24 * scale)).toBeLessThan(0.5)
+    expect(Math.abs(metrics.paddingTop - 8 * scale)).toBeLessThan(0.5)
+    expect(Math.abs(metrics.borderTopWidth - 2 * scale)).toBeLessThan(0.5)
+    expect(Math.abs(metrics.width - shape.width)).toBeLessThan(2)
+    expect(Math.abs(metrics.height - shape.height)).toBeLessThan(2)
+  })
+
+  test("keeps portal text editor below diagram title chrome", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const graphID = "g-portal-editor-title-layer"
+      localStorage.setItem("last-graph", graphID)
+      localStorage.setItem(
+        "graph-list",
+        JSON.stringify({
+          [graphID]: { title: "Portal title layer", lastModifiedMs: 0 },
+        }),
+      )
+      localStorage.setItem(
+        graphID,
+        JSON.stringify({
+          nodes: {
+            nRoot: {
+              id: "nRoot",
+              children: ["nTitleLayer"],
+              rect: { x: 0, y: 0, width: 0, height: 0 },
+              text: { html: "", markdown: "" },
+              shape: "rect",
+            },
+            nTitleLayer: {
+              id: "nTitleLayer",
+              children: [],
+              rect: { x: 0, y: 0, width: 760, height: 180 },
+              text: {
+                html: "<h4>h4</h4>",
+                markdown: "#### h4",
+              },
+              shape: "rect",
+            },
+          },
+          edges: {},
+        }),
+      )
+    })
+    await page.goto("/")
+
+    const nodeShape = page.locator(
+      "[data-nodeID=nTitleLayer] [data-dragID=node] > rect",
+    )
+    const nodeBox = await nodeShape.boundingBox()
+    if (!nodeBox) throw new Error("Missing node box")
+
+    await page.mouse.dblclick(nodeBox.x + 100, nodeBox.y + 100)
+
+    const editor = page.locator("[data-testid=foreign-text-editor]")
+    await expect(editor).toBeFocused()
+
+    const layer = await page.evaluate(() => {
+      const title = document.querySelector("[data-testid=diagram-title]")
+      const textarea = document.querySelector(
+        "[data-testid=foreign-text-editor]",
+      )
+
+      if (!(title instanceof HTMLElement)) throw new Error("Missing title")
+      if (!(textarea instanceof HTMLTextAreaElement)) {
+        throw new Error("Missing editor")
+      }
+
+      const titleRect = title.getBoundingClientRect()
+      const textareaRect = textarea.getBoundingClientRect()
+      const x = titleRect.left + titleRect.width / 2
+      const y = titleRect.top + titleRect.height / 2
+      const top = document.elementFromPoint(x, y)
+
+      return {
+        pointInsideEditor:
+          x >= textareaRect.left &&
+          x <= textareaRect.right &&
+          y >= textareaRect.top &&
+          y <= textareaRect.bottom,
+        topIsEditor: top === textarea || textarea.contains(top),
+        topIsTitle: top === title || title.contains(top),
+      }
+    })
+
+    expect(layer.pointInsideEditor).toEqual(true)
+    expect(layer.topIsEditor).toEqual(false)
+    expect(layer.topIsTitle).toEqual(true)
   })
 
   test("keeps shortcut dialog above its overlay", async ({ page }) => {

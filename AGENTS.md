@@ -5,6 +5,8 @@
 - `.tsx` files are solid-js, not react-js
 - never start a dev server, it's already running
   [vite.config.ts](vite.config.ts)
+- never run `task check` without sandbox escalation (because chrome & webkit)
+- never run `bun oxfmt`, `task check` already does it
 
 ## Testing
 

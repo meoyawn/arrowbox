@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test"
+import sharp from "sharp"
 
 interface CameraTransform {
   x: number
@@ -274,6 +275,255 @@ test.describe("diagram page iOS gestures", () => {
     expect(alignment.contentHeight).toBeGreaterThan(0)
     expect(Math.abs(alignment.dx)).toBeLessThan(1)
     expect(Math.abs(alignment.dy)).toBeLessThan(1)
+  })
+
+  test("keeps foreign text inside node bounds on first paint", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const graphID = "g-ios-foreign-text-contained"
+      localStorage.setItem("last-graph", graphID)
+      localStorage.setItem(
+        "graph-list",
+        JSON.stringify({
+          [graphID]: { title: "Foreign text contained", lastModifiedMs: 0 },
+        }),
+      )
+      localStorage.setItem(
+        graphID,
+        JSON.stringify({
+          nodes: {
+            nRoot: {
+              id: "nRoot",
+              children: ["nContained"],
+              rect: { x: 0, y: 0, width: 0, height: 0 },
+              text: { html: "", markdown: "" },
+              shape: "rect",
+            },
+            nContained: {
+              id: "nContained",
+              children: [],
+              rect: { x: 90, y: 260, width: 140, height: 90 },
+              text: {
+                html: "<p>Hihhhih</p>",
+                markdown: "Hihhhih",
+              },
+              shape: "rect",
+            },
+          },
+          edges: {},
+        }),
+      )
+    })
+    await page.goto("/")
+
+    const metrics = await page
+      .locator("[data-nodeID=nContained]")
+      .evaluate(node => {
+        const shape = node.querySelector("rect")
+        const text = node.querySelector("[data-testid=foreign-text-content]")
+        const textBox = node.querySelector("[data-testid=foreign-text-box]")
+        if (!shape || !text || !textBox) throw new Error("Missing node text")
+
+        const shapeRect = shape.getBoundingClientRect()
+        const textRect = text.getBoundingClientRect()
+
+        return {
+          boxOverflow: getComputedStyle(textBox).overflow,
+          contentPosition: getComputedStyle(text).position,
+          shapeBottom: shapeRect.bottom,
+          shapeLeft: shapeRect.left,
+          shapeRight: shapeRect.right,
+          shapeTop: shapeRect.top,
+          textBottom: textRect.bottom,
+          textLeft: textRect.left,
+          textRight: textRect.right,
+          textTop: textRect.top,
+        }
+      })
+
+    expect(metrics.boxOverflow).toEqual("hidden")
+    expect(metrics.contentPosition).toEqual("static")
+    expect(metrics.textLeft).toBeGreaterThanOrEqual(metrics.shapeLeft)
+    expect(metrics.textTop).toBeGreaterThanOrEqual(metrics.shapeTop)
+    expect(metrics.textRight).toBeLessThanOrEqual(metrics.shapeRight)
+    expect(metrics.textBottom).toBeLessThanOrEqual(metrics.shapeBottom)
+  })
+
+  test("edits foreign text with native iOS textarea outside SVG", async ({
+    page,
+  }, testInfo) => {
+    await page.addInitScript(() => {
+      const graphID = "g-ios-foreign-text-edit-caret"
+      localStorage.setItem("last-graph", graphID)
+      localStorage.setItem(
+        "graph-list",
+        JSON.stringify({
+          [graphID]: { title: "Foreign text edit caret", lastModifiedMs: 0 },
+        }),
+      )
+      localStorage.setItem(
+        graphID,
+        JSON.stringify({
+          nodes: {
+            nRoot: {
+              id: "nRoot",
+              children: ["nEdit"],
+              rect: { x: 0, y: 0, width: 0, height: 0 },
+              text: { html: "", markdown: "" },
+              shape: "rect",
+            },
+            nEdit: {
+              id: "nEdit",
+              children: [],
+              rect: { x: 100, y: 260, width: 180, height: 120 },
+              text: {
+                html: "<p>Edit me</p>",
+                markdown: "Edit me",
+              },
+              shape: "rect",
+            },
+          },
+          edges: {},
+        }),
+      )
+    })
+    await page.goto("/")
+
+    const nodeBox = await page
+      .locator("[data-nodeID=nEdit] [data-dragID=node] > rect")
+      .boundingBox()
+    if (!nodeBox) throw new Error("Missing node box")
+
+    await page.mouse.dblclick(
+      nodeBox.x + nodeBox.width / 2,
+      nodeBox.y + nodeBox.height / 2,
+    )
+
+    const textarea = page.locator("[data-testid=foreign-text-editor]")
+    await expect(textarea).toBeVisible()
+    await expect(textarea).toBeFocused()
+
+    await textarea.press("End")
+    await textarea.pressSequentially("!")
+    await expect(textarea).toHaveValue("Edit me!")
+
+    const metrics = await textarea.evaluate(textarea => {
+      const rect = textarea.getBoundingClientRect()
+      const style = getComputedStyle(textarea)
+      return {
+        borderColor: style.borderTopColor,
+        borderStyle: style.borderTopStyle,
+        borderWidth: style.borderTopWidth,
+        bottom: rect.bottom,
+        height: rect.height,
+        insideSvg: Boolean(textarea.closest("svg")),
+        left: rect.left,
+        position: style.position,
+        textColor: style.color,
+        top: rect.top,
+        width: rect.width,
+      }
+    })
+
+    expect(metrics.insideSvg).toEqual(false)
+    expect(metrics.position).toEqual("fixed")
+    expect(metrics.borderColor).toEqual("rgb(37, 99, 235)")
+    expect(metrics.borderStyle).toEqual("solid")
+    expect(metrics.borderWidth).toEqual("2px")
+    expect(metrics.textColor).toEqual("rgb(0, 0, 0)")
+    expect(Math.abs(metrics.left - nodeBox.x)).toBeLessThan(2)
+    expect(Math.abs(metrics.top - nodeBox.y)).toBeLessThan(2)
+    expect(Math.abs(metrics.width - nodeBox.width)).toBeLessThan(2)
+    expect(Math.abs(metrics.height - nodeBox.height)).toBeLessThan(2)
+
+    const editingScreenshotPath = testInfo.outputPath("foreign-text-editor.png")
+    const editingScreenshot = await textarea.screenshot({
+      path: editingScreenshotPath,
+    })
+    await testInfo.attach("foreign-text-editor-editing", {
+      path: editingScreenshotPath,
+      contentType: "image/png",
+    })
+
+    async function decodePng(buffer: Buffer): Promise<{
+      data: Buffer
+      height: number
+      width: number
+    }> {
+      const {
+        data,
+        info: { height, width },
+      } = await sharp(buffer)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true })
+
+      return { data, height, width }
+    }
+
+    function countPixels(
+      image: { data: Buffer; width: number },
+      rect: { height: number; left: number; top: number; width: number },
+      predicate: (r: number, g: number, b: number, a: number) => boolean,
+    ): number {
+      let count = 0
+      for (let y = rect.top; y < rect.top + rect.height; y++) {
+        for (let x = rect.left; x < rect.left + rect.width; x++) {
+          const offset = (y * image.width + x) * 4
+          if (
+            predicate(
+              image.data[offset] ?? 0,
+              image.data[offset + 1] ?? 0,
+              image.data[offset + 2] ?? 0,
+              image.data[offset + 3] ?? 0,
+            )
+          ) {
+            count++
+          }
+        }
+      }
+
+      return count
+    }
+
+    function isPaintedBlue(
+      r: number,
+      g: number,
+      b: number,
+      a: number,
+    ): boolean {
+      return a > 220 && r < 100 && g > 40 && g < 170 && b > 150
+    }
+
+    function isPaintedBlack(
+      r: number,
+      g: number,
+      b: number,
+      a: number,
+    ): boolean {
+      return a > 220 && r < 50 && g < 50 && b < 50
+    }
+
+    const image = await decodePng(editingScreenshot)
+    const borderPixels = countPixels(
+      image,
+      { height: image.height, left: 0, top: 0, width: image.width },
+      isPaintedBlue,
+    )
+    const textPixels = countPixels(
+      image,
+      {
+        height: Math.max(1, Math.floor(image.height / 3)),
+        left: 0,
+        top: 0,
+        width: image.width,
+      },
+      isPaintedBlack,
+    )
+
+    expect(borderPixels).toBeGreaterThan(100)
+    expect(textPixels).toBeGreaterThan(100)
   })
 
   test("zooms empty canvas with two-finger pinch", async ({ page }) => {

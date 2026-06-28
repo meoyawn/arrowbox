@@ -1,4 +1,3 @@
-import { destructure } from "@solid-primitives/destructure"
 import { For, Show, type Component } from "solid-js"
 import { type Rect } from "../../../lib/geometry.ts"
 import { type NodeID } from "../data/data.ts"
@@ -90,7 +89,10 @@ export const OneNode: Component<{ id: NodeID }> = props => {
   const draggingAny = () => Boolean(store.dragging)
   const draggingMe = () => store.dragging && props.id in store.dragging
 
-  const { x, y, width, height } = destructure(rect, { memo: true })
+  const x = () => rect().x
+  const y = () => rect().y
+  const width = () => rect().width
+  const height = () => rect().height
 
   return (
     <g transform={`translate(${x()} ${y()})`}>
@@ -108,7 +110,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
             rx={3}
             ry={3}
             classList={{
-              "stroke-black stroke-1 group-hover:stroke-blue-600": true,
+              "stroke-black stroke-1 group-hover:stroke-blue-600": !isEditing(),
               "group-hover:stroke-2": draggingAny(),
             }}
             fill="white"
