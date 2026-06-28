@@ -96,6 +96,51 @@ async function dispatchCanvasTouch(
   )
 }
 
+async function installManualAnimationFrame(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    let nextFrameID = 1
+    const callbacks = new Map<number, FrameRequestCallback>()
+
+    Object.defineProperty(window, "requestAnimationFrame", {
+      configurable: true,
+      value: (callback: FrameRequestCallback): number => {
+        const id = nextFrameID
+        nextFrameID += 1
+        callbacks.set(id, callback)
+
+        return id
+      },
+    })
+    Object.defineProperty(window, "cancelAnimationFrame", {
+      configurable: true,
+      value: (id: number): void => {
+        callbacks.delete(id)
+      },
+    })
+    Object.defineProperty(window, "__arrowboxStepFrame", {
+      configurable: true,
+      value: (): number => {
+        const frameCallbacks = [...callbacks.entries()]
+        callbacks.clear()
+
+        for (const entry of frameCallbacks) {
+          entry[1](performance.now())
+        }
+
+        return frameCallbacks.length
+      },
+    })
+  })
+}
+
+async function stepManualAnimationFrame(page: Page): Promise<number> {
+  return page.evaluate(() =>
+    (
+      window as unknown as { __arrowboxStepFrame: () => number }
+    ).__arrowboxStepFrame(),
+  )
+}
+
 async function waitForCameraChange(page: Page): Promise<void> {
   await page.waitForFunction(() => {
     const transform = document
@@ -524,6 +569,112 @@ test.describe("diagram page iOS gestures", () => {
 
     expect(borderPixels).toBeGreaterThan(100)
     expect(textPixels).toBeGreaterThan(100)
+  })
+
+  test("keeps active foreign text editor locked during touch pan and pinch", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const graphID = "g-ios-foreign-text-edit-transform"
+      localStorage.setItem("last-graph", graphID)
+      localStorage.setItem(
+        "graph-list",
+        JSON.stringify({
+          [graphID]: {
+            title: "Foreign text edit transform",
+            lastModifiedMs: 0,
+          },
+        }),
+      )
+      localStorage.setItem(
+        graphID,
+        JSON.stringify({
+          nodes: {
+            nRoot: {
+              id: "nRoot",
+              children: ["nEditTransform"],
+              rect: { x: 0, y: 0, width: 0, height: 0 },
+              text: { html: "", markdown: "" },
+              shape: "rect",
+            },
+            nEditTransform: {
+              id: "nEditTransform",
+              children: [],
+              rect: { x: 120, y: 300, width: 170, height: 110 },
+              text: {
+                html: "<p>Move while editing</p>",
+                markdown: "Move while editing",
+              },
+              shape: "rect",
+            },
+          },
+          edges: {},
+        }),
+      )
+    })
+    await page.goto("/")
+
+    const nodeShape = page.locator(
+      "[data-nodeID=nEditTransform] [data-dragID=node] > rect",
+    )
+    const nodeBox = await nodeShape.boundingBox()
+    if (!nodeBox) throw new Error("Missing node box")
+
+    await page.mouse.dblclick(
+      nodeBox.x + nodeBox.width / 2,
+      nodeBox.y + nodeBox.height / 2,
+    )
+
+    const editor = page.locator("[data-testid=foreign-text-editor]")
+    await expect(editor).toBeFocused()
+
+    async function editorAlignment(): Promise<{
+      dx: number
+      dy: number
+      heightDelta: number
+      nodeX: number
+      scale: number
+      widthDelta: number
+    }> {
+      const shape = await nodeShape.boundingBox()
+      const textarea = await editor.boundingBox()
+      if (!shape || !textarea) throw new Error("Missing alignment boxes")
+
+      return {
+        dx: textarea.x - shape.x,
+        dy: textarea.y - shape.y,
+        heightDelta: textarea.height - shape.height,
+        nodeX: shape.x,
+        scale: (await cameraTransform(page)).k,
+        widthDelta: textarea.width - shape.width,
+      }
+    }
+
+    const before = await editorAlignment()
+    expect(Math.abs(before.dx)).toBeLessThan(2)
+    expect(Math.abs(before.dy)).toBeLessThan(2)
+    expect(Math.abs(before.widthDelta)).toBeLessThan(2)
+    expect(Math.abs(before.heightDelta)).toBeLessThan(2)
+
+    await installManualAnimationFrame(page)
+    await dispatchCanvasTouch(page, "touchstart", [
+      { id: 1, x: 130, y: 340 },
+      { id: 2, x: 250, y: 340 },
+    ])
+    await dispatchCanvasTouch(page, "touchmove", [
+      { id: 1, x: 160, y: 360 },
+      { id: 2, x: 310, y: 360 },
+    ])
+
+    expect(await stepManualAnimationFrame(page)).toBeGreaterThan(0)
+
+    const after = await editorAlignment()
+    expect(after.nodeX).not.toEqual(before.nodeX)
+    expect(after.scale).toBeGreaterThan(before.scale)
+    expect(Math.abs(after.dx)).toBeLessThan(2)
+    expect(Math.abs(after.dy)).toBeLessThan(2)
+    expect(Math.abs(after.widthDelta)).toBeLessThan(2)
+    expect(Math.abs(after.heightDelta)).toBeLessThan(2)
   })
 
   test("zooms empty canvas with two-finger pinch", async ({ page }) => {

@@ -93,13 +93,7 @@ export const ForeignText: Component<{
       props.rect.height,
     ].join(":")
 
-    const frame = requestAnimationFrame(() => {
-      updateEditorBox(trackingKey)
-    })
-
-    onCleanup(() => {
-      cancelAnimationFrame(frame)
-    })
+    updateEditorBox(trackingKey)
   })
 
   return (
