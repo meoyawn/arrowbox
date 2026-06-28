@@ -46,15 +46,12 @@ export const ForeignText: Component<{
       width={width()}
       height={height()}
     >
-      <div
-        classList={{
-          "prose fixed inset-0 flex max-w-none justify-center": true,
-          "items-center": props.isCenter,
-        }}
-      >
+      <div class="relative h-full w-full overflow-visible">
         <div
+          data-testid="foreign-text-content"
           classList={{
-            "max-h-none max-w-none": true,
+            "prose flex h-full w-full max-w-none justify-center": true,
+            "items-center": props.isCenter,
             "pointer-events-auto": !isDraggingMe(),
             // apply to children
             "[&>*]:bg-white": isEdgeID(props.id),
@@ -62,32 +59,32 @@ export const ForeignText: Component<{
           // eslint-disable-next-line solid/no-innerhtml
           innerHTML={props.text.html}
         />
+
+        <Show when={isEditing()}>
+          <textarea
+            ref={editor}
+            class="pointer-events-auto absolute inset-0 h-full w-full resize bg-white p-2 ring-1 ring-black"
+            value={props.text.markdown}
+            placeholder={"Markdown"}
+            onBlur={({ currentTarget }) => {
+              setStoreMD(props.id, currentTarget.value)
+            }}
+            onKeyDown={({ currentTarget, key, shiftKey }) => {
+              switch (key) {
+                case "Escape":
+                  setStore({ editing: undefined })
+                  break
+
+                case "Enter":
+                  if (!shiftKey) {
+                    setStoreMD(props.id, currentTarget.value)
+                  }
+                  break
+              }
+            }}
+          />
+        </Show>
       </div>
-
-      <Show when={isEditing()}>
-        <textarea
-          ref={editor}
-          class="pointer-events-auto fixed inset-0 resize bg-white p-2 ring-1 ring-black"
-          value={props.text.markdown}
-          placeholder={"Markdown"}
-          onBlur={({ currentTarget }) => {
-            setStoreMD(props.id, currentTarget.value)
-          }}
-          onKeyDown={({ currentTarget, key, shiftKey }) => {
-            switch (key) {
-              case "Escape":
-                setStore({ editing: undefined })
-                break
-
-              case "Enter":
-                if (!shiftKey) {
-                  setStoreMD(props.id, currentTarget.value)
-                }
-                break
-            }
-          }}
-        />
-      </Show>
     </foreignObject>
   )
 }

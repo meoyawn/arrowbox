@@ -20,6 +20,19 @@ import { OneEdge } from "./OneEdge.tsx"
 import { OneNode } from "./OneNode.tsx"
 import { SvgDefs } from "./SvgDefs.tsx"
 
+interface Point {
+  x: number
+  y: number
+}
+
+interface TouchGesture {
+  camera: ZoomTransform
+  center: Point
+  distance: number
+}
+
+const zoomScaleExtent: [number, number] = [0.05, 8]
+
 let currentCamera = zoomIdentity
 let cameraFrame = 0
 let canvasSelection:
@@ -44,8 +57,62 @@ function cancelCameraCommit(): void {
   cameraFrame = 0
 }
 
+const clampZoomScale = (scale: number): number =>
+  Math.min(zoomScaleExtent[1], Math.max(zoomScaleExtent[0], scale))
+
+const distance = (a: Point, b: Point): number =>
+  Math.hypot(a.x - b.x, a.y - b.y)
+
+const midpoint = (a: Point, b: Point): Point => ({
+  x: (a.x + b.x) / 2,
+  y: (a.y + b.y) / 2,
+})
+
+export function touchGestureCamera(
+  start: TouchGesture,
+  center: Point,
+  distance: number,
+): ZoomTransform {
+  const k = clampZoomScale(start.camera.k * (distance / start.distance))
+  const [worldX, worldY] = start.camera.invert([start.center.x, start.center.y])
+
+  return zoomIdentity
+    .translate(center.x, center.y)
+    .scale(k)
+    .translate(-worldX, -worldY)
+}
+
+function touchPoint(touch: Touch, svgEl: SVGSVGElement): Point {
+  const rect = svgEl.getBoundingClientRect()
+
+  return {
+    x: touch.clientX - rect.left,
+    y: touch.clientY - rect.top,
+  }
+}
+
+function touchGesture(
+  ev: TouchEvent,
+  svgEl: SVGSVGElement,
+): TouchGesture | null {
+  if (ev.touches.length !== 2) return null
+
+  const touchA = ev.touches.item(0)
+  const touchB = ev.touches.item(1)
+  if (!touchA || !touchB) return null
+
+  const a = touchPoint(touchA, svgEl)
+  const b = touchPoint(touchB, svgEl)
+
+  return {
+    camera: currentCamera,
+    center: midpoint(a, b),
+    distance: distance(a, b),
+  }
+}
+
 const d3Zoom = zoom<SVGSVGElement, unknown>()
-  .scaleExtent([0.05, 8])
+  .scaleExtent(zoomScaleExtent)
   .filter((ev: UIEvent) => (ev instanceof WheelEvent ? ev.ctrlKey : true))
   .on("zoom", (e: D3ZoomEvent<Element, unknown>) => {
     commitCamera(e.transform)
@@ -79,7 +146,8 @@ export const DiagramSVG: Component = () => {
   createEffect(() => {
     if (!svgEl || !zoomedEl) return
 
-    const svg = select<SVGSVGElement, unknown>(svgEl)
+    const canvas = svgEl
+    const svg = select<SVGSVGElement, unknown>(canvas)
     canvasSelection = svg
     const drag = behaviorDrag(worldDragSubj, zoomedEl) as unknown as (
       selection: typeof svg,
@@ -89,16 +157,83 @@ export const DiagramSVG: Component = () => {
     applyZoom(svg)
     svg.on("dblclick.zoom", null).on("mousedown.zoom", null)
 
+    let touchStart: TouchGesture | null = null
+
     function preventPageZoom(ev: WheelEvent): void {
       if (ev.ctrlKey) ev.preventDefault()
     }
 
-    svgEl.addEventListener("wheel", preventPageZoom, {
+    function preventGesture(ev: Event): void {
+      ev.preventDefault()
+    }
+
+    function handleTouchStart(ev: TouchEvent): void {
+      touchStart = touchGesture(ev, canvas)
+      if (!touchStart) return
+
+      ev.preventDefault()
+      ev.stopImmediatePropagation()
+    }
+
+    function handleTouchZoomMove(ev: TouchEvent): void {
+      if (!touchStart) return
+
+      const current = touchGesture(ev, canvas)
+      if (!current) return
+
+      ev.preventDefault()
+      ev.stopImmediatePropagation()
+      zoomTo(touchGestureCamera(touchStart, current.center, current.distance))
+    }
+
+    function handleTouchMove(ev: TouchEvent): void {
+      handleTouchZoomMove(ev)
+    }
+
+    function handleTouchEnd(ev: TouchEvent): void {
+      if (ev.touches.length >= 2) {
+        touchStart = touchGesture(ev, canvas)
+      } else {
+        touchStart = null
+      }
+    }
+
+    canvas.addEventListener("wheel", preventPageZoom, {
+      capture: true,
+      passive: false,
+    })
+    canvas.addEventListener("gesturestart", preventGesture, {
+      capture: true,
+      passive: false,
+    })
+    canvas.addEventListener("gesturechange", preventGesture, {
+      capture: true,
+      passive: false,
+    })
+    canvas.addEventListener("touchstart", handleTouchStart, {
+      capture: true,
+      passive: false,
+    })
+    canvas.addEventListener("touchmove", handleTouchMove, {
+      capture: true,
+      passive: false,
+    })
+    canvas.addEventListener("touchend", handleTouchEnd, {
+      capture: true,
+      passive: false,
+    })
+    canvas.addEventListener("touchcancel", handleTouchEnd, {
       capture: true,
       passive: false,
     })
     onCleanup(() => {
-      svgEl?.removeEventListener("wheel", preventPageZoom, true)
+      canvas.removeEventListener("wheel", preventPageZoom, true)
+      canvas.removeEventListener("gesturestart", preventGesture, true)
+      canvas.removeEventListener("gesturechange", preventGesture, true)
+      canvas.removeEventListener("touchstart", handleTouchStart, true)
+      canvas.removeEventListener("touchmove", handleTouchMove, true)
+      canvas.removeEventListener("touchend", handleTouchEnd, true)
+      canvas.removeEventListener("touchcancel", handleTouchEnd, true)
       cancelCameraCommit()
       if (canvasSelection === svg) canvasSelection = undefined
     })
