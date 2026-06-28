@@ -235,7 +235,7 @@ export const DiagramPage: Component = () => {
         <Title />
       </div>
 
-      <div class="absolute bottom-2 left-2 flex flex-row divide-x rounded-md border">
+      <div class="absolute bottom-2 left-2 flex flex-row overflow-hidden rounded-md">
         <button
           class="bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-300"
           onClick={() => zoomTo(hundredPctZoom(store.tree))}

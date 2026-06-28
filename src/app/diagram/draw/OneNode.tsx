@@ -111,7 +111,7 @@ export const OneNode: Component<{ id: NodeID }> = props => {
               "stroke-black stroke-1 group-hover:stroke-blue-600": true,
               "group-hover:stroke-2": draggingAny(),
             }}
-            fill="transparent"
+            fill="white"
             width={width()}
             height={height()}
           />

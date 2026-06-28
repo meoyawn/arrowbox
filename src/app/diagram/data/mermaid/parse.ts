@@ -1,10 +1,13 @@
+import type { Diagram } from "mermaid/dist/Diagram.js"
 import type { DiagramDB } from "mermaid/dist/diagram-api/types.js"
 import type {
   FlowEdge,
   FlowSubGraph,
   FlowVertex,
 } from "mermaid/dist/diagrams/flowchart/types.js"
+import { Config } from "../../../config.ts"
 import { md2html } from "../../../markdown.ts"
+import { sleep } from "../../../../lib/ts.ts"
 import { ROOT_ID } from "../ROOT_ID.ts"
 import {
   emptyGraph,
@@ -14,14 +17,12 @@ import {
   type NodeID,
 } from "../data.ts"
 
-/**
- * Load only Mermaid's flowchart parser chunk to keep paste parsing from
- * bundling the full Mermaid runtime and optional render layouts.
- */
-const flowDiagram =
-  import("mermaid/dist/chunks/mermaid.core/chunk-PUDLZKDR.mjs").then(
-    m => m.diagram,
-  )
+const mermaidModule = sleep(Config.heavyScriptDelayMs)
+  .then(() => import("mermaid"))
+  .then(m => {
+    m.default.initialize({ flowchart: {}, startOnLoad: false })
+    return m.default.mermaidAPI
+  })
 
 interface FlowchartDB extends DiagramDB {
   getVertices(): Map<string, FlowVertex>
@@ -104,18 +105,18 @@ function fromFlowchartDb(db: FlowchartDB): Graph {
   return g
 }
 
+function fromDiagram(diagram: Diagram): Graph {
+  const parser = diagram.getParser().parser
+  if (!parser) throw new Error("No parser found")
+
+  return fromFlowchartDb(parser.yy as FlowchartDB)
+}
+
 export async function fromMermaid(str: string): Promise<Graph | undefined> {
+  const mermaid = await mermaidModule
   try {
-    const diagram = await flowDiagram
-    const parser = diagram.parser.parser
-    if (!parser) throw new Error("No parser found")
-
-    const db = diagram.db as FlowchartDB
-    parser.yy = db
-    db.clear?.()
-
-    await diagram.parser.parse(`${str}\n`)
-    return fromFlowchartDb(db)
+    const diagram = await mermaid.getDiagramFromText(str)
+    return fromDiagram(diagram)
   } catch {
     return undefined
   }

@@ -112,7 +112,7 @@ export const DiagramSVG: Component = () => {
         id="canvas"
         ref={svgEl}
         aria-label="Diagram canvas"
-        class="absolute inset-0 h-full min-h-screen w-full"
+        class="absolute inset-0 h-full min-h-screen w-full outline-none"
         role="button"
         tabIndex={0}
         onWheel={ev => {
