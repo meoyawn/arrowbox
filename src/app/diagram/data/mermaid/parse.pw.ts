@@ -1,19 +1,22 @@
 import { expect, test, type Page } from "@playwright/test"
 
-const loadHarness = async (page: Page): Promise<void> => {
+async function loadHarness(page: Page): Promise<void> {
   await page.goto("/")
   await page.setContent("<main></main>")
+  await page.addScriptTag({
+    type: "module",
+    url: "/src/app/playwright-harness.ts",
+  })
 }
 
 test.describe("parse mermaid", () => {
   test("bullshit", async ({ page }) => {
     await loadHarness(page)
 
-    const parsed = await page.evaluate<boolean>(async () => {
-      const modulePath = "/src/app/diagram/data/mermaid/parse.ts"
-      const { fromMermaid } = await import(modulePath)
-      return (await fromMermaid("bullshit")) === undefined
-    })
+    const parsed = await page.evaluate(
+      async () =>
+        (await window.arrowboxPw.fromMermaid("bullshit")) === undefined,
+    )
 
     expect(parsed).toEqual(true)
   })
@@ -21,10 +24,8 @@ test.describe("parse mermaid", () => {
   test("markdown nesting", async ({ page }) => {
     await loadHarness(page)
 
-    const childCount = await page.evaluate<number>(async () => {
-      const modulePath = "/src/app/diagram/data/mermaid/parse.ts"
-      const { fromMermaid } = await import(modulePath)
-      const g = await fromMermaid(`
+    const childCount = await page.evaluate(async () => {
+      const g = await window.arrowboxPw.fromMermaid(`
 flowchart LR
 
 subgraph "One"
@@ -50,10 +51,8 @@ end
   test("subgraph nesting", async ({ page }) => {
     await loadHarness(page)
 
-    const children = await page.evaluate<string[]>(async () => {
-      const modulePath = "/src/app/diagram/data/mermaid/parse.ts"
-      const { fromMermaid } = await import(modulePath)
-      const g = await fromMermaid(`
+    const children = await page.evaluate(async () => {
+      const g = await window.arrowboxPw.fromMermaid(`
     flowchart LR
   subgraph TOP
     direction TB
