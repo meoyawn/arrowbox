@@ -209,6 +209,7 @@ export const DiagramPage: Component = () => {
       camera: zoomIdentity,
     })
 
+    onCleanup(addClass(document.documentElement, "overscroll-none"))
     onCleanup(setupHotkeys())
     onCleanup(addClass(document.body, "overscroll-none"))
   })
@@ -220,7 +221,7 @@ export const DiagramPage: Component = () => {
   })
 
   return (
-    <div class="min-h-screen w-full overflow-hidden">
+    <div class="min-h-screen w-full overflow-hidden overscroll-none">
       <DiagramSVG />
 
       <TypedA

@@ -105,17 +105,19 @@ export const DiagramSVG: Component = () => {
   })
 
   return (
-    <div class="relative min-h-screen w-full overflow-hidden">
+    <div class="relative min-h-screen w-full overflow-hidden overscroll-none">
       <DotGrid camera={store.camera} />
 
       <svg
         id="canvas"
         ref={svgEl}
         aria-label="Diagram canvas"
-        class="absolute inset-0 h-full min-h-screen w-full outline-none"
+        class="absolute inset-0 h-full min-h-screen w-full touch-none overscroll-none outline-none"
         role="button"
         tabIndex={0}
         onWheel={ev => {
+          ev.preventDefault()
+
           if (ev.ctrlKey) return
 
           zoomTo(
