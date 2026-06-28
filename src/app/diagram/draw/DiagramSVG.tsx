@@ -1,5 +1,10 @@
-import { pointer, select } from "d3-selection"
-import { type D3ZoomEvent, zoom, type ZoomTransform } from "d3-zoom"
+import { pointer, select, type Selection } from "d3-selection"
+import {
+  type D3ZoomEvent,
+  zoom,
+  zoomIdentity,
+  type ZoomTransform,
+} from "d3-zoom"
 import { type BBox } from "rbush"
 import { type Component, createEffect, For, onCleanup, Show } from "solid-js"
 import { toKeysArray } from "../../../lib/ts.ts"
@@ -15,12 +20,36 @@ import { OneEdge } from "./OneEdge.tsx"
 import { OneNode } from "./OneNode.tsx"
 import { SvgDefs } from "./SvgDefs.tsx"
 
+let currentCamera = zoomIdentity
+let cameraFrame = 0
+let canvasSelection:
+  | Selection<SVGSVGElement, unknown, null, undefined>
+  | undefined
+
+function commitCamera(camera: ZoomTransform): void {
+  currentCamera = camera
+
+  if (cameraFrame) return
+
+  cameraFrame = requestAnimationFrame(() => {
+    cameraFrame = 0
+    setStore({ camera: currentCamera })
+  })
+}
+
+function cancelCameraCommit(): void {
+  if (!cameraFrame) return
+
+  cancelAnimationFrame(cameraFrame)
+  cameraFrame = 0
+}
+
 const d3Zoom = zoom<SVGSVGElement, unknown>()
   .scaleExtent([0.05, 8])
   .filter((ev: UIEvent) => (ev instanceof WheelEvent ? ev.ctrlKey : true))
-  .on("zoom", (e: D3ZoomEvent<Element, unknown>) =>
-    setStore({ camera: e.transform }),
-  )
+  .on("zoom", (e: D3ZoomEvent<Element, unknown>) => {
+    commitCamera(e.transform)
+  })
 
 /** svg.dataset not working in safari/firefox */
 export const closestNodeID = (el: Element): NodeID | null =>
@@ -31,7 +60,9 @@ export const closestEdgeID = (el: Element): EdgeID | null =>
   el.closest("[data-edgeID]")?.getAttribute("data-edgeID") as EdgeID
 
 export function zoomTo(t: ZoomTransform): void {
-  d3Zoom.transform(select("#canvas") as never, t)
+  currentCamera = t
+  if (canvasSelection) d3Zoom.transform(canvasSelection, t)
+  else setStore({ camera: t })
 }
 
 const zoomTransform = ({ k, x, y }: ZoomTransform): string =>
@@ -42,9 +73,14 @@ export const DiagramSVG: Component = () => {
   let zoomedEl: SVGGElement | undefined
 
   createEffect(() => {
+    currentCamera = store.camera
+  })
+
+  createEffect(() => {
     if (!svgEl || !zoomedEl) return
 
     const svg = select<SVGSVGElement, unknown>(svgEl)
+    canvasSelection = svg
     const drag = behaviorDrag(worldDragSubj, zoomedEl) as unknown as (
       selection: typeof svg,
     ) => void
@@ -63,92 +99,101 @@ export const DiagramSVG: Component = () => {
     })
     onCleanup(() => {
       svgEl?.removeEventListener("wheel", preventPageZoom, true)
+      cancelCameraCommit()
+      if (canvasSelection === svg) canvasSelection = undefined
     })
   })
 
   return (
-    <svg
-      id="canvas"
-      ref={svgEl}
-      aria-label="Diagram canvas"
-      class="h-full min-h-screen w-full"
-      role="button"
-      tabIndex={0}
-      onWheel={ev => {
-        if (ev.ctrlKey) return
-
-        const camera = store.camera
-        zoomTo(camera.translate(-ev.deltaX / camera.k, -ev.deltaY / camera.k))
-      }}
-      onFocus={({ target }) => {
-        setStore({ hovering: closestNodeID(target) })
-      }}
-      onMouseOver={({ target }) => {
-        setStore({ hovering: closestNodeID(target) })
-      }}
-      onKeyDown={ev => {
-        if (ev.key === "Escape") setStore({ selected: {} })
-      }}
-      onDblClick={e => {
-        if (!zoomedEl) return
-
-        const target = e.target
-        const nid = closestNodeID(target)
-        const eid = closestEdgeID(target)
-        const editing = nid ?? eid
-        if (editing) {
-          setStore({ editing })
-        } else {
-          const world = pointer(e, zoomedEl)
-          setStore(s => {
-            let editing: NodeID | undefined
-            return {
-              tree: patching(s.tree, x => {
-                editing = addNode(x, world)
-              }),
-              editing,
-            }
-          })
-        }
-      }}
-      onClick={ev => {
-        const target = ev.target
-        const nid = closestNodeID(target)
-        const eid = closestEdgeID(target)
-        const selected = nid ?? eid
-        if (selected) {
-          setStore({
-            selected:
-              ev.ctrlKey || ev.metaKey
-                ? { ...store.selected, [selected]: true }
-                : ({ [selected]: true } as const),
-          })
-        } else {
-          setStore({ selected: {} })
-        }
-      }}
-    >
-      <SvgDefs />
+    <div class="relative min-h-screen w-full overflow-hidden">
       <DotGrid camera={store.camera} />
 
-      <g ref={zoomedEl} transform={zoomTransform(store.camera)}>
-        <For each={store.tree.data.nodes[ROOT_ID].children}>
-          {id => <OneNode id={id} />}
-        </For>
-        <For
-          each={toKeysArray(store.tree.data.edges).filter(
-            eid => !store.dragging || !(eid in store.dragging),
-          )}
-        >
-          {e => <OneEdge id={e} />}
-        </For>
+      <svg
+        id="canvas"
+        ref={svgEl}
+        aria-label="Diagram canvas"
+        class="absolute inset-0 h-full min-h-screen w-full"
+        role="button"
+        tabIndex={0}
+        onWheel={ev => {
+          if (ev.ctrlKey) return
 
-        <Show when={store.brush}>{b => <BrushRect bbox={b()} />}</Show>
-        <Show when={store.newArrow}>
-          {a => <NewArrowC from={a().from} to={a().to} />}
-        </Show>
-      </g>
-    </svg>
+          zoomTo(
+            currentCamera.translate(
+              -ev.deltaX / currentCamera.k,
+              -ev.deltaY / currentCamera.k,
+            ),
+          )
+        }}
+        onFocus={({ target }) => {
+          setStore({ hovering: closestNodeID(target) })
+        }}
+        onMouseOver={({ target }) => {
+          setStore({ hovering: closestNodeID(target) })
+        }}
+        onKeyDown={ev => {
+          if (ev.key === "Escape") setStore({ selected: {} })
+        }}
+        onDblClick={e => {
+          if (!zoomedEl) return
+
+          const target = e.target
+          const nid = closestNodeID(target)
+          const eid = closestEdgeID(target)
+          const editing = nid ?? eid
+          if (editing) {
+            setStore({ editing })
+          } else {
+            const world = pointer(e, zoomedEl)
+            setStore(s => {
+              let editing: NodeID | undefined
+              return {
+                tree: patching(s.tree, x => {
+                  editing = addNode(x, world)
+                }),
+                editing,
+              }
+            })
+          }
+        }}
+        onClick={ev => {
+          const target = ev.target
+          const nid = closestNodeID(target)
+          const eid = closestEdgeID(target)
+          const selected = nid ?? eid
+          if (selected) {
+            setStore({
+              selected:
+                ev.ctrlKey || ev.metaKey
+                  ? { ...store.selected, [selected]: true }
+                  : ({ [selected]: true } as const),
+            })
+          } else {
+            setStore({ selected: {} })
+          }
+        }}
+      >
+        <SvgDefs />
+
+        <g ref={zoomedEl} transform={zoomTransform(store.camera)}>
+          <For each={store.tree.data.nodes[ROOT_ID].children}>
+            {id => <OneNode id={id} />}
+          </For>
+          <For
+            each={toKeysArray(store.tree.data.edges).filter(
+              eid => !store.dragging || !(eid in store.dragging),
+            )}
+          >
+            {e => <OneEdge id={e} />}
+          </For>
+
+          <Show when={store.brush}>{b => <BrushRect bbox={b()} />}</Show>
+          <Show when={store.newArrow}>
+            {a => <NewArrowC from={a().from} to={a().to} />}
+          </Show>
+        </g>
+      </svg>
+    </div>
   )
 }
 
