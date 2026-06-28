@@ -1,21 +1,25 @@
-import { defineConfig } from "@playwright/test"
+import { defineConfig, devices } from "@playwright/test"
 
-const playwrightPort = 4173
+const playwrightPort = 5173
 const playwrightBaseURL = `http://127.0.0.1:${playwrightPort}`
 
 export default defineConfig({
+  fullyParallel: true,
   testDir: "src/",
   testMatch: "**/*.pw.ts",
+  workers: "100%",
+  projects: [
+    {
+      name: "desktop-chrome",
+      testIgnore: "**/*.ios.pw.ts",
+      use: devices["Desktop Chrome"],
+    },
+    {
+      name: "iphone-13",
+      use: devices["iPhone 13"],
+    },
+  ],
   use: {
     baseURL: playwrightBaseURL,
-  },
-  webServer: {
-    command: `bun vite dev --host 127.0.0.1 --port ${playwrightPort} --strictPort`,
-    env: {
-      NODE_ENV: "test",
-    },
-    reuseExistingServer: false,
-    timeout: 120_000,
-    url: playwrightBaseURL,
   },
 })

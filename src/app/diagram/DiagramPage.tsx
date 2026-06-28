@@ -128,6 +128,38 @@ function addClass(el: HTMLElement, cls: string): VoidFunction {
   return () => el.classList.remove(cls)
 }
 
+function setupVisualViewportVars(): VoidFunction {
+  const view = document.defaultView
+  if (!view) return () => {}
+
+  const win = view
+  const root = document.documentElement
+  const viewport = win.visualViewport
+
+  function update(): void {
+    const top = viewport?.offsetTop ?? 0
+    const bottom = viewport
+      ? Math.max(0, win.innerHeight - viewport.height - top)
+      : 0
+
+    root.style.setProperty("--arrowbox-viewport-top", `${top}px`)
+    root.style.setProperty("--arrowbox-viewport-bottom", `${bottom}px`)
+  }
+
+  update()
+  win.addEventListener("resize", update)
+  viewport?.addEventListener("resize", update)
+  viewport?.addEventListener("scroll", update)
+
+  return () => {
+    root.style.removeProperty("--arrowbox-viewport-top")
+    root.style.removeProperty("--arrowbox-viewport-bottom")
+    win.removeEventListener("resize", update)
+    viewport?.removeEventListener("resize", update)
+    viewport?.removeEventListener("scroll", update)
+  }
+}
+
 const HelpButton: Component = () => {
   const [isOpen, setIsOpen] = createSignal(false)
 
@@ -182,7 +214,7 @@ const HelpButton: Component = () => {
                     Keyboard shortcuts
                   </DialogTitle>
 
-                  <button onClick={closeModal}>
+                  <button aria-label="Close" onClick={closeModal}>
                     <CloseIcon />
                   </button>
                 </div>
@@ -210,6 +242,7 @@ export const DiagramPage: Component = () => {
     })
 
     onCleanup(addClass(document.documentElement, "overscroll-none"))
+    onCleanup(setupVisualViewportVars())
     onCleanup(setupHotkeys())
     onCleanup(addClass(document.body, "overscroll-none"))
   })
@@ -227,16 +260,32 @@ export const DiagramPage: Component = () => {
       <TypedA
         title="Open menu"
         href="/list"
-        class="absolute top-2 left-2 h-12 w-12 rounded-full bg-white p-2 shadow-xl duration-200 hover:bg-gray-100"
+        data-testid="diagram-menu-link"
+        class="fixed left-2 h-12 w-12 rounded-full bg-white p-2 shadow-xl duration-200 hover:bg-gray-100"
+        style={{
+          top: "calc(var(--arrowbox-viewport-top, 0px) + 0.5rem)",
+        }}
       >
         <img alt="Arrowbox" src={icon} />
       </TypedA>
 
-      <div class="absolute top-2 left-1/2">
+      <div
+        class="fixed left-1/2"
+        data-testid="diagram-title"
+        style={{
+          top: "calc(var(--arrowbox-viewport-top, 0px) + 0.5rem)",
+        }}
+      >
         <Title />
       </div>
 
-      <div class="absolute bottom-2 left-2 flex flex-row overflow-hidden rounded-md">
+      <div
+        class="fixed left-2 flex flex-row overflow-hidden rounded-md"
+        data-testid="diagram-bottom-controls"
+        style={{
+          bottom: "calc(var(--arrowbox-viewport-bottom, 0px) + 0.5rem)",
+        }}
+      >
         <button
           class="bg-gray-100 px-3 py-2 transition-colors hover:bg-gray-300"
           onClick={() => zoomTo(hundredPctZoom(store.tree))}

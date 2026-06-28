@@ -91,6 +91,10 @@ test.describe("diagram page", () => {
     await page.goto("/")
 
     const helpButton = page.getByRole("button", { exact: true, name: "?" })
+    const closeButton = page.getByRole("button", {
+      exact: true,
+      name: "Close",
+    })
 
     for (let i = 0; i < 5; i++) {
       await helpButton.click()
@@ -98,7 +102,7 @@ test.describe("diagram page", () => {
         page.getByText("Keyboard shortcuts", { exact: true }),
       ).toBeVisible()
       await expectDialogAboveOverlay(page)
-      await page.keyboard.press("Escape")
+      await closeButton.click()
       await expect(
         page.getByText("Keyboard shortcuts", { exact: true }),
       ).toBeHidden()

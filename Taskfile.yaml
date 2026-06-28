@@ -26,8 +26,12 @@ tasks:
     run: once
     sources:
       - src/**/*
+      - package.json
+      - playwright.config.ts
       - bun.lock
-    cmd: bun playwright test
+    cmds:
+      - bun playwright install chromium webkit
+      - bun playwright test
 
   build:
     run: once
