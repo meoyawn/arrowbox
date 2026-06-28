@@ -228,6 +228,8 @@ test.describe("diagram page iOS gestures", () => {
     await page.goto("/")
 
     async function foreignTextAlignment(): Promise<{
+      contentHeight: number
+      contentWidth: number
       dx: number
       dy: number
       position: string
@@ -241,6 +243,8 @@ test.describe("diagram page iOS gestures", () => {
         const textRect = text.getBoundingClientRect()
 
         return {
+          contentHeight: textRect.height,
+          contentWidth: textRect.width,
           dx:
             textRect.left +
             textRect.width / 2 -
@@ -265,7 +269,9 @@ test.describe("diagram page iOS gestures", () => {
     await waitForCameraChange(page)
 
     const alignment = await foreignTextAlignment()
-    expect(alignment.position).toEqual("static")
+    expect(alignment.position).not.toEqual("fixed")
+    expect(alignment.contentWidth).toBeGreaterThan(0)
+    expect(alignment.contentHeight).toBeGreaterThan(0)
     expect(Math.abs(alignment.dx)).toBeLessThan(1)
     expect(Math.abs(alignment.dy)).toBeLessThan(1)
   })

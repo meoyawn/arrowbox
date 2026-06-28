@@ -46,12 +46,17 @@ export const ForeignText: Component<{
       width={width()}
       height={height()}
     >
-      <div class="relative h-full w-full overflow-visible">
+      <div
+        classList={{
+          "relative flex justify-center overflow-visible": true,
+          "items-center": props.isCenter,
+        }}
+        style={{ height: `${height()}px`, width: `${width()}px` }}
+      >
         <div
           data-testid="foreign-text-content"
           classList={{
-            "prose flex h-full w-full max-w-none justify-center": true,
-            "items-center": props.isCenter,
+            "prose max-w-none": true,
             "pointer-events-auto": !isDraggingMe(),
             // apply to children
             "[&>*]:bg-white": isEdgeID(props.id),
