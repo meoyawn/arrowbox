@@ -1,9 +1,9 @@
-import { type Rect } from "../../../lib/geometry.ts"
+import type { Rect } from "../../../lib/geometry.ts"
 import type { KeySet } from "../../../lib/ts.ts"
-import { type Graph, type NodeID } from "../data/data.ts"
+import type { Graph, NodeID } from "../data/data.ts"
 import { nonPatching, patching } from "../data/history.ts"
-import { type State } from "../data/state.ts"
-import { type DragBehavior2 } from "../drag.ts"
+import type { State } from "../data/state.ts"
+import type { DragBehavior2 } from "../drag.ts"
 
 export const dragConstraints = {
   minHeight: 1,

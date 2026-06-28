@@ -1,14 +1,7 @@
 import RBush, { type BBox } from "rbush"
-import { type KeySet } from "../../../lib/ts.ts"
+import type { KeySet } from "../../../lib/ts.ts"
 import { absRect, type NestPath } from "../brushing.ts"
-import {
-  type Edge,
-  type EdgeID,
-  type Graph,
-  type IdRect,
-  type Node,
-  type NodeID,
-} from "./data"
+import type { Edge, EdgeID, Graph, IdRect, Node, NodeID } from "./data"
 import { ROOT_ID } from "./ROOT_ID.ts"
 
 export type ParentIndex = Record<NodeID, NodeID>

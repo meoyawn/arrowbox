@@ -1,6 +1,6 @@
 import { Show, createEffect, onCleanup, type Component } from "solid-js"
 import { Portal } from "solid-js/web"
-import { type Rect } from "../../../lib/geometry.ts"
+import type { Rect } from "../../../lib/geometry.ts"
 import {
   isEdgeID,
   type EdgeID,

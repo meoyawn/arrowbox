@@ -1,8 +1,8 @@
 import { isNodeID, type Edge, type EdgeID } from "../data/data.ts"
-import { type EdgeAnchor } from "../data/edge-anchor.ts"
+import type { EdgeAnchor } from "../data/edge-anchor.ts"
 import { patching } from "../data/history.ts"
-import { type DraggingArrow, type State } from "../data/state.ts"
-import { type DragBehavior2 } from "../drag.ts"
+import type { DraggingArrow, State } from "../data/state.ts"
+import type { DragBehavior2 } from "../drag.ts"
 import { ROOT_ID } from "../data/ROOT_ID.ts"
 
 type EdgeSide = "start" | "end"

@@ -1,4 +1,4 @@
-import { type ZoomTransform } from "d3-zoom"
+import type { ZoomTransform } from "d3-zoom"
 import { type Component, createEffect, onCleanup } from "solid-js"
 import { modulate } from "../../../lib/number.ts"
 

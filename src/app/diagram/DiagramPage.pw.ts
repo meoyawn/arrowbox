@@ -207,6 +207,141 @@ test.describe("diagram page", () => {
     ).toHaveCount(1)
   })
 
+  test("expands nested parents when dropping a large child into them", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const graphID = "g-drop-expands-nested-parents"
+      localStorage.setItem("last-graph", graphID)
+      localStorage.setItem(
+        "graph-list",
+        JSON.stringify({
+          [graphID]: { title: "Drop expands parents", lastModifiedMs: 0 },
+        }),
+      )
+      localStorage.setItem(
+        graphID,
+        JSON.stringify({
+          nodes: {
+            nRoot: {
+              id: "nRoot",
+              children: ["nGrand", "nDragged"],
+              rect: { x: 0, y: 0, width: 0, height: 0 },
+              text: { html: "", markdown: "" },
+              shape: "rect",
+            },
+            nGrand: {
+              id: "nGrand",
+              children: ["nParent"],
+              rect: { x: 300, y: 220, width: 120, height: 120 },
+              text: { html: "Grand", markdown: "Grand" },
+              shape: "rect",
+            },
+            nParent: {
+              id: "nParent",
+              children: [],
+              rect: { x: 20, y: 20, width: 80, height: 80 },
+              text: { html: "Parent", markdown: "Parent" },
+              shape: "rect",
+            },
+            nDragged: {
+              id: "nDragged",
+              children: [],
+              rect: { x: 80, y: 240, width: 140, height: 140 },
+              text: { html: "Dragged", markdown: "Dragged" },
+              shape: "rect",
+            },
+          },
+          edges: {},
+        }),
+      )
+    })
+    await page.goto("/")
+
+    const draggedShape = page.locator(
+      "[data-nodeID=nDragged] [data-dragID=node] > rect",
+    )
+    const parentShape = page.locator(
+      "[data-nodeID=nParent] [data-dragID=node] > rect",
+    )
+    const draggedBox = await draggedShape.boundingBox()
+    const parentBox = await parentShape.boundingBox()
+    if (!draggedBox || !parentBox) throw new Error("Missing node boxes")
+
+    await page.mouse.move(draggedBox.x + 20, draggedBox.y + 20)
+    await page.mouse.down()
+    await page.mouse.move(
+      parentBox.x + parentBox.width / 2,
+      parentBox.y + parentBox.height / 2,
+      { steps: 8 },
+    )
+    await page.mouse.up()
+
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const graph = JSON.parse(
+            localStorage.getItem("g-drop-expands-nested-parents")!,
+          )
+
+          const dragged = graph.nodes.nDragged.rect
+          const grand = graph.nodes.nGrand.rect
+          const parent = graph.nodes.nParent.rect
+          const parentNode = document.querySelector("[data-nodeID=nParent]")
+          const parentShape = parentNode?.querySelector(
+            "[data-dragID=node] > rect",
+          )
+          const draggedShape = document.querySelector(
+            "[data-nodeID=nDragged] [data-dragID=node] > rect",
+          )
+          const labelMeasure = document.createElement("div")
+          labelMeasure.className =
+            "prose invisible fixed max-w-prose left-0 top-0"
+          labelMeasure.innerHTML = graph.nodes.nParent.text.html
+          document.body.append(labelMeasure)
+          const labelHeight = labelMeasure.getBoundingClientRect().height
+          labelMeasure.remove()
+          const parentBox = parentShape?.getBoundingClientRect()
+          const draggedBox = draggedShape?.getBoundingClientRect()
+
+          return {
+            childBelowParentText: Boolean(
+              parentBox &&
+              draggedBox &&
+              draggedBox.top >= parentBox.top + labelHeight,
+            ),
+            childInsideParent:
+              dragged.x >= 0 &&
+              dragged.y >= 0 &&
+              dragged.x + dragged.width <= parent.width &&
+              dragged.y + dragged.height <= parent.height,
+            grandChildren: graph.nodes.nGrand.children,
+            grandGrew: grand.width > 120 && grand.height > 120,
+            parentChildren: graph.nodes.nParent.children,
+            parentGrew: parent.width > 80 && parent.height > 80,
+            parentInsideGrand:
+              parent.x >= 0 &&
+              parent.y >= 0 &&
+              parent.x + parent.width <= grand.width &&
+              parent.y + parent.height <= grand.height,
+            root: graph.nodes.nRoot.rect,
+            rootChildren: graph.nodes.nRoot.children,
+          }
+        }),
+      )
+      .toEqual({
+        childBelowParentText: true,
+        childInsideParent: true,
+        grandChildren: ["nParent"],
+        grandGrew: true,
+        parentChildren: ["nDragged"],
+        parentGrew: true,
+        parentInsideGrand: true,
+        root: { x: 0, y: 0, width: 0, height: 0 },
+        rootChildren: ["nGrand"],
+      })
+  })
+
   test("restores foreign text when escaping portal editor", async ({
     page,
   }) => {

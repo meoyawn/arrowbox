@@ -1,6 +1,6 @@
-import { type ElkNode } from "elkjs/lib/elk-api"
-import { type Vec2 } from "../../../lib/geometry.ts"
-import { type KeySet } from "../../../lib/ts.ts"
+import type { ElkNode } from "elkjs/lib/elk-api"
+import type { Vec2 } from "../../../lib/geometry.ts"
+import type { KeySet } from "../../../lib/ts.ts"
 import { md2html } from "../../markdown.ts"
 import { ROOT_ID } from "./ROOT_ID.ts"
 import {
@@ -14,8 +14,8 @@ import {
   type NodeID,
   type NodeShape,
 } from "./data.ts"
-import { type GraphIndex } from "./indexing.ts"
-import { type DraggingArrow } from "./state.ts"
+import type { GraphIndex } from "./indexing.ts"
+import type { DraggingArrow } from "./state.ts"
 
 export const DEFAULT_SIZE = 100
 

@@ -3,7 +3,7 @@ import { For, createEffect, onCleanup, type Component } from "solid-js"
 import logoLight from "../assets/logo_light.svg"
 import { AbToast, ToastPortal } from "./Toasts.tsx"
 import { CloseIcon, ExternalA } from "./components.tsx"
-import { type Graph, type GraphID } from "./diagram/data/data.ts"
+import type { Graph, GraphID } from "./diagram/data/data.ts"
 import { layoutGraph } from "./diagram/data/elk.ts"
 import { fromMermaid } from "./diagram/data/mermaid/parse.ts"
 import {

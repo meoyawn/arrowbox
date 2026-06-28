@@ -1,6 +1,6 @@
 import { Show, type Component } from "solid-js"
 import type { Rect } from "../../../lib/geometry.ts"
-import { type EdgeID } from "../data/data.ts"
+import type { EdgeID } from "../data/data.ts"
 import { createAnchors } from "../data/edge-anchor.ts"
 import { store } from "../data/state.ts"
 import { dragIDs } from "../drag.ts"

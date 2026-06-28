@@ -5,10 +5,10 @@ import {
   zoomIdentity,
   type ZoomTransform,
 } from "d3-zoom"
-import { type BBox } from "rbush"
+import type { BBox } from "rbush"
 import { type Component, createEffect, For, onCleanup, Show } from "solid-js"
 import { toKeysArray } from "../../../lib/ts.ts"
-import { type EdgeID, type NodeID } from "../data/data.ts"
+import type { EdgeID, NodeID } from "../data/data.ts"
 import { createAnchors } from "../data/edge-anchor.ts"
 import { patching } from "../data/history.ts"
 import { ROOT_ID } from "../data/ROOT_ID.ts"

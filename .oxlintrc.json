@@ -103,6 +103,7 @@
     "typescript/no-floating-promises": "error",
     "typescript/no-for-in-array": "error",
     "typescript/no-implied-eval": "error",
+    "typescript/no-import-type-side-effects": "error",
     "typescript/no-misused-new": "error",
     "typescript/no-misused-promises": "error",
     "typescript/no-namespace": "error",
@@ -333,7 +334,7 @@
           "error",
           {
             "prefer": "type-imports",
-            "fixStyle": "inline-type-imports"
+            "fixStyle": "separate-type-imports"
           }
         ],
         "typescript/explicit-module-boundary-types": "error",

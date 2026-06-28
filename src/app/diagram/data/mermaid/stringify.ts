@@ -1,11 +1,5 @@
 import { md2html } from "../../../markdown.ts"
-import {
-  type Edge,
-  type Graph,
-  type GraphText,
-  type Node,
-  type NodeID,
-} from "../data.ts"
+import type { Edge, Graph, GraphText, Node, NodeID } from "../data.ts"
 import { ROOT_ID } from "../ROOT_ID.ts"
 
 const mdLabel = (text: GraphText): `"${string}"` | `" "` =>

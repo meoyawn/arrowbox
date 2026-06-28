@@ -3,13 +3,7 @@ import { sleep } from "../../../lib/ts.ts"
 import { Config } from "../../config.ts"
 import { measureHtml } from "../label.tsx"
 import { ROOT_ID } from "./ROOT_ID.ts"
-import {
-  type EdgeID,
-  type Graph,
-  type GraphText,
-  type Node,
-  type NodeID,
-} from "./data.ts"
+import type { EdgeID, Graph, GraphText, Node, NodeID } from "./data.ts"
 
 const elkModule = sleep(Config.heavyScriptDelayMs)
   .then(() => import("elkjs/lib/elk.bundled"))

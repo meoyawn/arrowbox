@@ -1,8 +1,8 @@
 import type RBush from "rbush"
-import { type BBox } from "rbush"
-import { type Rect } from "../../lib/geometry.ts"
-import { type KeySet } from "../../lib/ts.ts"
-import { type IdRect, type Node, type NodeID } from "./data/data.ts"
+import type { BBox } from "rbush"
+import type { Rect } from "../../lib/geometry.ts"
+import type { KeySet } from "../../lib/ts.ts"
+import type { IdRect, Node, NodeID } from "./data/data.ts"
 import { ROOT_ID } from "./data/ROOT_ID.ts"
 
 export type NestPath = ReadonlyArray<number>

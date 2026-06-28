@@ -7,7 +7,7 @@ import {
 import { isEl } from "../../lib/dom.ts"
 import { toKeysArray } from "../../lib/ts.ts"
 import { ROOT_ID } from "./data/ROOT_ID.ts"
-import { type EdgeID, type NodeID } from "./data/data.ts"
+import type { EdgeID, NodeID } from "./data/data.ts"
 import { setStore, store, type State } from "./data/state.ts"
 import { dragBrush } from "./drag/brush.ts"
 import { dragEdge } from "./drag/edge.ts"

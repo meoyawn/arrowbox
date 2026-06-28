@@ -6,8 +6,8 @@ import {
   type NavigateOptions,
   type RouteProps,
 } from "@solidjs/router"
-import { type Component, type JSX } from "solid-js"
-import { type GraphID } from "./diagram/data/data.ts"
+import type { Component, JSX } from "solid-js"
+import type { GraphID } from "./diagram/data/data.ts"
 
 type Route = "/" | "/list" | `/graph/${GraphID}` | "/new"
 

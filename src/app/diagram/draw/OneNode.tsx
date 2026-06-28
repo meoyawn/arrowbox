@@ -1,6 +1,6 @@
 import { For, Show, type Component } from "solid-js"
-import { type Rect } from "../../../lib/geometry.ts"
-import { type NodeID } from "../data/data.ts"
+import type { Rect } from "../../../lib/geometry.ts"
+import type { NodeID } from "../data/data.ts"
 import { store } from "../data/state.ts"
 import { dragIDs } from "../drag.ts"
 import { ResizeSides, type ResizeSide } from "../drag/resize.ts"
