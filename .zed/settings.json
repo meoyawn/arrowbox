@@ -47,16 +47,37 @@
   },
   "languages": {
     "JavaScript": {
-      "language_servers": ["vtsls", "!typescript-language-server", "!eslint", "..."]
+      "language_servers": [
+        "vtsls",
+        "!typescript-language-server",
+        "!eslint",
+        "..."
+      ]
     },
     "TypeScript": {
-      "language_servers": ["vtsls", "!typescript-language-server", "!eslint", "..."]
+      "language_servers": [
+        "vtsls",
+        "!typescript-language-server",
+        "!eslint",
+        "..."
+      ]
     },
     "TSX": {
-      "language_servers": ["vtsls", "!typescript-language-server", "!eslint", "..."]
+      "language_servers": [
+        "vtsls",
+        "!typescript-language-server",
+        "!eslint",
+        "..."
+      ]
     },
     "Astro": {
-      "language_servers": ["eslint", "!vtsls", "!typescript-language-server", "!oxlint", "..."],
+      "language_servers": [
+        "eslint",
+        "!vtsls",
+        "!typescript-language-server",
+        "!oxlint",
+        "..."
+      ],
       "formatter": {
         "external": {
           "command": "bun",
