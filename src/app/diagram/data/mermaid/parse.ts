@@ -1,5 +1,5 @@
-import type { Diagram } from "mermaid/dist/Diagram"
-import type { DiagramDB } from "mermaid/dist/diagram-api/types"
+import type { Diagram } from "mermaid/dist/Diagram.js"
+import type { DiagramDB } from "mermaid/dist/diagram-api/types.js"
 import { sleep } from "../../../../lib/ts.ts"
 import { Config } from "../../../config.ts"
 import { md2html } from "../../../markdown.ts"
@@ -63,7 +63,10 @@ function calcHierarchy(
 }
 
 function fromDiagram(diagram: Diagram): Graph {
-  const db = diagram.getParser().parser.yy as FlowchartDB
+  const parser = diagram.getParser().parser
+  if (!parser) throw new Error("No parser found")
+
+  const db = parser.yy as FlowchartDB
 
   const vertices = db.getVertices()
   const subgraphs = db.getSubGraphs()
@@ -127,7 +130,7 @@ export async function fromMermaid(str: string): Promise<Graph | undefined> {
   try {
     const diagram = await mermaid.getDiagramFromText(str)
     return fromDiagram(diagram)
-  } catch (e) {
+  } catch {
     return undefined
   }
 }

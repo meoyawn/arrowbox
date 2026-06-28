@@ -1,10 +1,8 @@
+import tailwindcss from "@tailwindcss/vite"
 import { defineConfig } from "vite"
 import solid from "vite-plugin-solid"
 
 // noinspection JSUnusedGlobalSymbols
 export default defineConfig({
-  plugins: [solid()],
-  define: {
-    "import.meta.vitest": "undefined",
-  },
+  plugins: [tailwindcss(), solid()],
 })

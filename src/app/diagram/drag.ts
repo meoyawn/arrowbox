@@ -106,7 +106,7 @@ export const worldDragSubj = (ev: D3Event<undefined>): DragBehavior2 | null => {
   switch (dragID) {
     case dragIDs.side: {
       const nid = getNodeID(ev.sourceEvent)
-      if (!nid) throw new Error(`no nid on ${String(ev.sourceEvent.target)}`)
+      if (!nid) throw new Error("no nid")
 
       return dragSide(
         data,

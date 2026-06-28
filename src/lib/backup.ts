@@ -11,7 +11,7 @@ export function dumpStorage(): string {
 
     try {
       ret[k] = JSON.parse(v)
-    } catch (e) {
+    } catch {
       ret[k] = v
     }
   }

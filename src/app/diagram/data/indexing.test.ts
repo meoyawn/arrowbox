@@ -1,6 +1,6 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, test } from "bun:test"
 import { genID, type Node, type NodeID } from "./data.ts"
-import { traverse } from "./indexing"
+import { traverse } from "./indexing.ts"
 import { ROOT_ID } from "./ROOT_ID.ts"
 
 const genNode = (children: NodeID[]): Node => ({

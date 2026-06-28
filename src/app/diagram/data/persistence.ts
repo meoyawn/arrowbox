@@ -90,28 +90,9 @@ export function archive(id: GraphID): void {
 export type StoredGraphs = Record<GraphID, StoredGraph>
 
 /** visible for testing */
-function newTitle(gs: StoredGraphs): string {
+export function newTitle(gs: StoredGraphs): string {
   const titles = Object.values(gs).map(g => g.title)
   let i = 1
   while (titles.includes(`Untitled ${i}`)) i++
   return `Untitled ${i}`
-}
-
-if (import.meta.vitest) {
-  const { test, expect } = import.meta.vitest
-
-  test("new title", () => {
-    expect(newTitle({})).toBe("Untitled 1")
-
-    expect(
-      newTitle({ [genID("g")]: { title: "Untitled", lastModifiedMs: 1 } }),
-    ).toBe("Untitled 1")
-
-    expect(
-      newTitle({
-        [genID("g")]: { title: "Untitled", lastModifiedMs: 1 },
-        [genID("g")]: { title: "Untitled 1", lastModifiedMs: 1 },
-      }),
-    ).toBe("Untitled 2")
-  })
 }

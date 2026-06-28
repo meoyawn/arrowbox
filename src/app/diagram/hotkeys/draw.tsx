@@ -10,7 +10,7 @@ const OneShortcut: Component<{ keys: string }> = props => {
     <For each={arr()}>
       {(k, idx) => (
         <>
-          <kbd class="direction-ltr font-inherit border-collapse whitespace-nowrap rounded-md border border-gray-400 bg-gray-100 bg-gradient-to-b from-gray-200 to-gray-100 p-1 text-sm leading-7 text-black shadow-sm">
+          <kbd class="direction-ltr font-inherit border-collapse rounded-md border border-gray-400 bg-gray-100 bg-gradient-to-b from-gray-200 to-gray-100 p-1 text-sm leading-7 whitespace-nowrap text-black shadow-xs">
             {k}
           </kbd>
 

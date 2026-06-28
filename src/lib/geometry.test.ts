@@ -1,5 +1,5 @@
-import { describe, expect, test } from "vitest"
-import { extendToFit } from "./geometry"
+import { describe, expect, test } from "bun:test"
+import { extendToFit } from "./geometry.ts"
 
 describe.concurrent("extendToFit", () => {
   test("should extend parent rect to include child rect with padding", () => {

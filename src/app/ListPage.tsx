@@ -1,5 +1,4 @@
-import { toaster } from "@kobalte/core"
-import type { ToastComponent } from "@kobalte/core/dist/types/toast/types"
+import { toaster, type ToastComponent } from "@kobalte/core/toast"
 import { For, createEffect, onCleanup, type Component } from "solid-js"
 import logoLight from "../assets/logo_light.svg"
 import { AbToast, ToastPortal } from "./Toasts.tsx"
@@ -42,7 +41,7 @@ const NewGraph: Component = () => {
 
   return (
     <button
-      class="rounded bg-blue-600 px-4 py-2 font-bold text-white duration-200 hover:bg-blue-800"
+      class="rounded-sm bg-blue-600 px-4 py-2 font-bold text-white duration-200 hover:bg-blue-800"
       onClick={() => nav(`/graph/${createNewGraph().id}`)}
     >
       New diagram
@@ -75,7 +74,7 @@ export const ListPage: Component = () => {
         <TypedA
           title="Back to diagram"
           href="/"
-          class="absolute left-2 top-2 h-12 w-12 rounded-full bg-white py-3 text-center shadow-xl duration-200 hover:bg-gray-100"
+          class="absolute top-2 left-2 h-12 w-12 rounded-full bg-white py-3 text-center shadow-xl duration-200 hover:bg-gray-100"
         >
           <CloseIcon />
         </TypedA>
@@ -83,7 +82,7 @@ export const ListPage: Component = () => {
         <img alt="Arrowbox" class="mx-auto h-8" src={logoLight} />
 
         <ExternalA
-          class="absolute right-5 top-5"
+          class="absolute top-5 right-5"
           href="https://github.com/arrowboxco/community/discussions"
         >
           Support

@@ -37,10 +37,12 @@ const zoomTransform = ({ k, x, y }: ZoomTransform): string =>
   `translate(${x} ${y}) scale(${k})`
 
 export const DiagramSVG: Component = () => {
-  let svgEl: SVGSVGElement
-  let zoomedEl: SVGGElement
+  let svgEl: SVGSVGElement | undefined
+  let zoomedEl: SVGGElement | undefined
 
   createEffect(() => {
+    if (!svgEl || !zoomedEl) return
+
     const svg = select<SVGSVGElement, unknown>(svgEl)
     const drag = behaviorDrag(worldDragSubj, zoomedEl) as unknown as (
       selection: typeof svg,
@@ -54,7 +56,7 @@ export const DiagramSVG: Component = () => {
   return (
     <svg
       id="canvas"
-      ref={svgEl!}
+      ref={svgEl}
       class="h-full min-h-screen w-full"
       onWheel={ev => {
         if (ev.ctrlKey) return
@@ -66,6 +68,8 @@ export const DiagramSVG: Component = () => {
         setStore({ hovering: closestNodeID(target) })
       }}
       onDblClick={e => {
+        if (!zoomedEl) return
+
         const target = e.target
         const nid = closestNodeID(target)
         const eid = closestEdgeID(target)
@@ -104,7 +108,7 @@ export const DiagramSVG: Component = () => {
     >
       <SvgDefs />
 
-      <g ref={zoomedEl!} transform={zoomTransform(store.camera)}>
+      <g ref={zoomedEl} transform={zoomTransform(store.camera)}>
         <For each={store.tree.data.nodes[ROOT_ID].children}>
           {id => <OneNode id={id} />}
         </For>

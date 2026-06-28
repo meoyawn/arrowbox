@@ -60,7 +60,7 @@ const Dropdown: Component<{ setEditing: Setter<boolean> }> = props => {
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Portal>
-        <DropdownMenu.Content class="cursor-pointer rounded border">
+        <DropdownMenu.Content class="cursor-pointer rounded-sm border">
           <DropdownMenu.Item
             onSelect={() => {
               // noinspection JSDeprecatedSymbols
@@ -158,7 +158,7 @@ const HelpButton: Component = () => {
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <DialogOverlay class="fixed inset-0 bg-gray-900 bg-opacity-50" />
+              <DialogOverlay class="fixed inset-0 bg-gray-900/50" />
             </TransitionChild>
 
             {/* This element is to trick the browser into centering the modal contents. */}
@@ -177,7 +177,7 @@ const HelpButton: Component = () => {
                 <div class="flex justify-between">
                   <DialogTitle
                     as="h3"
-                    class="text-lg font-medium leading-6 text-gray-900"
+                    class="text-lg leading-6 font-medium text-gray-900"
                   >
                     Keyboard shortcuts
                   </DialogTitle>
@@ -226,12 +226,12 @@ export const DiagramPage: Component = () => {
       <TypedA
         title="Open menu"
         href="/list"
-        class="absolute left-2 top-2 h-12 w-12 rounded-full bg-white p-2 shadow-xl duration-200 hover:bg-gray-100"
+        class="absolute top-2 left-2 h-12 w-12 rounded-full bg-white p-2 shadow-xl duration-200 hover:bg-gray-100"
       >
         <img alt="Arrowbox" src={icon} />
       </TypedA>
 
-      <div class="absolute left-1/2 top-2">
+      <div class="absolute top-2 left-1/2">
         <Title />
       </div>
 

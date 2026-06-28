@@ -2,13 +2,12 @@
   "compilerOptions": {
     "allowImportingTsExtensions": true,
     "alwaysStrict": true,
-    "downlevelIteration": true,
     "esModuleInterop": true,
     "incremental": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "module": "ES2022",
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "noEmit": true,
     "resolveJsonModule": true,
     "skipDefaultLibCheck": true,
@@ -19,7 +18,7 @@
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
     "target": "ES2019",
-    "types": ["vite/client", "vitest/importMeta","vitest/config"],
+    "types": ["vite/client", "bun-types"],
     "verbatimModuleSyntax": true
   },
   "include": ["src/", "*.config.ts"]
