@@ -25,5 +25,6 @@ dist-ssr
 
 tsconfig.tsbuildinfo
 test-results/
+.task/
 .code-review-graph/
 .wrangler/

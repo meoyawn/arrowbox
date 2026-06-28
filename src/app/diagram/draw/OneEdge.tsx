@@ -6,6 +6,8 @@ import { store } from "../data/state.ts"
 import { dragIDs } from "../drag.ts"
 import { ForeignText } from "./ForeignText.tsx"
 
+const edgeHitArea = 16
+
 export const OneEdge: Component<{ id: EdgeID }> = props => {
   const e = () => store.tree.data.edges[props.id]
 
@@ -24,6 +26,16 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
 
   return (
     <g data-edgeID={props.id} class="group cursor-pointer">
+      <line
+        x1={fromX()}
+        y1={fromY()}
+        x2={toX()}
+        y2={toY()}
+        stroke="transparent"
+        stroke-width={edgeHitArea}
+        pointer-events="stroke"
+      />
+
       <Show when={isSelected()}>
         <line
           class="stroke-blue-600 stroke-2"

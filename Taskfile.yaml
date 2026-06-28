@@ -3,22 +3,37 @@ version: 3
 tasks:
   typecheck:
     run: once
+    sources:
+      - src/**/*
+      - bun.lock
     cmd: bun tsc
 
   lint:
     run: once
+    sources:
+      - src/**/*
+      - bun.lock
     cmd: bun oxfmt . && bun oxlint src/
 
   test:unit:
     run: once
+    sources:
+      - src/**/*
+      - bun.lock
     cmd: bun test
 
   test:playwright:
     run: once
+    sources:
+      - src/**/*
+      - bun.lock
     cmd: bun playwright test
 
   build:
     run: once
+    sources:
+      - src/**/*
+      - bun.lock
     cmd: bun vite build
 
   deploy:
@@ -26,6 +41,9 @@ tasks:
       - build
       - check
     cmd: bun wrangler pages deploy dist/ --branch master --commit-dirty=true
+    sources:
+      - dist/**/*
+      - bun.lock
 
   check:
     deps:

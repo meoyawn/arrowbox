@@ -1,18 +1,21 @@
 import { defineConfig } from "@playwright/test"
 
+const playwrightPort = 4173
+const playwrightBaseURL = `http://127.0.0.1:${playwrightPort}`
+
 export default defineConfig({
   testDir: "src/",
   testMatch: "**/*.pw.ts",
   use: {
-    baseURL: "http://127.0.0.1:4173",
+    baseURL: playwrightBaseURL,
   },
   webServer: {
-    command: "bun vite --host 127.0.0.1 --port 4173",
+    command: `bun vite dev --host 127.0.0.1 --port ${playwrightPort} --strictPort`,
     env: {
       NODE_ENV: "test",
     },
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120_000,
-    url: "http://127.0.0.1:4173",
+    url: playwrightBaseURL,
   },
 })
