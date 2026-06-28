@@ -1,0 +1,25 @@
+version: 3
+
+tasks:
+  typecheck:
+    run: once
+    cmd: bun tsc
+
+  lint:
+    run: once
+    cmd: bun eslint src/
+
+  test:unit:
+    run: once
+    cmd: bun test
+
+  test:playwright:
+    run: once
+    cmd: bun playwright test
+
+  check:
+    deps:
+      - typecheck
+      - lint
+      - test:unit
+      - test:playwright
