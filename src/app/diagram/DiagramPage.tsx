@@ -158,7 +158,7 @@ const HelpButton: Component = () => {
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <DialogOverlay class="fixed inset-0 bg-gray-900/50" />
+              <DialogOverlay class="fixed inset-0 z-0 bg-gray-900/50" />
             </TransitionChild>
 
             {/* This element is to trick the browser into centering the modal contents. */}
@@ -173,7 +173,7 @@ const HelpButton: Component = () => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <DialogPanel class="my-8 flex w-full max-w-md transform flex-col gap-3 overflow-hidden rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <DialogPanel class="relative z-10 my-8 flex w-full max-w-md transform flex-col gap-3 overflow-hidden rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <div class="flex justify-between">
                   <DialogTitle
                     as="h3"
