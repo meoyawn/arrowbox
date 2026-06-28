@@ -1,7 +1,9 @@
-import type { Diagram } from "mermaid/dist/Diagram.js"
 import type { DiagramDB } from "mermaid/dist/diagram-api/types.js"
-import { sleep } from "../../../../lib/ts.ts"
-import { Config } from "../../../config.ts"
+import type {
+  FlowEdge,
+  FlowSubGraph,
+  FlowVertex,
+} from "mermaid/dist/diagrams/flowchart/types.js"
 import { md2html } from "../../../markdown.ts"
 import { ROOT_ID } from "../ROOT_ID.ts"
 import {
@@ -12,42 +14,25 @@ import {
   type NodeID,
 } from "../data.ts"
 
-const mermaidModule = sleep(Config.heavyScriptDelayMs)
-  .then(() => import("mermaid"))
-  .then(m => {
-    m.default.initialize({ flowchart: {}, startOnLoad: false })
-    return m.default.mermaidAPI
-  })
-
-interface MermaidNode {
-  id: string
-  text: string
-  type: "square" | "round"
-}
-
-interface MermaidEdge {
-  start: string
-  end: string
-  type: "arrow_point"
-  text: string
-}
-
-interface MermaidSubgraph {
-  id: string
-  title: string
-  nodes: string[]
-}
+/**
+ * Load only Mermaid's flowchart parser chunk to keep paste parsing from
+ * bundling the full Mermaid runtime and optional render layouts.
+ */
+const flowDiagram =
+  import("mermaid/dist/chunks/mermaid.core/chunk-PUDLZKDR.mjs").then(
+    m => m.diagram,
+  )
 
 interface FlowchartDB extends DiagramDB {
-  getVertices(): Record<string, MermaidNode>
+  getVertices(): Map<string, FlowVertex>
 
-  getEdges(): MermaidEdge[]
+  getEdges(): FlowEdge[]
 
-  getSubGraphs(): MermaidSubgraph[]
+  getSubGraphs(): FlowSubGraph[]
 }
 
 function calcHierarchy(
-  subgraphs: MermaidSubgraph[],
+  subgraphs: FlowSubGraph[],
 ): Partial<Record<NodeID, NodeID>> {
   const parents: Partial<Record<NodeID, NodeID>> = {}
 
@@ -62,12 +47,7 @@ function calcHierarchy(
   return parents
 }
 
-function fromDiagram(diagram: Diagram): Graph {
-  const parser = diagram.getParser().parser
-  if (!parser) throw new Error("No parser found")
-
-  const db = parser.yy as FlowchartDB
-
+function fromFlowchartDb(db: FlowchartDB): Graph {
   const vertices = db.getVertices()
   const subgraphs = db.getSubGraphs()
   const edges = db.getEdges()
@@ -92,13 +72,12 @@ function fromDiagram(diagram: Diagram): Graph {
     }
   }
 
-  for (const k in vertices) {
-    const v = vertices[k]
+  for (const v of vertices.values()) {
     const id: NodeID = `n${v.id}`
     if (id in g.nodes) continue
     g.nodes[id] = {
       id,
-      text: { markdown: v.text, html: md2html(v.text) },
+      text: { markdown: v.text ?? v.id, html: md2html(v.text ?? v.id) },
       shape: "rect",
       rect: { x: 0, y: 0, width: 1, height: 1 },
       children: [],
@@ -126,10 +105,17 @@ function fromDiagram(diagram: Diagram): Graph {
 }
 
 export async function fromMermaid(str: string): Promise<Graph | undefined> {
-  const mermaid = await mermaidModule
   try {
-    const diagram = await mermaid.getDiagramFromText(str)
-    return fromDiagram(diagram)
+    const diagram = await flowDiagram
+    const parser = diagram.parser.parser
+    if (!parser) throw new Error("No parser found")
+
+    const db = diagram.db as FlowchartDB
+    parser.yy = db
+    db.clear?.()
+
+    await diagram.parser.parse(`${str}\n`)
+    return fromFlowchartDb(db)
   } catch {
     return undefined
   }
