@@ -261,6 +261,99 @@ test.describe("diagram page iOS gestures", () => {
     expect(brush.height).toBeGreaterThan(30)
   })
 
+  test("highlights a node while another node is dragged over it", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const graphID = "g-ios-drag-hover-highlight"
+      localStorage.setItem("last-graph", graphID)
+      localStorage.setItem(
+        "graph-list",
+        JSON.stringify({
+          [graphID]: { title: "Drag hover highlight", lastModifiedMs: 0 },
+        }),
+      )
+      localStorage.setItem(
+        graphID,
+        JSON.stringify({
+          nodes: {
+            nRoot: {
+              id: "nRoot",
+              children: ["nDropTarget", "nDragged"],
+              rect: { x: 0, y: 0, width: 0, height: 0 },
+              text: { html: "", markdown: "" },
+              shape: "rect",
+            },
+            nDropTarget: {
+              id: "nDropTarget",
+              children: [],
+              rect: { x: 210, y: 260, width: 110, height: 90 },
+              text: {
+                html: "<p>Target</p>",
+                markdown: "Target",
+              },
+              shape: "rect",
+            },
+            nDragged: {
+              id: "nDragged",
+              children: [],
+              rect: { x: 60, y: 260, width: 100, height: 80 },
+              text: {
+                html: "<p>Drag</p>",
+                markdown: "Drag",
+              },
+              shape: "rect",
+            },
+          },
+          edges: {},
+        }),
+      )
+    })
+    await page.goto("/")
+
+    const draggedShape = page.locator(
+      "[data-nodeID=nDragged] [data-dragID=node] > rect",
+    )
+    const targetShape = page.locator(
+      "[data-nodeID=nDropTarget] [data-dragID=node] > rect",
+    )
+    const draggedBox = await draggedShape.boundingBox()
+    const targetBox = await targetShape.boundingBox()
+    if (!draggedBox || !targetBox) throw new Error("Missing node boxes")
+
+    async function targetStroke(): Promise<{
+      hasBlueStroke: boolean
+      strokeWidth: string
+    }> {
+      return targetShape.evaluate(rect => {
+        const style = getComputedStyle(rect)
+
+        return {
+          hasBlueStroke: rect.classList.contains("stroke-blue-600"),
+          strokeWidth: style.strokeWidth,
+        }
+      })
+    }
+
+    await page.mouse.move(
+      draggedBox.x + draggedBox.width / 2,
+      draggedBox.y + draggedBox.height / 2,
+    )
+    await page.mouse.down()
+    await page.mouse.move(
+      targetBox.x + targetBox.width / 2,
+      targetBox.y + targetBox.height / 2,
+      { steps: 6 },
+    )
+
+    await expect.poll(targetStroke).toEqual({
+      hasBlueStroke: true,
+      strokeWidth: "2px",
+    })
+
+    await page.mouse.up()
+  })
+
   test("pans empty canvas with two fingers", async ({ page }) => {
     await page.goto("/")
 

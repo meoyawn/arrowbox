@@ -91,6 +91,8 @@ export const OneNode: Component<{
 
   const draggingAny = () => Boolean(store.dragging)
   const draggingMe = () => store.dragging && props.id in store.dragging
+  const hoveringDropTarget = () =>
+    draggingAny() && !draggingMe() && store.hovering === props.id
 
   const x = () => rect().x
   const y = () => rect().y
@@ -113,7 +115,9 @@ export const OneNode: Component<{
             rx={3}
             ry={3}
             classList={{
-              "stroke-black stroke-1 group-hover:stroke-blue-600": !isEditing(),
+              "stroke-black stroke-1 group-hover:stroke-blue-600":
+                !isEditing() && !hoveringDropTarget(),
+              "stroke-blue-600 stroke-2": !isEditing() && hoveringDropTarget(),
               "group-hover:stroke-2": draggingAny(),
             }}
             fill="white"

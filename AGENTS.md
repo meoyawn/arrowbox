@@ -2,7 +2,7 @@
 
 ## Rules
 
-- `.tsx` files are solid-js, not react-js
+- when working with `.tsx` files $solid-js must be applied
 - never start a dev server, it's already running
   [vite.config.ts](vite.config.ts)
 - never run `task check` without sandbox escalation (because chrome & webkit)
