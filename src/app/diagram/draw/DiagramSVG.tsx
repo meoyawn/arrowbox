@@ -57,15 +57,24 @@ export const DiagramSVG: Component = () => {
     <svg
       id="canvas"
       ref={svgEl}
+      aria-label="Diagram canvas"
       class="h-full min-h-screen w-full"
+      role="button"
+      tabIndex={0}
       onWheel={ev => {
         if (ev.ctrlKey) return
 
         const camera = store.camera
         zoomTo(camera.translate(-ev.deltaX / camera.k, -ev.deltaY / camera.k))
       }}
+      onFocus={({ target }) => {
+        setStore({ hovering: closestNodeID(target) })
+      }}
       onMouseOver={({ target }) => {
         setStore({ hovering: closestNodeID(target) })
+      }}
+      onKeyDown={ev => {
+        if (ev.key === "Escape") setStore({ selected: {} })
       }}
       onDblClick={e => {
         if (!zoomedEl) return

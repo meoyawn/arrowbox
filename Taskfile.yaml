@@ -7,7 +7,7 @@ tasks:
 
   lint:
     run: once
-    cmd: bun eslint src/
+    cmd: bun oxfmt . && bun oxlint src/
 
   test:unit:
     run: once
