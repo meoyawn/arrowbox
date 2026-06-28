@@ -79,7 +79,10 @@ const Corner: Component<{
  *   v
  *  Y+
  */
-export const OneNode: Component<{ id: NodeID }> = props => {
+export const OneNode: Component<{
+  editorLayer: () => HTMLElement | undefined
+  id: NodeID
+}> = props => {
   const node = () => store.tree.data.nodes[props.id]
   const isSelected = () => Boolean(store.selected[props.id])
   const rect = () => node().rect
@@ -130,9 +133,11 @@ export const OneNode: Component<{ id: NodeID }> = props => {
           </Show>
 
           <ForeignText
+            editorLayer={props.editorLayer}
             id={props.id}
             text={node().text}
             rect={{ x: 0, y: 0, width: width(), height: height() }}
+            worldRect={rect()}
             isCenter={node().children.length === 0}
           />
         </g>
@@ -182,7 +187,9 @@ export const OneNode: Component<{ id: NodeID }> = props => {
         </g>
       </g>
 
-      <For each={children()}>{nid => <OneNode id={nid} />}</For>
+      <For each={children()}>
+        {nid => <OneNode editorLayer={props.editorLayer} id={nid} />}
+      </For>
     </g>
   )
 }

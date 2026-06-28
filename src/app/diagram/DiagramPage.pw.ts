@@ -134,6 +134,9 @@ test.describe("diagram page", () => {
         const rect = textarea.getBoundingClientRect()
 
         return {
+          insideEditorLayer: Boolean(
+            textarea.closest("[data-testid=foreign-text-editor-layer]"),
+          ),
           insideSvg: Boolean(textarea.closest("svg")),
           height: rect.height,
           position: getComputedStyle(textarea).position,
@@ -141,8 +144,9 @@ test.describe("diagram page", () => {
         }
       })
 
+    expect(editMetrics.insideEditorLayer).toEqual(true)
     expect(editMetrics.insideSvg).toEqual(false)
-    expect(editMetrics.position).toEqual("fixed")
+    expect(editMetrics.position).toEqual("absolute")
     expect(editMetrics.width).toBeGreaterThan(0)
     expect(editMetrics.height).toBeGreaterThan(0)
   })

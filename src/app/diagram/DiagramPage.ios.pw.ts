@@ -18,6 +18,22 @@ interface BrushRectMetrics {
   width: number
 }
 
+interface ScreenRect {
+  bottom: number
+  height: number
+  left: number
+  right: number
+  top: number
+  width: number
+}
+
+interface WorldRect {
+  height: number
+  width: number
+  x: number
+  y: number
+}
+
 async function mockVisualViewport(page: Page): Promise<void> {
   await page.addInitScript(() => {
     const listeners = new Map<string, Set<EventListener>>()
@@ -159,6 +175,38 @@ async function brushRect(page: Page): Promise<BrushRectMetrics> {
       width: box.width,
     }
   })
+}
+
+function screenRectFromWorld(
+  rect: WorldRect,
+  camera: CameraTransform,
+): ScreenRect {
+  const left = rect.x * camera.k + camera.x
+  const top = rect.y * camera.k + camera.y
+  const width = rect.width * camera.k
+  const height = rect.height * camera.k
+
+  return {
+    bottom: top + height,
+    height,
+    left,
+    right: left + width,
+    top,
+    width,
+  }
+}
+
+function expectRectsClose(actual: ScreenRect, expected: ScreenRect): void {
+  expect(Math.abs(actual.left - expected.left)).toBeLessThanOrEqual(3)
+  expect(Math.abs(actual.top - expected.top)).toBeLessThanOrEqual(3)
+  expect(Math.abs(actual.width - expected.width)).toBeLessThanOrEqual(3)
+  expect(Math.abs(actual.height - expected.height)).toBeLessThanOrEqual(3)
+}
+
+function rectsOverlap(a: ScreenRect, b: ScreenRect): boolean {
+  return (
+    a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
+  )
 }
 
 test.describe("diagram page iOS viewport", () => {
@@ -462,6 +510,9 @@ test.describe("diagram page iOS gestures", () => {
         borderWidth: style.borderTopWidth,
         bottom: rect.bottom,
         height: rect.height,
+        insideEditorLayer: Boolean(
+          textarea.closest("[data-testid=foreign-text-editor-layer]"),
+        ),
         insideSvg: Boolean(textarea.closest("svg")),
         left: rect.left,
         position: style.position,
@@ -471,8 +522,9 @@ test.describe("diagram page iOS gestures", () => {
       }
     })
 
+    expect(metrics.insideEditorLayer).toEqual(true)
     expect(metrics.insideSvg).toEqual(false)
-    expect(metrics.position).toEqual("fixed")
+    expect(metrics.position).toEqual("absolute")
     expect(metrics.borderColor).toEqual("rgb(37, 99, 235)")
     expect(metrics.borderStyle).toEqual("solid")
     expect(metrics.borderWidth).toEqual("2px")
@@ -573,7 +625,13 @@ test.describe("diagram page iOS gestures", () => {
 
   test("keeps active foreign text editor locked during touch pan and pinch", async ({
     page,
-  }) => {
+  }, testInfo) => {
+    const editedRect: WorldRect = { x: 120, y: 300, width: 170, height: 110 }
+    const siblingRects: Array<WorldRect> = [
+      { x: 36, y: 292, width: 72, height: 132 },
+      { x: 308, y: 298, width: 112, height: 128 },
+    ]
+
     await page.addInitScript(() => {
       const graphID = "g-ios-foreign-text-edit-transform"
       localStorage.setItem("last-graph", graphID)
@@ -592,9 +650,19 @@ test.describe("diagram page iOS gestures", () => {
           nodes: {
             nRoot: {
               id: "nRoot",
-              children: ["nEditTransform"],
+              children: ["nSiblingLeft", "nEditTransform", "nSiblingRight"],
               rect: { x: 0, y: 0, width: 0, height: 0 },
               text: { html: "", markdown: "" },
+              shape: "rect",
+            },
+            nSiblingLeft: {
+              id: "nSiblingLeft",
+              children: [],
+              rect: { x: 36, y: 292, width: 72, height: 132 },
+              text: {
+                html: "<p>Near left</p>",
+                markdown: "Near left",
+              },
               shape: "rect",
             },
             nEditTransform: {
@@ -604,6 +672,16 @@ test.describe("diagram page iOS gestures", () => {
               text: {
                 html: "<p>Move while editing</p>",
                 markdown: "Move while editing",
+              },
+              shape: "rect",
+            },
+            nSiblingRight: {
+              id: "nSiblingRight",
+              children: [],
+              rect: { x: 308, y: 298, width: 112, height: 128 },
+              text: {
+                html: "<p>Near right</p>",
+                markdown: "Near right",
               },
               shape: "rect",
             },
@@ -628,53 +706,185 @@ test.describe("diagram page iOS gestures", () => {
     const editor = page.locator("[data-testid=foreign-text-editor]")
     await expect(editor).toBeFocused()
 
-    async function editorAlignment(): Promise<{
-      dx: number
-      dy: number
-      heightDelta: number
-      nodeX: number
-      scale: number
-      widthDelta: number
-    }> {
-      const shape = await nodeShape.boundingBox()
+    async function editorRect(): Promise<ScreenRect> {
       const textarea = await editor.boundingBox()
-      if (!shape || !textarea) throw new Error("Missing alignment boxes")
+      if (!textarea) throw new Error("Missing editor box")
 
       return {
-        dx: textarea.x - shape.x,
-        dy: textarea.y - shape.y,
-        heightDelta: textarea.height - shape.height,
-        nodeX: shape.x,
-        scale: (await cameraTransform(page)).k,
-        widthDelta: textarea.width - shape.width,
+        bottom: textarea.y + textarea.height,
+        height: textarea.height,
+        left: textarea.x,
+        right: textarea.x + textarea.width,
+        top: textarea.y,
+        width: textarea.width,
       }
     }
 
-    const before = await editorAlignment()
-    expect(Math.abs(before.dx)).toBeLessThan(2)
-    expect(Math.abs(before.dy)).toBeLessThan(2)
-    expect(Math.abs(before.widthDelta)).toBeLessThan(2)
-    expect(Math.abs(before.heightDelta)).toBeLessThan(2)
+    async function expectedEditorRect(): Promise<ScreenRect> {
+      return screenRectFromWorld(editedRect, await cameraTransform(page))
+    }
+
+    async function expectEditorLocked(): Promise<void> {
+      expectRectsClose(await editorRect(), await expectedEditorRect())
+    }
+
+    const editorLayer = await editor.evaluate(textarea => ({
+      insideEditorLayer: Boolean(
+        textarea.closest("[data-testid=foreign-text-editor-layer]"),
+      ),
+      insideSvg: Boolean(textarea.closest("svg")),
+      position: getComputedStyle(textarea).position,
+    }))
+
+    expect(editorLayer.insideEditorLayer).toEqual(true)
+    expect(editorLayer.insideSvg).toEqual(false)
+    expect(editorLayer.position).toEqual("absolute")
+
+    const before = await expectedEditorRect()
+    await expectEditorLocked()
 
     await installManualAnimationFrame(page)
     await dispatchCanvasTouch(page, "touchstart", [
       { id: 1, x: 130, y: 340 },
       { id: 2, x: 250, y: 340 },
     ])
-    await dispatchCanvasTouch(page, "touchmove", [
-      { id: 1, x: 160, y: 360 },
-      { id: 2, x: 310, y: 360 },
-    ])
 
-    expect(await stepManualAnimationFrame(page)).toBeGreaterThan(0)
+    for (const points of [
+      [
+        { id: 1, x: 160, y: 360 },
+        { id: 2, x: 310, y: 360 },
+      ],
+      [
+        { id: 1, x: 175, y: 374 },
+        { id: 2, x: 330, y: 384 },
+      ],
+    ]) {
+      await dispatchCanvasTouch(page, "touchmove", points)
+      expect(await stepManualAnimationFrame(page)).toBeGreaterThan(0)
+      await expectEditorLocked()
+    }
 
-    const after = await editorAlignment()
-    expect(after.nodeX).not.toEqual(before.nodeX)
-    expect(after.scale).toBeGreaterThan(before.scale)
-    expect(Math.abs(after.dx)).toBeLessThan(2)
-    expect(Math.abs(after.dy)).toBeLessThan(2)
-    expect(Math.abs(after.widthDelta)).toBeLessThan(2)
-    expect(Math.abs(after.heightDelta)).toBeLessThan(2)
+    const after = await expectedEditorRect()
+    expect(after.left).not.toEqual(before.left)
+    expect(after.width).toBeGreaterThan(before.width)
+
+    const screenshotPath = testInfo.outputPath(
+      "foreign-text-editor-touch-transform.png",
+    )
+    const screenshot = await page.screenshot({
+      path: screenshotPath,
+      scale: "css",
+    })
+    await testInfo.attach("foreign-text-editor-touch-transform", {
+      path: screenshotPath,
+      contentType: "image/png",
+    })
+
+    const {
+      data,
+      info: { height, width },
+    } = await sharp(screenshot)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true })
+
+    function clampRect(rect: ScreenRect): ScreenRect {
+      const left = Math.max(0, Math.floor(rect.left))
+      const top = Math.max(0, Math.floor(rect.top))
+      const right = Math.min(width, Math.ceil(rect.right))
+      const bottom = Math.min(height, Math.ceil(rect.bottom))
+
+      return {
+        bottom,
+        height: Math.max(0, bottom - top),
+        left,
+        right,
+        top,
+        width: Math.max(0, right - left),
+      }
+    }
+
+    function expanded(rect: ScreenRect, amount: number): ScreenRect {
+      return {
+        bottom: rect.bottom + amount,
+        height: rect.height + amount * 2,
+        left: rect.left - amount,
+        right: rect.right + amount,
+        top: rect.top - amount,
+        width: rect.width + amount * 2,
+      }
+    }
+
+    function isPaintedBlueAt(x: number, y: number): boolean {
+      const offset = (y * width + x) * 4
+      const r = data[offset] ?? 0
+      const g = data[offset + 1] ?? 0
+      const b = data[offset + 2] ?? 0
+      const a = data[offset + 3] ?? 0
+
+      return a > 220 && r < 100 && g > 40 && g < 170 && b > 150
+    }
+
+    function bluePixelBBox(search: ScreenRect): ScreenRect | null {
+      const rect = clampRect(search)
+      let left = Number.POSITIVE_INFINITY
+      let top = Number.POSITIVE_INFINITY
+      let right = Number.NEGATIVE_INFINITY
+      let bottom = Number.NEGATIVE_INFINITY
+
+      for (let y = rect.top; y < rect.bottom; y++) {
+        for (let x = rect.left; x < rect.right; x++) {
+          if (!isPaintedBlueAt(x, y)) continue
+
+          left = Math.min(left, x)
+          top = Math.min(top, y)
+          right = Math.max(right, x + 1)
+          bottom = Math.max(bottom, y + 1)
+        }
+      }
+
+      if (!Number.isFinite(left)) return null
+
+      return {
+        bottom,
+        height: bottom - top,
+        left,
+        right,
+        top,
+        width: right - left,
+      }
+    }
+
+    function countBluePixels(search: ScreenRect): number {
+      const rect = clampRect(search)
+      let count = 0
+
+      for (let y = rect.top; y < rect.bottom; y++) {
+        for (let x = rect.left; x < rect.right; x++) {
+          if (isPaintedBlueAt(x, y)) count += 1
+        }
+      }
+
+      return count
+    }
+
+    const expectedPaint = await expectedEditorRect()
+    const painted = bluePixelBBox(expanded(expectedPaint, 24))
+    if (!painted) throw new Error("Missing painted editor border")
+
+    expectRectsClose(painted, expectedPaint)
+
+    for (const sibling of siblingRects) {
+      const siblingScreenRect = screenRectFromWorld(
+        sibling,
+        await cameraTransform(page),
+      )
+
+      expect(rectsOverlap(expectedPaint, siblingScreenRect)).toEqual(false)
+      expect(countBluePixels(siblingScreenRect)).toEqual(0)
+    }
+
+    await dispatchCanvasTouch(page, "touchend", [])
   })
 
   test("zooms empty canvas with two-finger pinch", async ({ page }) => {

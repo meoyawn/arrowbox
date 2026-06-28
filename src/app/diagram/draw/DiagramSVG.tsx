@@ -138,6 +138,7 @@ const zoomTransform = ({ k, x, y }: ZoomTransform): string =>
 export const DiagramSVG: Component = () => {
   let svgEl: SVGSVGElement | undefined
   let zoomedEl: SVGGElement | undefined
+  let editorLayerEl: HTMLDivElement | undefined
 
   createEffect(() => {
     currentCamera = store.camera
@@ -314,14 +315,14 @@ export const DiagramSVG: Component = () => {
 
         <g ref={zoomedEl} transform={zoomTransform(store.camera)}>
           <For each={store.tree.data.nodes[ROOT_ID].children}>
-            {id => <OneNode id={id} />}
+            {id => <OneNode editorLayer={() => editorLayerEl} id={id} />}
           </For>
           <For
             each={toKeysArray(store.tree.data.edges).filter(
               eid => !store.dragging || !(eid in store.dragging),
             )}
           >
-            {e => <OneEdge id={e} />}
+            {e => <OneEdge editorLayer={() => editorLayerEl} id={e} />}
           </For>
 
           <Show when={store.brush}>{b => <BrushRect bbox={b()} />}</Show>
@@ -330,6 +331,12 @@ export const DiagramSVG: Component = () => {
           </Show>
         </g>
       </svg>
+
+      <div
+        ref={editorLayerEl}
+        data-testid="foreign-text-editor-layer"
+        class="pointer-events-none absolute inset-0 z-10 min-h-screen w-full overflow-visible"
+      />
     </div>
   )
 }

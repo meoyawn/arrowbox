@@ -1,10 +1,4 @@
-import {
-  Show,
-  createEffect,
-  createSignal,
-  onCleanup,
-  type Component,
-} from "solid-js"
+import { Show, createEffect, onCleanup, type Component } from "solid-js"
 import { Portal } from "solid-js/web"
 import { type Rect } from "../../../lib/geometry.ts"
 import {
@@ -32,9 +26,11 @@ interface EditorBox {
 }
 
 export const ForeignText: Component<{
+  editorLayer: () => HTMLElement | undefined
   id: NodeID | EdgeID
   text: GraphText
   rect: Rect
+  worldRect: Rect
   isCenter: boolean
 }> = props => {
   const isEditing = () => props.id === store.editing
@@ -46,27 +42,14 @@ export const ForeignText: Component<{
   const width = () => props.rect.width
   const height = () => props.rect.height
 
-  let foreignObject: SVGForeignObjectElement | undefined
   let editor: HTMLTextAreaElement | undefined
 
-  const [editorBox, setEditorBox] = createSignal<EditorBox>({
-    height: 0,
-    left: 0,
-    top: 0,
-    width: 0,
+  const editorBox = (): EditorBox => ({
+    height: props.worldRect.height * store.camera.k,
+    left: props.worldRect.x * store.camera.k + store.camera.x,
+    top: props.worldRect.y * store.camera.k + store.camera.y,
+    width: props.worldRect.width * store.camera.k,
   })
-
-  function updateEditorBox(_trackingKey?: string): void {
-    if (!foreignObject) return
-
-    const rect = foreignObject.getBoundingClientRect()
-    setEditorBox({
-      height: rect.height,
-      left: rect.left,
-      top: rect.top,
-      width: rect.width,
-    })
-  }
 
   createEffect(() => {
     if (!isEditing()) return
@@ -80,26 +63,9 @@ export const ForeignText: Component<{
     })
   })
 
-  createEffect(() => {
-    if (!isEditing()) return
-
-    const trackingKey = [
-      store.camera.x,
-      store.camera.y,
-      store.camera.k,
-      props.rect.x,
-      props.rect.y,
-      props.rect.width,
-      props.rect.height,
-    ].join(":")
-
-    updateEditorBox(trackingKey)
-  })
-
   return (
     <>
       <foreignObject
-        ref={foreignObject}
         x={x()}
         y={y()}
         classList={{
@@ -139,23 +105,24 @@ export const ForeignText: Component<{
       </foreignObject>
 
       <Show when={isEditing()}>
-        <Portal>
+        <Portal mount={props.editorLayer()}>
           <textarea
             ref={el => {
               editor = el
             }}
             data-testid="foreign-text-editor"
-            class="resize bg-white p-2 outline-none"
+            class="pointer-events-auto resize bg-white p-2 outline-none"
             value={props.text.markdown}
             placeholder={"Markdown"}
             style={{
               border: `${2 * store.camera.k}px solid #2563eb`,
+              "box-sizing": "border-box",
               "font-size": `${16 * store.camera.k}px`,
               height: `${editorBox().height}px`,
               left: `${editorBox().left}px`,
               "line-height": `${24 * store.camera.k}px`,
               padding: `${8 * store.camera.k}px`,
-              position: "fixed",
+              position: "absolute",
               top: `${editorBox().top}px`,
               width: `${editorBox().width}px`,
               "z-index": "10",

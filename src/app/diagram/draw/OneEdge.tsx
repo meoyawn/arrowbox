@@ -8,7 +8,10 @@ import { ForeignText } from "./ForeignText.tsx"
 
 const edgeHitArea = 16
 
-export const OneEdge: Component<{ id: EdgeID }> = props => {
+export const OneEdge: Component<{
+  editorLayer: () => HTMLElement | undefined
+  id: EdgeID
+}> = props => {
   const e = () => store.tree.data.edges[props.id]
 
   const from = () => e().from
@@ -88,10 +91,12 @@ export const OneEdge: Component<{ id: EdgeID }> = props => {
       />
 
       <ForeignText
+        editorLayer={props.editorLayer}
         id={props.id}
         text={e().text}
         isCenter={true}
         rect={textRect()}
+        worldRect={textRect()}
       />
     </g>
   )
