@@ -13,7 +13,6 @@ function testState(graph: Graph, hovering: NodeID): State {
     hovering,
     id: "gDragNodeTest" satisfies GraphID,
     selected: {},
-    title: "Drag node test",
     tree: {
       data: graph,
       history: emptyHistory(),
@@ -25,6 +24,8 @@ function testState(graph: Graph, hovering: NodeID): State {
 describe("dragNode", () => {
   test("should expand new parent when dropped child does not fit", () => {
     const graph: Graph = {
+      id: "gDragNodeTest",
+      title: "Drag node test",
       edges: {},
       nodes: {
         [ROOT_ID]: {
@@ -75,6 +76,8 @@ describe("dragNode", () => {
 
   test("should not expand parent when moving existing child", () => {
     const graph: Graph = {
+      id: "gDragNodeTest",
+      title: "Drag node test",
       edges: {},
       nodes: {
         [ROOT_ID]: {
@@ -125,6 +128,8 @@ describe("dragNode", () => {
 
   test("should expand every ancestor until root and preserve world positions", () => {
     const graph: Graph = {
+      id: "gDragNodeTest",
+      title: "Drag node test",
       edges: {},
       nodes: {
         [ROOT_ID]: {

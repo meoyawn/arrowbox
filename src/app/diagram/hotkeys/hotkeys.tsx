@@ -141,16 +141,14 @@ export const setupHotkeys = (): VoidFunction => {
   })
 
   hotkeys(toKey(Shortcuts.copyMermaid), () => {
-    void navigator.clipboard
-      .writeText(toMermaid(store.tree.data, store.title))
-      .then(() => {
-        toaster.show(props => (
-          <AbToast toastId={props.toastId}>
-            <p>Copied Mermaid diagram</p>
-            <ExternalA href="https://mermaid.live/edit">Open Editor</ExternalA>
-          </AbToast>
-        ))
-      })
+    void navigator.clipboard.writeText(toMermaid(store.tree.data)).then(() => {
+      toaster.show(props => (
+        <AbToast toastId={props.toastId}>
+          <p>Copied Mermaid diagram</p>
+          <ExternalA href="https://mermaid.live/edit">Open Editor</ExternalA>
+        </AbToast>
+      ))
+    })
   })
 
   return () => {

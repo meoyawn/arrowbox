@@ -41,6 +41,8 @@ test.describe("diagram page", () => {
     page,
   }) => {
     await gotoGraphURLFragment(page, {
+      id: "gVerticalEdgeEditor",
+      title: "Vertical edge editor",
       nodes: {
         [ROOT_ID]: {
           id: ROOT_ID,
@@ -100,6 +102,8 @@ test.describe("diagram page", () => {
 
   test("selects edge from larger hover target", async ({ page }) => {
     await gotoGraphURLFragment(page, {
+      id: "gEdgeHoverTarget",
+      title: "Edge hover target",
       nodes: {
         [ROOT_ID]: {
           id: ROOT_ID,
@@ -144,6 +148,8 @@ test.describe("diagram page", () => {
     page,
   }) => {
     await gotoGraphURLFragment(page, {
+      id: "gNestedParentDrop",
+      title: "Nested parent drop",
       nodes: {
         [ROOT_ID]: {
           id: ROOT_ID,
@@ -262,6 +268,8 @@ test.describe("diagram page", () => {
     page,
   }) => {
     const graph: Graph = {
+      id: "g-persisted-url-fragment",
+      title: "Persisted URL Fragment",
       nodes: {
         [ROOT_ID]: {
           id: ROOT_ID,

@@ -266,6 +266,8 @@ test.describe("diagram page iOS gestures", () => {
     page,
   }) => {
     await gotoGraphURLFragment(page, {
+      id: "gIosDragHighlight",
+      title: "iOS drag highlight",
       nodes: {
         [ROOT_ID]: {
           id: ROOT_ID,
@@ -365,6 +367,8 @@ test.describe("diagram page iOS gestures", () => {
     page,
   }) => {
     await gotoGraphURLFragment(page, {
+      id: "gIosForeignTextPan",
+      title: "iOS foreign text pan",
       nodes: {
         [ROOT_ID]: {
           id: ROOT_ID,
@@ -440,6 +444,8 @@ test.describe("diagram page iOS gestures", () => {
     page,
   }) => {
     await gotoGraphURLFragment(page, {
+      id: "gIosForeignTextBounds",
+      title: "iOS foreign text bounds",
       nodes: {
         [ROOT_ID]: {
           id: ROOT_ID,
@@ -499,6 +505,8 @@ test.describe("diagram page iOS gestures", () => {
     page,
   }) => {
     await gotoGraphURLFragment(page, {
+      id: "gIosForeignTextEdit",
+      title: "iOS foreign text edit",
       nodes: {
         [ROOT_ID]: {
           id: ROOT_ID,
@@ -582,6 +590,8 @@ test.describe("diagram page iOS gestures", () => {
     ]
 
     await gotoGraphURLFragment(page, {
+      id: "gIosForeignTextTransform",
+      title: "iOS foreign text transform",
       nodes: {
         [ROOT_ID]: {
           id: ROOT_ID,

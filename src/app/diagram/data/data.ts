@@ -53,6 +53,8 @@ export interface Edge {
 
 /** persisted */
 export interface Graph {
+  readonly id: GraphID
+  title: string
   nodes: Record<NodeID, Node>
   edges: Record<EdgeID, Edge>
 }
@@ -76,7 +78,12 @@ export const genStr = (): string => {
 export const genID = <P extends string>(prefix: P): `${P}${string}` =>
   `${prefix}${genStr()}`
 
-export const emptyGraph = (): Graph => ({
+export const emptyGraph = (
+  id: GraphID = genID("g"),
+  title = "Untitled 1",
+): Graph => ({
+  id,
+  title,
   nodes: {
     [ROOT_ID]: {
       id: ROOT_ID,

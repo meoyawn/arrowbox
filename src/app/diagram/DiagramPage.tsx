@@ -25,8 +25,8 @@ import { ToastPortal } from "../Toasts.tsx"
 import type { DataState, Graph } from "./data/data.ts"
 import {
   archive,
-  createNewGraph,
   getLastGraph,
+  importSharedGraph,
   saveTitle,
   storeGraph,
 } from "./data/persistence.ts"
@@ -60,7 +60,7 @@ const Dropdown: Component<{ setEditing: Setter<boolean> }> = props => {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger class="p-2">
-        <span>{store.title}</span>
+        <span>{store.tree.data.title}</span>
 
         <DropdownMenu.Icon />
       </DropdownMenu.Trigger>
@@ -110,13 +110,13 @@ const Title: Component = () => {
         <input
           class="p-2"
           ref={input}
-          value={store.title}
+          value={store.tree.data.title}
           onBlur={() => setEditing(false)}
           onKeyPress={({ currentTarget, key }) => {
             if (key === "Enter") {
               const title = currentTarget.value
               saveTitle(store.id, title)
-              setStore({ title })
+              setStore("tree", "data", "title", title)
               setEditing(false)
             }
           }}
@@ -256,20 +256,30 @@ export const DiagramPage: Component = () => {
 
     async function loadInitialGraph(): Promise<void> {
       const hash = location.hash
-      const graphRecord = hash
-        ? createNewGraph(await decodeGraphURLFragment(hash))
-        : getLastGraph()
+      let usedHash = false
+      let graphRecord
+
+      if (hash) {
+        try {
+          const graph = await decodeGraphURLFragment(hash)
+          graphRecord = importSharedGraph(graph)
+          usedHash = true
+        } catch {
+          graphRecord = getLastGraph()
+        }
+      } else {
+        graphRecord = getLastGraph()
+      }
 
       if (!alive) return
 
       setStore({
         tree: emptyDataState(graphRecord.graph),
-        title: graphRecord.title,
         id: graphRecord.id,
         camera: zoomIdentity,
       })
 
-      if (!hash) {
+      if (!usedHash) {
         replaceURLWithGraph(graphRecord.graph)
       }
 

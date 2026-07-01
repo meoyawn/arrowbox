@@ -30,7 +30,7 @@ declare global {
       fromMermaid(str: string): Promise<Graph | undefined>
       layoutEmptyGraphRootID(): Promise<string>
       md2html(md: string): string
-      toMermaid(graph: Graph, title: string): string
+      toMermaid(graph: Graph): string
     }
   }
 }

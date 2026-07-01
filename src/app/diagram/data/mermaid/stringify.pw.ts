@@ -20,6 +20,8 @@ test.describe("stringify mermaid", () => {
     await loadHarness(page)
 
     const graph: Graph = {
+      id: "gMermaidStringify",
+      title: "Untitled",
       nodes: {
         [ROOT_ID]: {
           id: ROOT_ID,
@@ -57,7 +59,7 @@ test.describe("stringify mermaid", () => {
     }
 
     const result = await page.evaluate(async graph => {
-      const mermaid = window.arrowboxPw.toMermaid(graph, "Untitled")
+      const mermaid = window.arrowboxPw.toMermaid(graph)
       return {
         mermaid,
         parsed: (await window.arrowboxPw.fromMermaid(mermaid)) !== undefined,
@@ -78,7 +80,7 @@ test.describe("stringify mermaid", () => {
     await fc.assert(
       fc.asyncProperty(graphArbitrary, async graph => {
         const result = await page.evaluate(async graph => {
-          const mermaid = window.arrowboxPw.toMermaid(graph, "Untitled")
+          const mermaid = window.arrowboxPw.toMermaid(graph)
           return {
             mermaid,
             parsed:

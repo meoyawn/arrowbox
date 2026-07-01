@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test"
-import type { Graph, NodeID } from "./data/data.ts"
+import type { Graph, GraphID, NodeID } from "./data/data.ts"
 import { ROOT_ID } from "./data/ROOT_ID.ts"
 import {
   gotoGraphURLFragment,
@@ -13,7 +13,7 @@ interface CameraTransform {
 }
 
 interface MarkdownEditorNode {
-  graphID: string
+  graphID: GraphID
   html: string
   markdown: string
   nodeID: NodeID
@@ -119,6 +119,8 @@ async function loadSingleNodeGraph(
   node: MarkdownEditorNode,
 ): Promise<void> {
   const graph: Graph = {
+    id: node.graphID,
+    title: node.title,
     nodes: {
       [ROOT_ID]: {
         id: ROOT_ID,

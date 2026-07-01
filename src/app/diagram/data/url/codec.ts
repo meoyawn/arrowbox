@@ -1,4 +1,12 @@
-import type { Edge, EdgeID, Graph, Node, NodeID, NodeShape } from "../data.ts"
+import type {
+  Edge,
+  EdgeID,
+  Graph,
+  GraphID,
+  Node,
+  NodeID,
+  NodeShape,
+} from "../data.ts"
 import type { EdgeAnchor } from "../edge-anchor.ts"
 
 const prefix = "ab1.g."
@@ -10,6 +18,8 @@ type PackedNode = [number[], PackedRect, string, string, 0 | 1]
 type PackedEdge = [PackedAnchor, PackedAnchor, string, string]
 type PackedGraph = {
   v: number
+  i: string
+  t: string
   ids: string[]
   es: string[]
   ns: PackedNode[]
@@ -100,13 +110,15 @@ function unpackAnchor(ids: NodeID[], anchor: PackedAnchor): EdgeAnchor {
   return { type: "relative", id, x: anchor[1], y: anchor[2] }
 }
 
-function packGraph({ edges, nodes }: Graph): PackedGraph {
+function packGraph({ edges, id, nodes, title }: Graph): PackedGraph {
   const ids = Object.keys(nodes) as NodeID[]
   const es = Object.keys(edges) as EdgeID[]
   const nodeIndexes = new Map(ids.map((id, index) => [id, index]))
 
   return {
-    v: 1,
+    v: 2,
+    i: id,
+    t: title,
     ids,
     es,
     ns: ids.map(id => {
@@ -135,8 +147,10 @@ function packGraph({ edges, nodes }: Graph): PackedGraph {
   }
 }
 
-function unpackGraph({ ed, es, ids, ns, v }: PackedGraph): Graph {
-  if (v !== 1) throw new Error(`Unsupported graph URL version ${v}`)
+function unpackGraph({ ed, es, i, ids, ns, t, v }: PackedGraph): Graph {
+  if (v !== 2) throw new Error(`Unsupported graph URL version ${v}`)
+  if (typeof i !== "string") throw new Error("Missing graph URL ID")
+  if (typeof t !== "string") throw new Error("Missing graph URL title")
 
   const nodeIDs = ids as NodeID[]
   const edgeIDs = es as EdgeID[]
@@ -177,7 +191,7 @@ function unpackGraph({ ed, es, ids, ns, v }: PackedGraph): Graph {
     }
   }
 
-  return { nodes, edges }
+  return { id: i as GraphID, title: t, nodes, edges }
 }
 
 export async function encodeGraphURLFragment(graph: Graph): Promise<string> {

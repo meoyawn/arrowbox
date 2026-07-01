@@ -12,7 +12,6 @@ function testState(graph: Graph): State {
     camera: zoomIdentity,
     id: "gResizeTest" satisfies GraphID,
     selected: {},
-    title: "Resize test",
     tree: {
       data: graph,
       history: emptyHistory(),
@@ -23,6 +22,8 @@ function testState(graph: Graph): State {
 
 function testGraph(): Graph {
   return {
+    id: "gResizeTest",
+    title: "Resize test",
     edges: {},
     nodes: {
       [ROOT_ID]: {

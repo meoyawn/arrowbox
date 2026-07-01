@@ -10,6 +10,8 @@ describe.concurrent("toMermaid", () => {
   test("escapes double quotes in labels", async () => {
     const { toMermaid } = await import("./stringify.ts")
     const graph = {
+      id: "gMermaidStringify",
+      title: "Untitled",
       nodes: {
         [ROOT_ID]: {
           id: ROOT_ID,
@@ -46,7 +48,7 @@ describe.concurrent("toMermaid", () => {
       },
     } satisfies Graph
 
-    expect(toMermaid(graph, "Untitled")).toEqual(`
+    expect(toMermaid(graph)).toEqual(`
 flowchart
 source("\`GET #quot;/encode/:photo_key#quot;: &#96;photo_key&#96; -> &#96;[80]f32&#96;\`")
 target("\`Elastic\`")

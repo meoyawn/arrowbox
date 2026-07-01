@@ -21,7 +21,6 @@ export interface DraggingArrow {
 
 export interface State {
   id: GraphID
-  title: string
 
   camera: ZoomTransform
   tree: DataState
@@ -51,9 +50,8 @@ export const emptyDataState = (data: Graph): DataState => ({
 function createState(): State {
   return {
     camera: zoomIdentity,
-    tree: emptyDataState(emptyGraph()),
+    tree: emptyDataState(emptyGraph("gdefault")),
     selected: {},
-    title: "Untitled 1",
     id: "gdefault",
   }
 }

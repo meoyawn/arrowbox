@@ -60,15 +60,15 @@ function printE({ from, to, text }: Edge): string {
   return text.markdown ? `${f} -- ${mdLabel(text)} --> ${t}` : `${f} --> ${t}`
 }
 
-function frontMatter(title: string): `---\ntitle: ${string}\n---` | "" {
+function frontMatter(title: string): string {
   if (!title || title.toLowerCase().includes("untitled")) return ""
 
   return `---
-title: ${title}
+title: ${JSON.stringify(title)}
 ---`
 }
 
-export const toMermaid = ({ nodes, edges }: Graph, title: string): string =>
+export const toMermaid = ({ nodes, edges, title }: Graph): string =>
   `${frontMatter(title)}
 flowchart
 ${body(nodes, ROOT_ID, 0)}
