@@ -20,6 +20,7 @@
 import { emptyGraph, type Graph } from "./diagram/data/data.ts"
 import { layoutGraph } from "./diagram/data/elk.ts"
 import { fromMermaid } from "./diagram/data/mermaid/parse.ts"
+import { toMermaid } from "./diagram/data/mermaid/stringify.ts"
 import { ROOT_ID } from "./diagram/data/ROOT_ID.ts"
 import { md2html } from "./markdown.ts"
 
@@ -29,6 +30,7 @@ declare global {
       fromMermaid(str: string): Promise<Graph | undefined>
       layoutEmptyGraphRootID(): Promise<string>
       md2html(md: string): string
+      toMermaid(graph: Graph, title: string): string
     }
   }
 }
@@ -40,4 +42,5 @@ window.arrowboxPw = {
     return x.id === ROOT_ID ? x.id : ""
   },
   md2html,
+  toMermaid,
 }

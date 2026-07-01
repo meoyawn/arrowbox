@@ -5,8 +5,8 @@ import { ROOT_ID } from "../ROOT_ID.ts"
 const mermaidString = (text: string): `"${string}"` =>
   `"${text.replaceAll('"', "#quot;")}"`
 
-const mdLabel = (text: GraphText): `"${string}"` | `" "` =>
-  text.markdown ? mermaidString(md2html(text.markdown).trim()) : `" "`
+const mdLabel = (text: GraphText): `"${string}"` =>
+  mermaidString(text.markdown ? md2html(text.markdown).trim() || " " : " ")
 
 const mermaidID = (id: NodeID): string => id.substring(1)
 
