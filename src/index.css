@@ -2,45 +2,59 @@
 @source "../index.html";
 @plugin "@tailwindcss/typography";
 
-.markdown-codejar {
+.markdown-tiptap {
   tab-size: 2;
   text-rendering: geometricprecision;
 }
 
-.markdown-codejar[data-empty="true"]::before {
+.markdown-tiptap[data-empty="true"]::before {
   color: #a1a1aa;
   content: attr(data-placeholder);
+  left: var(--markdown-editor-padding);
   pointer-events: none;
+  position: absolute;
+  top: var(--markdown-editor-padding);
 }
 
-.markdown-codejar .token.title,
-.markdown-codejar .token.important {
+.markdown-tiptap > pre {
+  font: inherit;
+  margin: 0;
+  white-space: inherit;
+}
+
+.markdown-tiptap > pre > code {
+  font: inherit;
+  white-space: inherit;
+}
+
+.markdown-tiptap .token.title,
+.markdown-tiptap .token.important {
   color: #000;
   font-weight: 700;
 }
 
-.markdown-codejar .token.bold {
+.markdown-tiptap .token.bold {
   font-weight: 700;
 }
 
-.markdown-codejar .token.italic {
+.markdown-tiptap .token.italic {
   font-style: italic;
 }
 
-.markdown-codejar .token.code,
-.markdown-codejar .token.keyword {
+.markdown-tiptap .token.code,
+.markdown-tiptap .token.keyword {
   color: #3f3f46;
 }
 
-.markdown-codejar .token.blockquote,
-.markdown-codejar .token.hr,
-.markdown-codejar .token.list,
-.markdown-codejar .token.punctuation {
+.markdown-tiptap .token.blockquote,
+.markdown-tiptap .token.hr,
+.markdown-tiptap .token.list,
+.markdown-tiptap .token.punctuation {
   color: #71717a;
 }
 
-.markdown-codejar .token.url,
-.markdown-codejar .token.link {
+.markdown-tiptap .token.url,
+.markdown-tiptap .token.link {
   color: #18181b;
   text-decoration: underline;
   text-decoration-color: #a1a1aa;

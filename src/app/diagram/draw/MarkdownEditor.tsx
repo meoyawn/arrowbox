@@ -1,8 +1,17 @@
-import { createEffect, createSignal, onCleanup, type Component } from "solid-js"
-import { CodeJar } from "codejar"
+import { Editor, Extension, type JSONContent } from "@tiptap/core"
+import { Plugin } from "@tiptap/pm/state"
+import { Decoration, DecorationSet } from "@tiptap/pm/view"
+import StarterKit from "@tiptap/starter-kit"
 import Prism from "prismjs"
 import "prismjs/components/prism-markup"
 import "prismjs/components/prism-markdown"
+import {
+  createEffect,
+  createSignal,
+  onCleanup,
+  untrack,
+  type Component,
+} from "solid-js"
 
 export interface MarkdownEditorBox {
   height: number
@@ -17,82 +26,126 @@ interface ForwardedEditorGestureEvent extends Event {
   arrowboxForwardedEditorGesture?: true
 }
 
+type PrismToken = InstanceType<typeof Prism.Token>
+type PrismTokenContent = string | PrismToken | PrismTokenContent[]
+
 const isForwardedEditorGesture = (event: Event): boolean =>
   Boolean((event as ForwardedEditorGestureEvent).arrowboxForwardedEditorGesture)
 
-const highlightMarkdown = (element: HTMLElement): void => {
-  const markdown = element.textContent ?? ""
-  element.innerHTML = Prism.highlight(
-    markdown,
-    Prism.languages.markdown,
-    "markdown",
-  )
+const prismTokenLength = (content: PrismTokenContent): number => {
+  if (typeof content === "string") return content.length
+
+  if (Array.isArray(content)) {
+    return content.reduce((sum, token) => sum + prismTokenLength(token), 0)
+  }
+
+  return prismTokenLength(content.content)
+}
+
+const prismTokenClass = (token: PrismToken): string => {
+  const alias = token.alias
+  const aliases = Array.isArray(alias) ? alias : alias ? [alias] : []
+
+  return ["token", token.type, ...aliases].join(" ")
+}
+
+const addPrismDecorations = (
+  tokens: PrismTokenContent[],
+  from: number,
+  decorations: Decoration[],
+): number => {
+  let offset = from
+
+  for (const token of tokens) {
+    if (typeof token === "string") {
+      offset += token.length
+      continue
+    }
+
+    if (Array.isArray(token)) {
+      offset = addPrismDecorations(token, offset, decorations)
+      continue
+    }
+
+    const start = offset
+    const end = start + prismTokenLength(token)
+
+    if (start < end) {
+      decorations.push(
+        Decoration.inline(start, end, { class: prismTokenClass(token) }),
+      )
+    }
+
+    const content = token.content as PrismTokenContent
+    if (Array.isArray(content)) addPrismDecorations(content, start, decorations)
+    if (content instanceof Prism.Token) {
+      addPrismDecorations([content], start, decorations)
+    }
+
+    offset = end
+  }
+
+  return offset
+}
+
+const markdownHighlight = Extension.create({
+  name: "markdownHighlight",
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        props: {
+          decorations(state) {
+            const decorations: Decoration[] = []
+
+            state.doc.descendants((node, pos) => {
+              if (node.type.name !== "codeBlock") return true
+
+              addPrismDecorations(
+                Prism.tokenize(node.textContent, Prism.languages.markdown),
+                pos + 1,
+                decorations,
+              )
+
+              return false
+            })
+
+            return DecorationSet.create(state.doc, decorations)
+          },
+        },
+      }),
+    ]
+  },
+})
+
+const markdownDocument = (markdown: string): JSONContent => ({
+  type: "doc",
+  content: [
+    {
+      type: "codeBlock",
+      attrs: { language: "markdown" },
+      content: markdown ? [{ type: "text", text: markdown }] : undefined,
+    },
+  ],
+})
+
+const editorMarkdown = (editor: Editor): string => {
+  let markdown = ""
+
+  editor.state.doc.descendants(node => {
+    if (node.type.name !== "codeBlock") return true
+
+    markdown = node.textContent
+    return false
+  })
+
+  return markdown
 }
 
 const editorClassName =
-  "markdown-codejar pointer-events-auto absolute inset-0 resize overflow-auto bg-white break-words whitespace-pre-wrap text-black outline-none"
+  "markdown-tiptap pointer-events-auto absolute inset-0 resize overflow-auto bg-white break-words whitespace-pre-wrap text-black outline-none"
 const wrapperClassName =
   "pointer-events-auto absolute overflow-visible bg-white"
-
-type MarkdownCodeJar = ReturnType<typeof CodeJar>
-type RangedInputEvent = InputEvent & {
-  getTargetRanges?: () => Array<StaticRange>
-}
-
-const moveCaretToEditorEnd = (editor: HTMLElement): void => {
-  editor.focus()
-
-  const selection = editor.ownerDocument.getSelection()
-  if (!selection) return
-
-  const walker = editor.ownerDocument.createTreeWalker(
-    editor,
-    NodeFilter.SHOW_TEXT,
-  )
-  let lastText: Text | undefined
-  for (let current = walker.nextNode(); current; current = walker.nextNode()) {
-    lastText = current instanceof Text ? current : lastText
-  }
-
-  const range = editor.ownerDocument.createRange()
-  if (lastText) {
-    range.setStart(lastText, lastText.data.length)
-  } else {
-    range.selectNodeContents(editor)
-    range.collapse(false)
-  }
-  range.collapse(true)
-
-  selection.removeAllRanges()
-  selection.addRange(range)
-}
-
-const textOffset = (
-  editor: HTMLElement,
-  node: Node,
-  offset: number,
-): number => {
-  const range = editor.ownerDocument.createRange()
-  range.selectNodeContents(editor)
-  range.setEnd(node, offset)
-  const length = range.toString().length
-  range.detach()
-  return length
-}
-
-const previousWordStart = (text: string, offset: number): number => {
-  let index = offset
-  while (index > 0 && /\s/.test(text[index - 1] ?? "")) index -= 1
-  while (index > 0 && !/\s/.test(text[index - 1] ?? "")) index -= 1
-  return index
-}
-
-const nextWordEnd = (text: string, offset: number): number => {
-  let index = offset
-  while (index < text.length && /\s/.test(text[index] ?? "")) index += 1
-  while (index < text.length && !/\s/.test(text[index] ?? "")) index += 1
-  return index
-}
 
 export const MarkdownEditor: Component<{
   box: MarkdownEditorBox
@@ -103,24 +156,54 @@ export const MarkdownEditor: Component<{
   placeholder: string
   value: string
 }> = props => {
-  let codeJar: MarkdownCodeJar | undefined
-  let editor: HTMLDivElement | undefined
+  let editor: Editor | undefined
+  let editorHost: HTMLDivElement | undefined
+  let editorElement: HTMLElement | undefined
   let wrapper: HTMLDivElement | undefined
   let forwardingTouchGesture = false
   const [draft, setDraft] = createSignal("")
 
-  const syncEmptyState = (markdown: string): void => {
-    editor?.setAttribute("data-empty", markdown.length === 0 ? "true" : "false")
+  const editorStyle = (): string =>
+    [
+      `border: ${2 * props.cameraScale}px solid #18181b`,
+      "box-sizing: border-box",
+      "caret-color: black",
+      "color: black",
+      `font-size: ${16 * props.cameraScale}px`,
+      "height: 100%",
+      `line-height: ${24 * props.cameraScale}px`,
+      `padding: ${8 * props.cameraScale}px`,
+      "position: absolute",
+      `--markdown-editor-padding: ${8 * props.cameraScale}px`,
+      "width: 100%",
+    ].join(";")
+
+  const syncEditorElement = (markdown: string): void => {
+    if (!editorElement) return
+
+    editorElement.setAttribute("aria-label", props.placeholder)
+    editorElement.setAttribute("aria-multiline", "true")
+    editorElement.setAttribute("data-empty", markdown ? "false" : "true")
+    editorElement.setAttribute("data-placeholder", props.placeholder)
+    editorElement.setAttribute("data-testid", "foreign-text-editor")
+    editorElement.setAttribute("role", "textbox")
+    editorElement.setAttribute("style", editorStyle())
+    editorElement.tabIndex = 0
+    editorElement.className = editorClassName
   }
 
   createEffect(() => {
     const value = props.value
     setDraft(value)
-    syncEmptyState(value)
+    syncEditorElement(value)
 
-    if (codeJar && codeJar.toString() !== value) {
-      codeJar.updateCode(value, false)
+    if (editor && editorMarkdown(editor) !== value && !editor.isFocused) {
+      editor.commands.setContent(markdownDocument(value), { emitUpdate: false })
     }
+  })
+
+  createEffect(() => {
+    syncEditorElement(draft())
   })
 
   const forwardWheelGesture = (event: WheelEvent): void => {
@@ -130,7 +213,7 @@ export const MarkdownEditor: Component<{
     const targetInsideEditor = Boolean(
       target instanceof Node && wrapper?.contains(target),
     )
-    if (!targetInsideEditor && document.activeElement !== editor) return
+    if (!targetInsideEditor && document.activeElement !== editorElement) return
 
     event.preventDefault()
     event.stopPropagation()
@@ -158,138 +241,94 @@ export const MarkdownEditor: Component<{
   }
 
   const commit = (): void => {
-    props.onCommit(codeJar?.toString() ?? draft())
+    props.onCommit(editor ? editorMarkdown(editor) : draft())
   }
 
   const cancel = (): void => {
-    codeJar?.updateCode(props.value, false)
+    editor?.commands.setContent(markdownDocument(props.value), {
+      emitUpdate: false,
+    })
     setDraft(props.value)
-    syncEmptyState(props.value)
+    syncEditorElement(props.value)
     props.onCancel()
   }
 
-  const replaceCodeRange = (
-    start: number,
-    end: number,
-    replacement: string,
-  ): boolean => {
-    if (!codeJar) return false
-
-    const code = codeJar.toString()
-    const safeStart = Math.max(0, Math.min(start, code.length))
-    const safeEnd = Math.max(safeStart, Math.min(end, code.length))
-    const next = code.slice(0, safeStart) + replacement + code.slice(safeEnd)
-    const caret = safeStart + replacement.length
-
-    codeJar.recordHistory()
-    codeJar.updateCode(next)
-    codeJar.restore({ start: caret, end: caret })
-    codeJar.recordHistory()
-    setDraft(next)
-    syncEmptyState(next)
-    return true
-  }
-
-  /**
-   * Let `beforeinput` tell us which text-delete command the platform chose,
-   * then mutate CodeJar directly. Native deletion leaves Chromium's caret at
-   * the start of CodeJar's `plaintext-only` editor after one Backspace, and
-   * CodeJar does not special-case Backspace itself. Target ranges would be the
-   * ideal path for Alt/Option+Backspace and selection deletes, but Chromium
-   * returns an empty range list here, so we fall back to CodeJar's text offsets
-   * and preserve the common character/word delete commands explicitly.
-   */
-  const deletionRangeFromInputType = (
-    inputType: string,
-  ): { end: number; start: number } | undefined => {
-    if (!codeJar) return undefined
-
-    const code = codeJar.toString()
-    const position = codeJar.save()
-    const start = Math.min(position.start, position.end)
-    const end = Math.max(position.start, position.end)
-    if (start !== end) return { start, end }
-
-    switch (inputType) {
-      case "deleteContentBackward":
-        return start > 0 ? { start: start - 1, end } : undefined
-
-      case "deleteContentForward":
-        return end < code.length ? { start, end: end + 1 } : undefined
-
-      case "deleteWordBackward":
-        return start > 0
-          ? { start: previousWordStart(code, start), end }
-          : undefined
-
-      case "deleteWordForward":
-        return end < code.length
-          ? { start, end: nextWordEnd(code, end) }
-          : undefined
-    }
-  }
-
-  const handleBeforeInput = (event: InputEvent): void => {
-    const inputEvent = event as RangedInputEvent
-    if (!inputEvent.inputType.startsWith("delete")) return
-
-    const range = inputEvent.getTargetRanges?.()[0]
+  const insertEditorText = (text: string): void => {
     if (!editor) return
 
-    const deletionRange = range
-      ? {
-          start: textOffset(editor, range.startContainer, range.startOffset),
-          end: textOffset(editor, range.endContainer, range.endOffset),
-        }
-      : deletionRangeFromInputType(inputEvent.inputType)
-    if (!deletionRange) return
+    const { state, view } = editor
+    view.dispatch(state.tr.insertText(text).scrollIntoView())
+    view.focus()
+  }
 
-    const { end, start } = deletionRange
-    if (!replaceCodeRange(start, end, "")) return
+  const deleteSelectedEditorText = (): boolean => {
+    if (!editor || editor.state.selection.empty) return false
 
-    inputEvent.preventDefault()
-    inputEvent.stopPropagation()
+    return editor.chain().deleteSelection().focus("end").run()
   }
 
   createEffect(() => {
+    if (!editorHost || !wrapper || editor) return
+
+    const initialDraft = untrack(draft)
+    const tiptap = new Editor({
+      element: editorHost,
+      extensions: [
+        StarterKit.configure({
+          blockquote: false,
+          bold: false,
+          bulletList: false,
+          code: false,
+          codeBlock: {
+            exitOnArrowDown: false,
+            HTMLAttributes: { "data-markdown-source": "true" },
+          },
+          dropcursor: false,
+          gapcursor: false,
+          hardBreak: false,
+          heading: false,
+          horizontalRule: false,
+          italic: false,
+          link: false,
+          listItem: false,
+          listKeymap: false,
+          orderedList: false,
+          paragraph: false,
+          strike: false,
+          trailingNode: false,
+          underline: false,
+        }),
+        markdownHighlight,
+      ],
+      content: markdownDocument(initialDraft),
+      editorProps: {
+        attributes: {
+          "aria-label": props.placeholder,
+          "aria-multiline": "true",
+          "data-empty": initialDraft ? "false" : "true",
+          "data-placeholder": props.placeholder,
+          "data-testid": "foreign-text-editor",
+          role: "textbox",
+          class: editorClassName,
+          style: editorStyle(),
+        },
+      },
+      onUpdate({ editor }) {
+        const markdown = editorMarkdown(editor)
+        setDraft(markdown)
+        syncEditorElement(markdown)
+      },
+    })
+
+    editor = tiptap
+    editorElement = tiptap.view.dom
+    syncEditorElement(initialDraft)
+
     const frame = requestAnimationFrame(() => {
-      if (editor) moveCaretToEditorEnd(editor)
+      tiptap.commands.focus("end", { scrollIntoView: false })
     })
 
-    onCleanup(() => {
-      cancelAnimationFrame(frame)
-    })
-  })
-
-  createEffect(() => {
-    if (!editor || codeJar) return
-
-    const currentEditor = editor
-    const jar = CodeJar(currentEditor, highlightMarkdown, {
-      addClosing: false,
-      catchTab: false,
-      preserveIdent: false,
-      spellcheck: true,
-      tab: "  ",
-    })
-    codeJar = jar
-    jar.updateCode(draft(), false)
-    syncEmptyState(draft())
-    jar.onUpdate(markdown => {
-      setDraft(markdown)
-      syncEmptyState(markdown)
-    })
-
-    onCleanup(() => {
-      jar.destroy()
-      if (codeJar === jar) codeJar = undefined
-    })
-  })
-
-  createEffect(() => {
-    if (!editor || !wrapper) return
-
-    const currentEditor = editor
+    const currentEditorElement = editorElement
     const editorWrapper = wrapper
     const handleBlur = (): void => {
       commit()
@@ -303,28 +342,41 @@ export const MarkdownEditor: Component<{
           break
 
         case "Enter":
-          if (!event.shiftKey) {
+          if (event.shiftKey) {
+            event.preventDefault()
+            event.stopPropagation()
+            insertEditorText("\n")
+          } else {
             event.preventDefault()
             event.stopPropagation()
             commit()
           }
           break
+
+        case "Backspace":
+        case "Delete":
+          if (deleteSelectedEditorText()) {
+            event.preventDefault()
+            event.stopPropagation()
+          }
+          break
       }
     }
 
-    currentEditor.addEventListener("beforeinput", handleBeforeInput)
-    currentEditor.addEventListener("blur", handleBlur)
-    currentEditor.addEventListener("keydown", handleKeyDown, { capture: true })
-    currentEditor.addEventListener("touchstart", forwardTouchGesture, {
+    currentEditorElement.addEventListener("blur", handleBlur)
+    currentEditorElement.addEventListener("keydown", handleKeyDown, {
+      capture: true,
+    })
+    currentEditorElement.addEventListener("touchstart", forwardTouchGesture, {
       passive: false,
     })
-    currentEditor.addEventListener("touchmove", forwardTouchGesture, {
+    currentEditorElement.addEventListener("touchmove", forwardTouchGesture, {
       passive: false,
     })
-    currentEditor.addEventListener("touchend", forwardTouchGesture, {
+    currentEditorElement.addEventListener("touchend", forwardTouchGesture, {
       passive: false,
     })
-    currentEditor.addEventListener("touchcancel", forwardTouchGesture, {
+    currentEditorElement.addEventListener("touchcancel", forwardTouchGesture, {
       passive: false,
     })
     editorWrapper.addEventListener("touchstart", forwardTouchGesture, {
@@ -349,13 +401,19 @@ export const MarkdownEditor: Component<{
     })
 
     onCleanup(() => {
-      currentEditor.removeEventListener("beforeinput", handleBeforeInput)
-      currentEditor.removeEventListener("blur", handleBlur)
-      currentEditor.removeEventListener("keydown", handleKeyDown, true)
-      currentEditor.removeEventListener("touchstart", forwardTouchGesture)
-      currentEditor.removeEventListener("touchmove", forwardTouchGesture)
-      currentEditor.removeEventListener("touchend", forwardTouchGesture)
-      currentEditor.removeEventListener("touchcancel", forwardTouchGesture)
+      cancelAnimationFrame(frame)
+      currentEditorElement.removeEventListener("blur", handleBlur)
+      currentEditorElement.removeEventListener("keydown", handleKeyDown, true)
+      currentEditorElement.removeEventListener(
+        "touchstart",
+        forwardTouchGesture,
+      )
+      currentEditorElement.removeEventListener("touchmove", forwardTouchGesture)
+      currentEditorElement.removeEventListener("touchend", forwardTouchGesture)
+      currentEditorElement.removeEventListener(
+        "touchcancel",
+        forwardTouchGesture,
+      )
       editorWrapper.removeEventListener("touchstart", forwardTouchGesture, true)
       editorWrapper.removeEventListener("touchmove", forwardTouchGesture, true)
       editorWrapper.removeEventListener("touchend", forwardTouchGesture, true)
@@ -365,6 +423,9 @@ export const MarkdownEditor: Component<{
         true,
       )
       document.removeEventListener("wheel", forwardWheelGesture, true)
+      tiptap.destroy()
+      if (editor === tiptap) editor = undefined
+      if (editorElement === currentEditorElement) editorElement = undefined
     })
   })
 
@@ -388,27 +449,7 @@ export const MarkdownEditor: Component<{
     >
       <div
         ref={el => {
-          editor = el
-        }}
-        aria-label={props.placeholder}
-        aria-multiline="true"
-        data-testid="foreign-text-editor"
-        data-empty={props.value.length === 0 ? "true" : "false"}
-        data-placeholder={props.placeholder}
-        role="textbox"
-        tabIndex={0}
-        class={editorClassName}
-        style={{
-          border: `${2 * props.cameraScale}px solid #18181b`,
-          "box-sizing": "border-box",
-          "caret-color": "black",
-          color: "black",
-          "font-size": `${16 * props.cameraScale}px`,
-          height: "100%",
-          "line-height": `${24 * props.cameraScale}px`,
-          padding: `${8 * props.cameraScale}px`,
-          position: "absolute",
-          width: "100%",
+          editorHost = el
         }}
         onDblClick={event => {
           event.stopPropagation()

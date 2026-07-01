@@ -279,6 +279,144 @@ test.describe("markdown editor", () => {
     expect(storedMarkdown).toEqual("# Original")
   })
 
+  test("keeps empty placeholder outside the caret text flow", async ({
+    page,
+  }) => {
+    await loadSingleNodeGraph(page, {
+      graphID: "g-portal-editor-empty-placeholder",
+      html: "",
+      markdown: "",
+      nodeID: "nPlaceholder",
+      rect: { x: 180, y: 160, width: 260, height: 180 },
+      title: "Portal editor placeholder",
+    })
+    await page.goto("/")
+
+    const { editor } = await openMarkdownEditor(page, "nPlaceholder")
+
+    const metrics = await editor.evaluate(editor => {
+      const before = getComputedStyle(editor, "::before")
+      const style = getComputedStyle(editor)
+
+      return {
+        beforeLeft: Number.parseFloat(before.left),
+        beforePosition: before.position,
+        beforeTop: Number.parseFloat(before.top),
+        paddingLeft: Number.parseFloat(style.paddingLeft),
+        paddingTop: Number.parseFloat(style.paddingTop),
+      }
+    })
+
+    expect(metrics.beforePosition).toEqual("absolute")
+    expect(Math.abs(metrics.beforeLeft - metrics.paddingLeft)).toBeLessThan(0.5)
+    expect(Math.abs(metrics.beforeTop - metrics.paddingTop)).toBeLessThan(0.5)
+  })
+
+  test("inserts a markdown newline with Shift+Enter", async ({ page }) => {
+    await loadSingleNodeGraph(page, {
+      graphID: "g-portal-editor-shift-enter",
+      html: "<p>alpha</p>",
+      markdown: "alpha",
+      nodeID: "nShiftEnter",
+      rect: { x: 180, y: 160, width: 260, height: 180 },
+      title: "Portal editor Shift Enter",
+    })
+    await page.goto("/")
+
+    const { editor } = await openMarkdownEditor(page, "nShiftEnter")
+
+    await page.keyboard.press("Shift+Enter")
+    await page.keyboard.type("beta")
+
+    await expect(editor).toHaveText("alpha\nbeta")
+
+    await page.keyboard.press("Enter")
+    await expect(editor).toHaveCount(0)
+
+    const storedMarkdown = await page.evaluate(() => {
+      const graph = JSON.parse(
+        localStorage.getItem("g-portal-editor-shift-enter")!,
+      )
+
+      return graph.nodes.nShiftEnter.text.markdown
+    })
+    expect(storedMarkdown).toEqual("alpha\nbeta")
+  })
+
+  test("does not insert markdown newlines with ArrowDown at the editor bottom", async ({
+    page,
+  }) => {
+    await loadSingleNodeGraph(page, {
+      graphID: "g-portal-editor-arrow-down",
+      html: "",
+      markdown: "",
+      nodeID: "nArrowDown",
+      rect: { x: 180, y: 160, width: 260, height: 180 },
+      title: "Portal editor Arrow Down",
+    })
+    await page.goto("/")
+
+    const { editor } = await openMarkdownEditor(page, "nArrowDown")
+
+    await page.keyboard.press("ArrowDown")
+    await page.keyboard.press("ArrowDown")
+    await page.keyboard.press("ArrowDown")
+
+    await expect
+      .poll(async () =>
+        editor.evaluate(editor => ({
+          empty: editor.getAttribute("data-empty"),
+          text: editor.textContent,
+        })),
+      )
+      .toEqual({ empty: "true", text: "" })
+
+    await page.keyboard.type("alpha")
+    await page.keyboard.press("ArrowDown")
+    await page.keyboard.press("ArrowDown")
+
+    await expect(editor).toHaveText("alpha")
+  })
+
+  test("collapses selection after deleting fully selected markdown", async ({
+    page,
+  }) => {
+    await loadSingleNodeGraph(page, {
+      graphID: "g-portal-editor-full-delete",
+      html: "<p>alpha beta</p>",
+      markdown: "alpha beta",
+      nodeID: "nFullDelete",
+      rect: { x: 180, y: 160, width: 260, height: 180 },
+      title: "Portal editor full delete",
+    })
+    await page.goto("/")
+
+    const { editor } = await openMarkdownEditor(page, "nFullDelete")
+
+    await page.keyboard.press("Meta+A")
+    await page.keyboard.press("Delete")
+
+    await expect
+      .poll(async () =>
+        editor.evaluate(editor => {
+          const selection = getSelection()
+
+          return {
+            empty: editor.getAttribute("data-empty"),
+            selectedText: selection?.toString() ?? "",
+            selectionCollapsed: selection?.isCollapsed ?? false,
+            text: editor.textContent,
+          }
+        }),
+      )
+      .toEqual({
+        empty: "true",
+        selectedText: "",
+        selectionCollapsed: true,
+        text: "",
+      })
+  })
+
   test("double-clicking active foreign text editor selects a word instead of adding a node", async ({
     page,
   }) => {
