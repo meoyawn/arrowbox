@@ -178,24 +178,35 @@ export const MarkdownEditor: Component<{
       "width: 100%",
     ].join(";")
 
-  const syncEditorElement = (markdown: string): void => {
+  const syncEditorStaticAttributes = (): void => {
     if (!editorElement) return
 
-    editorElement.setAttribute("aria-label", props.placeholder)
     editorElement.setAttribute("aria-multiline", "true")
-    editorElement.setAttribute("data-empty", markdown ? "false" : "true")
-    editorElement.setAttribute("data-placeholder", props.placeholder)
     editorElement.setAttribute("data-testid", "foreign-text-editor")
     editorElement.setAttribute("role", "textbox")
-    editorElement.setAttribute("style", editorStyle())
     editorElement.tabIndex = 0
     editorElement.className = editorClassName
+  }
+
+  const syncEditorDynamicAttributes = (
+    placeholder: string,
+    style: string,
+  ): void => {
+    if (!editorElement) return
+
+    editorElement.setAttribute("aria-label", placeholder)
+    editorElement.setAttribute("data-placeholder", placeholder)
+    editorElement.setAttribute("style", style)
+  }
+
+  const syncEditorEmptyState = (markdown: string): void => {
+    editorElement?.setAttribute("data-empty", markdown ? "false" : "true")
   }
 
   createEffect(() => {
     const value = props.value
     setDraft(value)
-    syncEditorElement(value)
+    syncEditorEmptyState(value)
 
     if (editor && editorMarkdown(editor) !== value && !editor.isFocused) {
       editor.commands.setContent(markdownDocument(value), { emitUpdate: false })
@@ -203,7 +214,7 @@ export const MarkdownEditor: Component<{
   })
 
   createEffect(() => {
-    syncEditorElement(draft())
+    syncEditorDynamicAttributes(props.placeholder, editorStyle())
   })
 
   const forwardWheelGesture = (event: WheelEvent): void => {
@@ -249,7 +260,7 @@ export const MarkdownEditor: Component<{
       emitUpdate: false,
     })
     setDraft(props.value)
-    syncEditorElement(props.value)
+    syncEditorEmptyState(props.value)
     props.onCancel()
   }
 
@@ -316,13 +327,15 @@ export const MarkdownEditor: Component<{
       onUpdate({ editor }) {
         const markdown = editorMarkdown(editor)
         setDraft(markdown)
-        syncEditorElement(markdown)
+        syncEditorEmptyState(markdown)
       },
     })
 
     editor = tiptap
     editorElement = tiptap.view.dom
-    syncEditorElement(initialDraft)
+    syncEditorStaticAttributes()
+    syncEditorDynamicAttributes(props.placeholder, editorStyle())
+    syncEditorEmptyState(initialDraft)
 
     const frame = requestAnimationFrame(() => {
       tiptap.commands.focus("end", { scrollIntoView: false })
