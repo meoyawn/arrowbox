@@ -10,3 +10,7 @@ export const ExternalA: Component<
 export const CloseIcon: Component<{ class?: string }> = props => (
   <span class={props.class}>✕</span>
 )
+
+export const SaveIcon: Component<{ class?: string }> = props => (
+  <span class={props.class}>✓</span>
+)

@@ -173,10 +173,11 @@ export function zoomTo(t: ZoomTransform): void {
 const zoomTransform = ({ k, x, y }: ZoomTransform): string =>
   `translate(${x} ${y}) scale(${k})`
 
-export const DiagramSVG: Component = () => {
+export const DiagramSVG: Component<{
+  editorLayer: () => HTMLElement | undefined
+}> = props => {
   let svgEl: SVGSVGElement | undefined
   let zoomedEl: SVGGElement | undefined
-  let editorLayerEl: HTMLDivElement | undefined
 
   const forwardWheelEvent = (ev: WheelEvent): void => {
     if (!svgEl) return
@@ -412,7 +413,7 @@ export const DiagramSVG: Component = () => {
           <For each={store.tree.data.nodes[ROOT_ID].children}>
             {id => (
               <OneNode
-                editorLayer={() => editorLayerEl}
+                editorLayer={props.editorLayer}
                 id={id}
                 onForwardEditorGesture={forwardEditorGesture}
               />
@@ -425,7 +426,7 @@ export const DiagramSVG: Component = () => {
           >
             {e => (
               <OneEdge
-                editorLayer={() => editorLayerEl}
+                editorLayer={props.editorLayer}
                 id={e}
                 onForwardEditorGesture={forwardEditorGesture}
               />
@@ -438,12 +439,6 @@ export const DiagramSVG: Component = () => {
           </Show>
         </g>
       </svg>
-
-      <div
-        ref={editorLayerEl}
-        data-testid="foreign-text-editor-layer"
-        class="pointer-events-none absolute inset-0 z-10 min-h-screen w-full overflow-visible"
-      />
     </div>
   )
 }

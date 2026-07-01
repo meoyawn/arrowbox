@@ -19,22 +19,6 @@ interface BrushRectMetrics {
   width: number
 }
 
-interface ScreenRect {
-  bottom: number
-  height: number
-  left: number
-  right: number
-  top: number
-  width: number
-}
-
-interface WorldRect {
-  height: number
-  width: number
-  x: number
-  y: number
-}
-
 async function mockVisualViewport(page: Page): Promise<void> {
   await page.addInitScript(() => {
     const listeners = new Map<string, Set<EventListener>>()
@@ -176,38 +160,6 @@ async function brushRect(page: Page): Promise<BrushRectMetrics> {
       width: box.width,
     }
   })
-}
-
-function screenRectFromWorld(
-  rect: WorldRect,
-  camera: CameraTransform,
-): ScreenRect {
-  const left = rect.x * camera.k + camera.x
-  const top = rect.y * camera.k + camera.y
-  const width = rect.width * camera.k
-  const height = rect.height * camera.k
-
-  return {
-    bottom: top + height,
-    height,
-    left,
-    right: left + width,
-    top,
-    width,
-  }
-}
-
-function expectRectsClose(actual: ScreenRect, expected: ScreenRect): void {
-  expect(Math.abs(actual.left - expected.left)).toBeLessThanOrEqual(3)
-  expect(Math.abs(actual.top - expected.top)).toBeLessThanOrEqual(3)
-  expect(Math.abs(actual.width - expected.width)).toBeLessThanOrEqual(3)
-  expect(Math.abs(actual.height - expected.height)).toBeLessThanOrEqual(3)
-}
-
-function rectsOverlap(a: ScreenRect, b: ScreenRect): boolean {
-  return (
-    a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
-  )
 }
 
 test.describe("diagram page iOS viewport", () => {
@@ -532,6 +484,10 @@ test.describe("diagram page iOS gestures", () => {
     await expect(editor).toHaveText("Edit me!")
 
     const metrics = await editor.evaluate(editor => {
+      const overlay = editor.closest("[data-testid=markdown-editor-overlay]")
+      if (!(overlay instanceof HTMLElement)) throw new Error("Missing overlay")
+
+      const overlayRect = overlay.getBoundingClientRect()
       const rect = editor.getBoundingClientRect()
       const style = getComputedStyle(editor)
       return {
@@ -545,9 +501,16 @@ test.describe("diagram page iOS gestures", () => {
         ),
         insideSvg: Boolean(editor.closest("svg")),
         left: rect.left,
+        overlayHeight: overlayRect.height,
+        overlayLeft: overlayRect.left,
+        overlayPosition: getComputedStyle(overlay).position,
+        overlayTop: overlayRect.top,
+        overlayWidth: overlayRect.width,
         position: style.position,
         textColor: style.color,
         top: rect.top,
+        viewportHeight: document.documentElement.clientHeight,
+        viewportWidth: document.documentElement.clientWidth,
         width: rect.width,
       }
     })
@@ -559,21 +522,20 @@ test.describe("diagram page iOS gestures", () => {
     expect(metrics.borderStyle).toEqual("solid")
     expect(metrics.borderWidth).toEqual("2px")
     expect(metrics.textColor).toEqual("rgb(0, 0, 0)")
-    expect(Math.abs(metrics.left - nodeBox.x)).toBeLessThan(2)
-    expect(Math.abs(metrics.top - nodeBox.y)).toBeLessThan(2)
-    expect(Math.abs(metrics.width - nodeBox.width)).toBeLessThan(2)
-    expect(Math.abs(metrics.height - nodeBox.height)).toBeLessThan(2)
+    expect(metrics.overlayPosition).toEqual("fixed")
+    expect(metrics.overlayLeft).toEqual(0)
+    expect(metrics.overlayTop).toEqual(0)
+    expect(metrics.overlayWidth).toEqual(metrics.viewportWidth)
+    expect(metrics.overlayHeight).toEqual(metrics.viewportHeight)
+    expect(metrics.left).toEqual(0)
+    expect(metrics.top).toBeGreaterThan(0)
+    expect(metrics.width).toEqual(metrics.viewportWidth)
+    expect(metrics.height).toBeLessThan(metrics.viewportHeight)
   })
 
-  test("keeps active foreign text editor locked during touch pan and pinch", async ({
+  test("keeps active foreign text editor fullscreen during touch pan and pinch", async ({
     page,
   }) => {
-    const editedRect: WorldRect = { x: 120, y: 300, width: 170, height: 110 }
-    const siblingRects: Array<WorldRect> = [
-      { x: 36, y: 292, width: 72, height: 132 },
-      { x: 308, y: 298, width: 112, height: 128 },
-    ]
-
     await gotoGraphURLFragment(page, {
       id: "gIosForeignTextTransform",
       title: "iOS foreign text transform",
@@ -624,42 +586,36 @@ test.describe("diagram page iOS gestures", () => {
     const editor = page.locator("[data-testid=foreign-text-editor]")
     await expect(editor).toBeFocused()
 
-    async function editorRect(): Promise<ScreenRect> {
-      const editorBox = await editor.boundingBox()
-      if (!editorBox) throw new Error("Missing editor box")
+    const editorLayer = await editor.evaluate(editor => {
+      const overlay = editor.closest("[data-testid=markdown-editor-overlay]")
+      if (!(overlay instanceof HTMLElement)) throw new Error("Missing overlay")
+
+      const rect = overlay.getBoundingClientRect()
 
       return {
-        bottom: editorBox.y + editorBox.height,
-        height: editorBox.height,
-        left: editorBox.x,
-        right: editorBox.x + editorBox.width,
-        top: editorBox.y,
-        width: editorBox.width,
+        insideEditorLayer: Boolean(
+          editor.closest("[data-testid=foreign-text-editor-layer]"),
+        ),
+        insideSvg: Boolean(editor.closest("svg")),
+        overlayHeight: rect.height,
+        overlayLeft: rect.left,
+        overlayTop: rect.top,
+        overlayWidth: rect.width,
+        position: getComputedStyle(editor).position,
+        viewportHeight: document.documentElement.clientHeight,
+        viewportWidth: document.documentElement.clientWidth,
       }
-    }
-
-    async function expectedEditorRect(): Promise<ScreenRect> {
-      return screenRectFromWorld(editedRect, await cameraTransform(page))
-    }
-
-    async function expectEditorLocked(): Promise<void> {
-      expectRectsClose(await editorRect(), await expectedEditorRect())
-    }
-
-    const editorLayer = await editor.evaluate(editor => ({
-      insideEditorLayer: Boolean(
-        editor.closest("[data-testid=foreign-text-editor-layer]"),
-      ),
-      insideSvg: Boolean(editor.closest("svg")),
-      position: getComputedStyle(editor).position,
-    }))
+    })
 
     expect(editorLayer.insideEditorLayer).toEqual(true)
     expect(editorLayer.insideSvg).toEqual(false)
     expect(editorLayer.position).toEqual("absolute")
+    expect(editorLayer.overlayLeft).toEqual(0)
+    expect(editorLayer.overlayTop).toEqual(0)
+    expect(editorLayer.overlayWidth).toEqual(editorLayer.viewportWidth)
+    expect(editorLayer.overlayHeight).toEqual(editorLayer.viewportHeight)
 
-    const before = await expectedEditorRect()
-    await expectEditorLocked()
+    const before = await cameraTransform(page)
 
     await installManualAnimationFrame(page)
     await dispatchCanvasTouch(page, "touchstart", [
@@ -679,23 +635,12 @@ test.describe("diagram page iOS gestures", () => {
     ]) {
       await dispatchCanvasTouch(page, "touchmove", points)
       expect(await stepManualAnimationFrame(page)).toBeGreaterThan(0)
-      await expectEditorLocked()
+      await expect(editor).toBeFocused()
     }
 
-    const after = await expectedEditorRect()
-    expect(after.left).not.toEqual(before.left)
-    expect(after.width).toBeGreaterThan(before.width)
-
-    const expectedPaint = await expectedEditorRect()
-
-    for (const sibling of siblingRects) {
-      const siblingScreenRect = screenRectFromWorld(
-        sibling,
-        await cameraTransform(page),
-      )
-
-      expect(rectsOverlap(expectedPaint, siblingScreenRect)).toEqual(false)
-    }
+    const after = await cameraTransform(page)
+    expect(after.x).not.toEqual(before.x)
+    expect(after.k).toBeGreaterThan(before.k)
 
     await dispatchCanvasTouch(page, "touchend", [])
   })

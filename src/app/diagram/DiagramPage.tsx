@@ -251,6 +251,7 @@ function replaceURLWithGraph(graph: Graph): void {
 
 export const DiagramPage: Component = () => {
   const [isHydrated, setHydrated] = createSignal(false)
+  let editorLayerEl: HTMLDivElement | undefined
 
   onMount(() => {
     let alive = true
@@ -315,7 +316,13 @@ export const DiagramPage: Component = () => {
 
   return (
     <div class="min-h-screen w-full overflow-hidden overscroll-none">
-      <DiagramSVG />
+      <DiagramSVG editorLayer={() => editorLayerEl} />
+
+      <div
+        ref={editorLayerEl}
+        data-testid="foreign-text-editor-layer"
+        class="pointer-events-none fixed inset-0 z-10 min-h-screen w-full overflow-visible"
+      />
 
       <TypedA
         title="Open menu"

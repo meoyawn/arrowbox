@@ -673,7 +673,12 @@ test.describe("markdown editor", () => {
 
   test("keeps portal text editor below diagram title chrome", async ({
     page,
-  }) => {
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== "desktop-chrome",
+      "mobile editor intentionally overlays diagram chrome",
+    )
+
     await loadSingleNodeGraph(page, {
       graphID: "g-portal-editor-title-layer",
       html: "<h4>h4</h4>",

@@ -9,9 +9,11 @@ import {
   createEffect,
   createSignal,
   onCleanup,
+  Show,
   untrack,
   type Component,
 } from "solid-js"
+import { CloseIcon, SaveIcon } from "../../components.tsx"
 
 export interface MarkdownEditorBox {
   height: number
@@ -146,6 +148,7 @@ const editorClassName =
   "markdown-tiptap pointer-events-auto absolute inset-0 resize overflow-auto bg-white break-words whitespace-pre-wrap text-black outline-none"
 const wrapperClassName =
   "pointer-events-auto absolute overflow-visible bg-white"
+const toolbarHeight = 48
 
 export const MarkdownEditor: Component<{
   box: MarkdownEditorBox
@@ -161,22 +164,53 @@ export const MarkdownEditor: Component<{
   let editorElement: HTMLElement | undefined
   let wrapper: HTMLDivElement | undefined
   let forwardingTouchGesture = false
+  let ignoreNextBlur = false
   const [draft, setDraft] = createSignal("")
+  const [isCoarsePointer, setCoarsePointer] = createSignal(false)
 
-  const editorStyle = (): string =>
-    [
-      `border: ${2 * props.cameraScale}px solid #18181b`,
+  const editorScale = (): number => (isCoarsePointer() ? 1 : props.cameraScale)
+
+  const editorStyle = (): string => {
+    const scale = editorScale()
+
+    return [
+      isCoarsePointer() ? `bottom: 0` : "",
+      `border: ${2 * scale}px solid #18181b`,
       "box-sizing: border-box",
       "caret-color: black",
       "color: black",
-      `font-size: ${16 * props.cameraScale}px`,
-      "height: 100%",
-      `line-height: ${24 * props.cameraScale}px`,
-      `padding: ${8 * props.cameraScale}px`,
+      `font-size: ${16 * scale}px`,
+      isCoarsePointer() ? "height: auto" : "height: 100%",
+      `line-height: ${24 * scale}px`,
+      `padding: ${8 * scale}px`,
       "position: absolute",
-      `--markdown-editor-padding: ${8 * props.cameraScale}px`,
+      isCoarsePointer() ? `top: ${toolbarHeight}px` : "",
+      `--markdown-editor-padding: ${8 * scale}px`,
       "width: 100%",
-    ].join(";")
+    ]
+      .filter(Boolean)
+      .join(";")
+  }
+
+  const wrapperStyle = (): string =>
+    isCoarsePointer()
+      ? [
+          "bottom: var(--arrowbox-viewport-bottom, 0px)",
+          "height: auto",
+          "left: 0",
+          "position: fixed",
+          "top: var(--arrowbox-viewport-top, 0px)",
+          "width: 100%",
+          "z-index: 10",
+        ].join(";")
+      : [
+          `height: ${props.box.height}px`,
+          `left: ${props.box.left}px`,
+          "position: absolute",
+          `top: ${props.box.top}px`,
+          `width: ${props.box.width}px`,
+          "z-index: 10",
+        ].join(";")
 
   const syncEditorStaticAttributes = (): void => {
     if (!editorElement) return
@@ -264,6 +298,10 @@ export const MarkdownEditor: Component<{
     props.onCancel()
   }
 
+  const markToolbarAction = (): void => {
+    ignoreNextBlur = true
+  }
+
   const insertEditorText = (text: string): void => {
     if (!editor) return
 
@@ -344,6 +382,13 @@ export const MarkdownEditor: Component<{
     const currentEditorElement = editorElement
     const editorWrapper = wrapper
     const handleBlur = (): void => {
+      if (ignoreNextBlur) {
+        requestAnimationFrame(() => {
+          ignoreNextBlur = false
+        })
+        return
+      }
+
       commit()
     }
     const handleKeyDown = (event: KeyboardEvent): void => {
@@ -442,24 +487,67 @@ export const MarkdownEditor: Component<{
     })
   })
 
+  createEffect(() => {
+    const view = document.defaultView
+    const media = view?.matchMedia("(pointer: coarse)")
+    if (!media) return
+
+    const update = (): void => {
+      setCoarsePointer(media.matches)
+    }
+
+    update()
+    media.addEventListener("change", update)
+    onCleanup(() => media.removeEventListener("change", update))
+  })
+
   return (
     <div
       ref={el => {
         wrapper = el
       }}
+      data-testid="markdown-editor-overlay"
       class={wrapperClassName}
-      style={{
-        height: `${props.box.height}px`,
-        left: `${props.box.left}px`,
-        position: "absolute",
-        top: `${props.box.top}px`,
-        width: `${props.box.width}px`,
-        "z-index": "10",
-      }}
+      style={wrapperStyle()}
       onDblClick={event => {
         event.stopPropagation()
       }}
     >
+      <Show when={isCoarsePointer()}>
+        <div
+          class="pointer-events-auto flex h-12 items-center justify-between border-b border-zinc-300 bg-white px-3"
+          data-testid="markdown-editor-mobile-toolbar"
+        >
+          <button
+            aria-label="Cancel"
+            class="flex items-center gap-2 rounded px-3 py-2 text-zinc-800"
+            data-testid="markdown-editor-cancel"
+            type="button"
+            onMouseDown={markToolbarAction}
+            onPointerDown={markToolbarAction}
+            onTouchStart={markToolbarAction}
+            onClick={cancel}
+          >
+            <CloseIcon />
+            Cancel
+          </button>
+
+          <button
+            aria-label="Done"
+            class="flex items-center gap-2 rounded bg-zinc-900 px-3 py-2 text-white"
+            data-testid="markdown-editor-done"
+            type="button"
+            onMouseDown={markToolbarAction}
+            onPointerDown={markToolbarAction}
+            onTouchStart={markToolbarAction}
+            onClick={commit}
+          >
+            <SaveIcon />
+            Done
+          </button>
+        </div>
+      </Show>
+
       <div
         ref={el => {
           editorHost = el

@@ -60,3 +60,9 @@
   text-decoration-color: #a1a1aa;
   text-underline-offset: 0.15em;
 }
+
+@media (pointer: coarse) {
+  [data-testid="foreign-text-editor-layer"] {
+    z-index: 40;
+  }
+}

@@ -39,7 +39,12 @@ async function expectDialogAboveOverlay(page: Page): Promise<void> {
 test.describe("diagram page", () => {
   test("opens vertical edge markdown editor with readable proportions", async ({
     page,
-  }) => {
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== "desktop-chrome",
+      "mobile uses a full-screen markdown editor",
+    )
+
     await gotoGraphURLFragment(page, {
       id: "gVerticalEdgeEditor",
       title: "Vertical edge editor",
