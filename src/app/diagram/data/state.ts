@@ -2,11 +2,17 @@ import { zoomIdentity, type ZoomTransform } from "d3-zoom"
 import type { BBox } from "rbush"
 import { createStore } from "solid-js/store"
 import type { KeySet } from "../../../lib/ts.ts"
-import type { DataState, EdgeID, Graph, GraphID, NodeID } from "./data.ts"
+import {
+  emptyGraph,
+  type DataState,
+  type EdgeID,
+  type Graph,
+  type GraphID,
+  type NodeID,
+} from "./data.ts"
 import type { EdgeAnchor } from "./edge-anchor.ts"
 import { emptyHistory } from "./history.ts"
 import { buildIndex } from "./indexing.ts"
-import { getLastGraph } from "./persistence.ts"
 
 export interface DraggingArrow {
   from: EdgeAnchor
@@ -43,14 +49,12 @@ export const emptyDataState = (data: Graph): DataState => ({
 })
 
 function createState(): State {
-  const { graph, title, id } = getLastGraph()
-
   return {
     camera: zoomIdentity,
-    tree: emptyDataState(graph),
+    tree: emptyDataState(emptyGraph()),
     selected: {},
-    title,
-    id,
+    title: "Untitled 1",
+    id: "gdefault",
   }
 }
 

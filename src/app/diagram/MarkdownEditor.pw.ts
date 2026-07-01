@@ -1,4 +1,10 @@
 import { expect, test, type Page } from "@playwright/test"
+import type { Graph, NodeID } from "./data/data.ts"
+import { ROOT_ID } from "./data/ROOT_ID.ts"
+import {
+  gotoGraphURLFragment,
+  graphFromURLFragment,
+} from "./url-fragment-test.ts"
 
 interface CameraTransform {
   x: number
@@ -10,7 +16,7 @@ interface MarkdownEditorNode {
   graphID: string
   html: string
   markdown: string
-  nodeID: string
+  nodeID: NodeID
   rect: { x: number; y: number; width: number; height: number }
   title: string
 }
@@ -112,40 +118,26 @@ async function loadSingleNodeGraph(
   page: Page,
   node: MarkdownEditorNode,
 ): Promise<void> {
-  await page.addInitScript(
-    ({ graphID, html, markdown, nodeID, rect, title }) => {
-      localStorage.setItem("last-graph", graphID)
-      localStorage.setItem(
-        "graph-list",
-        JSON.stringify({
-          [graphID]: { title, lastModifiedMs: 0 },
-        }),
-      )
-      localStorage.setItem(
-        graphID,
-        JSON.stringify({
-          nodes: {
-            nRoot: {
-              id: "nRoot",
-              children: [nodeID],
-              rect: { x: 0, y: 0, width: 0, height: 0 },
-              text: { html: "", markdown: "" },
-              shape: "rect",
-            },
-            [nodeID]: {
-              id: nodeID,
-              children: [],
-              rect,
-              text: { html, markdown },
-              shape: "rect",
-            },
-          },
-          edges: {},
-        }),
-      )
+  const graph: Graph = {
+    nodes: {
+      [ROOT_ID]: {
+        id: ROOT_ID,
+        children: [node.nodeID],
+        rect: { x: 0, y: 0, width: 0, height: 0 },
+        text: { html: "", markdown: "" },
+        shape: "rect",
+      },
+      [node.nodeID]: {
+        id: node.nodeID,
+        children: [],
+        rect: node.rect,
+        text: { html: node.html, markdown: node.markdown },
+        shape: "rect",
+      },
     },
-    node,
-  )
+    edges: {},
+  }
+  await gotoGraphURLFragment(page, graph)
 }
 
 async function openMarkdownEditor(page: Page, nodeID: string) {
@@ -178,7 +170,6 @@ test.describe("markdown editor", () => {
       rect: { x: 180, y: 160, width: 260, height: 180 },
       title: "Foreign text visible",
     })
-    await page.goto("/")
 
     const readMetrics = await page
       .locator("[data-nodeID=nText]")
@@ -260,7 +251,6 @@ test.describe("markdown editor", () => {
       rect: { x: 180, y: 160, width: 260, height: 180 },
       title: "Portal editor escape",
     })
-    await page.goto("/")
 
     const { editor } = await openMarkdownEditor(page, "nEscape")
     await editor.fill("# Dirty")
@@ -271,12 +261,12 @@ test.describe("markdown editor", () => {
       page.locator("[data-nodeID=nEscape] [data-testid=foreign-text-content]"),
     ).toHaveText("Original")
 
-    const storedMarkdown = await page.evaluate(() => {
-      const graph = JSON.parse(localStorage.getItem("g-portal-editor-escape")!)
-
-      return graph.nodes.nEscape.text.markdown
-    })
-    expect(storedMarkdown).toEqual("# Original")
+    await expect
+      .poll(async () => {
+        const graph = await graphFromURLFragment(page)
+        return graph.nodes.nEscape.text.markdown
+      })
+      .toEqual("# Original")
   })
 
   test("keeps empty placeholder outside the caret text flow", async ({
@@ -290,7 +280,6 @@ test.describe("markdown editor", () => {
       rect: { x: 180, y: 160, width: 260, height: 180 },
       title: "Portal editor placeholder",
     })
-    await page.goto("/")
 
     const { editor } = await openMarkdownEditor(page, "nPlaceholder")
 
@@ -321,7 +310,6 @@ test.describe("markdown editor", () => {
       rect: { x: 180, y: 160, width: 260, height: 180 },
       title: "Portal editor Shift Enter",
     })
-    await page.goto("/")
 
     const { editor } = await openMarkdownEditor(page, "nShiftEnter")
 
@@ -333,14 +321,12 @@ test.describe("markdown editor", () => {
     await page.keyboard.press("Enter")
     await expect(editor).toHaveCount(0)
 
-    const storedMarkdown = await page.evaluate(() => {
-      const graph = JSON.parse(
-        localStorage.getItem("g-portal-editor-shift-enter")!,
-      )
-
-      return graph.nodes.nShiftEnter.text.markdown
-    })
-    expect(storedMarkdown).toEqual("alpha\nbeta")
+    await expect
+      .poll(async () => {
+        const graph = await graphFromURLFragment(page)
+        return graph.nodes.nShiftEnter.text.markdown
+      })
+      .toEqual("alpha\nbeta")
   })
 
   test("does not insert markdown newlines with ArrowDown at the editor bottom", async ({
@@ -354,7 +340,6 @@ test.describe("markdown editor", () => {
       rect: { x: 180, y: 160, width: 260, height: 180 },
       title: "Portal editor Arrow Down",
     })
-    await page.goto("/")
 
     const { editor } = await openMarkdownEditor(page, "nArrowDown")
 
@@ -389,7 +374,6 @@ test.describe("markdown editor", () => {
       rect: { x: 180, y: 160, width: 260, height: 180 },
       title: "Portal editor full delete",
     })
-    await page.goto("/")
 
     const { editor } = await openMarkdownEditor(page, "nFullDelete")
 
@@ -428,15 +412,38 @@ test.describe("markdown editor", () => {
       rect: { x: 180, y: 160, width: 280, height: 140 },
       title: "Portal editor word select",
     })
-    await page.goto("/")
 
     const { editor } = await openMarkdownEditor(page, "nWord")
     await expect(page.locator("[data-nodeID]")).toHaveCount(1)
+    await expect(editor).toHaveText("alpha beta gamma")
 
-    const editorBox = await editor.boundingBox()
-    if (!editorBox) throw new Error("Missing editor box")
+    const betaPoint = await editor.evaluate(editor => {
+      const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT)
+      let textNode = walker.nextNode()
 
-    await page.mouse.dblclick(editorBox.x + 64, editorBox.y + 20)
+      while (textNode) {
+        const text = textNode.textContent ?? ""
+        const index = text.indexOf("beta")
+
+        if (index >= 0) {
+          const range = document.createRange()
+          range.setStart(textNode, index)
+          range.setEnd(textNode, index + "beta".length)
+          const rect = range.getBoundingClientRect()
+
+          return {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+          }
+        }
+
+        textNode = walker.nextNode()
+      }
+
+      throw new Error("Missing beta text")
+    })
+
+    await page.mouse.dblclick(betaPoint.x, betaPoint.y)
 
     await expect(editor).toBeFocused()
     await expect(page.locator("[data-nodeID]")).toHaveCount(1)
@@ -461,7 +468,6 @@ test.describe("markdown editor", () => {
       rect: { x: 120, y: 140, width: 480, height: 180 },
       title: "Portal editor marker highlight",
     })
-    await page.goto("/")
 
     const { editor } = await openMarkdownEditor(page, "nMarkers")
     await expect(editor).toContainText(
@@ -497,7 +503,6 @@ test.describe("markdown editor", () => {
       rect: { x: 220, y: 180, width: 220, height: 140 },
       title: "Portal editor pan",
     })
-    await page.goto("/")
 
     const { editor, nodeShape } = await openMarkdownEditor(page, "nPan")
 
@@ -556,7 +561,6 @@ test.describe("markdown editor", () => {
       rect: { x: 220, y: 180, width: 220, height: 140 },
       title: "Portal editor zoom",
     })
-    await page.goto("/")
 
     function parseScale(transform: string | null): number {
       const match = transform?.match(/scale\((-?\d+(?:\.\d+)?)\)$/)
@@ -616,7 +620,6 @@ test.describe("markdown editor", () => {
       rect: { x: 200, y: 180, width: 240, height: 160 },
       title: "Portal editor pinch",
     })
-    await page.goto("/")
 
     await openMarkdownEditor(page, "nPinch")
     expect((await cameraTransform(page)).k).toEqual(1)
@@ -677,7 +680,6 @@ test.describe("markdown editor", () => {
       rect: { x: 0, y: 0, width: 760, height: 180 },
       title: "Portal title layer",
     })
-    await page.goto("/")
 
     const nodeShape = page.locator(
       "[data-nodeID=nTitleLayer] [data-dragID=node] > rect",
@@ -730,7 +732,6 @@ test.describe("markdown editor", () => {
       rect: { x: 180, y: 160, width: 260, height: 180 },
       title: "Markdown editor backspace",
     })
-    await page.goto("/")
 
     const { editor } = await openMarkdownEditor(page, "nBackspace")
 
@@ -754,7 +755,6 @@ test.describe("markdown editor", () => {
       rect: { x: 180, y: 160, width: 260, height: 180 },
       title: "Markdown editor word delete",
     })
-    await page.goto("/")
 
     const { editor } = await openMarkdownEditor(page, "nWordDelete")
 

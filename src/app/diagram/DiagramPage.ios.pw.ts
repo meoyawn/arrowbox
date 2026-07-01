@@ -1,4 +1,6 @@
 import { expect, test, type Page } from "@playwright/test"
+import { ROOT_ID } from "./data/ROOT_ID.ts"
+import { gotoGraphURLFragment } from "./url-fragment-test.ts"
 
 interface CameraTransform {
   x: number
@@ -263,52 +265,38 @@ test.describe("diagram page iOS gestures", () => {
   test("highlights a node while another node is dragged over it", async ({
     page,
   }) => {
-    await page.addInitScript(() => {
-      const graphID = "g-ios-drag-hover-highlight"
-      localStorage.setItem("last-graph", graphID)
-      localStorage.setItem(
-        "graph-list",
-        JSON.stringify({
-          [graphID]: { title: "Drag hover highlight", lastModifiedMs: 0 },
-        }),
-      )
-      localStorage.setItem(
-        graphID,
-        JSON.stringify({
-          nodes: {
-            nRoot: {
-              id: "nRoot",
-              children: ["nDropTarget", "nDragged"],
-              rect: { x: 0, y: 0, width: 0, height: 0 },
-              text: { html: "", markdown: "" },
-              shape: "rect",
-            },
-            nDropTarget: {
-              id: "nDropTarget",
-              children: [],
-              rect: { x: 210, y: 260, width: 110, height: 90 },
-              text: {
-                html: "<p>Target</p>",
-                markdown: "Target",
-              },
-              shape: "rect",
-            },
-            nDragged: {
-              id: "nDragged",
-              children: [],
-              rect: { x: 60, y: 260, width: 100, height: 80 },
-              text: {
-                html: "<p>Drag</p>",
-                markdown: "Drag",
-              },
-              shape: "rect",
-            },
+    await gotoGraphURLFragment(page, {
+      nodes: {
+        [ROOT_ID]: {
+          id: ROOT_ID,
+          children: ["nDropTarget", "nDragged"],
+          rect: { x: 0, y: 0, width: 0, height: 0 },
+          text: { html: "", markdown: "" },
+          shape: "rect",
+        },
+        nDropTarget: {
+          id: "nDropTarget",
+          children: [],
+          rect: { x: 210, y: 260, width: 110, height: 90 },
+          text: {
+            html: "<p>Target</p>",
+            markdown: "Target",
           },
-          edges: {},
-        }),
-      )
+          shape: "rect",
+        },
+        nDragged: {
+          id: "nDragged",
+          children: [],
+          rect: { x: 60, y: 260, width: 100, height: 80 },
+          text: {
+            html: "<p>Drag</p>",
+            markdown: "Drag",
+          },
+          shape: "rect",
+        },
+      },
+      edges: {},
     })
-    await page.goto("/")
 
     const draggedShape = page.locator(
       "[data-nodeID=nDragged] [data-dragID=node] > rect",
@@ -376,42 +364,28 @@ test.describe("diagram page iOS gestures", () => {
   test("keeps foreign text locked to transformed nodes while panning", async ({
     page,
   }) => {
-    await page.addInitScript(() => {
-      const graphID = "g-ios-foreign-text-transform"
-      localStorage.setItem("last-graph", graphID)
-      localStorage.setItem(
-        "graph-list",
-        JSON.stringify({
-          [graphID]: { title: "Foreign text transform", lastModifiedMs: 0 },
-        }),
-      )
-      localStorage.setItem(
-        graphID,
-        JSON.stringify({
-          nodes: {
-            nRoot: {
-              id: "nRoot",
-              children: ["nLag"],
-              rect: { x: 0, y: 0, width: 0, height: 0 },
-              text: { html: "", markdown: "" },
-              shape: "rect",
-            },
-            nLag: {
-              id: "nLag",
-              children: [],
-              rect: { x: 120, y: 300, width: 140, height: 80 },
-              text: {
-                html: "<p>Lagging label</p>",
-                markdown: "Lagging label",
-              },
-              shape: "rect",
-            },
+    await gotoGraphURLFragment(page, {
+      nodes: {
+        [ROOT_ID]: {
+          id: ROOT_ID,
+          children: ["nLag"],
+          rect: { x: 0, y: 0, width: 0, height: 0 },
+          text: { html: "", markdown: "" },
+          shape: "rect",
+        },
+        nLag: {
+          id: "nLag",
+          children: [],
+          rect: { x: 120, y: 300, width: 140, height: 80 },
+          text: {
+            html: "<p>Lagging label</p>",
+            markdown: "Lagging label",
           },
-          edges: {},
-        }),
-      )
+          shape: "rect",
+        },
+      },
+      edges: {},
     })
-    await page.goto("/")
 
     async function foreignTextAlignment(): Promise<{
       contentHeight: number
@@ -465,42 +439,28 @@ test.describe("diagram page iOS gestures", () => {
   test("keeps foreign text inside node bounds on first paint", async ({
     page,
   }) => {
-    await page.addInitScript(() => {
-      const graphID = "g-ios-foreign-text-contained"
-      localStorage.setItem("last-graph", graphID)
-      localStorage.setItem(
-        "graph-list",
-        JSON.stringify({
-          [graphID]: { title: "Foreign text contained", lastModifiedMs: 0 },
-        }),
-      )
-      localStorage.setItem(
-        graphID,
-        JSON.stringify({
-          nodes: {
-            nRoot: {
-              id: "nRoot",
-              children: ["nContained"],
-              rect: { x: 0, y: 0, width: 0, height: 0 },
-              text: { html: "", markdown: "" },
-              shape: "rect",
-            },
-            nContained: {
-              id: "nContained",
-              children: [],
-              rect: { x: 90, y: 260, width: 140, height: 90 },
-              text: {
-                html: "<p>Hihhhih</p>",
-                markdown: "Hihhhih",
-              },
-              shape: "rect",
-            },
+    await gotoGraphURLFragment(page, {
+      nodes: {
+        [ROOT_ID]: {
+          id: ROOT_ID,
+          children: ["nContained"],
+          rect: { x: 0, y: 0, width: 0, height: 0 },
+          text: { html: "", markdown: "" },
+          shape: "rect",
+        },
+        nContained: {
+          id: "nContained",
+          children: [],
+          rect: { x: 90, y: 260, width: 140, height: 90 },
+          text: {
+            html: "<p>Hihhhih</p>",
+            markdown: "Hihhhih",
           },
-          edges: {},
-        }),
-      )
+          shape: "rect",
+        },
+      },
+      edges: {},
     })
-    await page.goto("/")
 
     const metrics = await page
       .locator("[data-nodeID=nContained]")
@@ -538,42 +498,28 @@ test.describe("diagram page iOS gestures", () => {
   test("edits foreign text with native iOS editor outside SVG", async ({
     page,
   }) => {
-    await page.addInitScript(() => {
-      const graphID = "g-ios-foreign-text-edit-caret"
-      localStorage.setItem("last-graph", graphID)
-      localStorage.setItem(
-        "graph-list",
-        JSON.stringify({
-          [graphID]: { title: "Foreign text edit caret", lastModifiedMs: 0 },
-        }),
-      )
-      localStorage.setItem(
-        graphID,
-        JSON.stringify({
-          nodes: {
-            nRoot: {
-              id: "nRoot",
-              children: ["nEdit"],
-              rect: { x: 0, y: 0, width: 0, height: 0 },
-              text: { html: "", markdown: "" },
-              shape: "rect",
-            },
-            nEdit: {
-              id: "nEdit",
-              children: [],
-              rect: { x: 100, y: 260, width: 180, height: 120 },
-              text: {
-                html: "<p>Edit me</p>",
-                markdown: "Edit me",
-              },
-              shape: "rect",
-            },
+    await gotoGraphURLFragment(page, {
+      nodes: {
+        [ROOT_ID]: {
+          id: ROOT_ID,
+          children: ["nEdit"],
+          rect: { x: 0, y: 0, width: 0, height: 0 },
+          text: { html: "", markdown: "" },
+          shape: "rect",
+        },
+        nEdit: {
+          id: "nEdit",
+          children: [],
+          rect: { x: 100, y: 260, width: 180, height: 120 },
+          text: {
+            html: "<p>Edit me</p>",
+            markdown: "Edit me",
           },
-          edges: {},
-        }),
-      )
+          shape: "rect",
+        },
+      },
+      edges: {},
     })
-    await page.goto("/")
 
     const nodeBox = await page
       .locator("[data-nodeID=nEdit] [data-dragID=node] > rect")
@@ -635,65 +581,48 @@ test.describe("diagram page iOS gestures", () => {
       { x: 308, y: 298, width: 112, height: 128 },
     ]
 
-    await page.addInitScript(() => {
-      const graphID = "g-ios-foreign-text-edit-transform"
-      localStorage.setItem("last-graph", graphID)
-      localStorage.setItem(
-        "graph-list",
-        JSON.stringify({
-          [graphID]: {
-            title: "Foreign text edit transform",
-            lastModifiedMs: 0,
+    await gotoGraphURLFragment(page, {
+      nodes: {
+        [ROOT_ID]: {
+          id: ROOT_ID,
+          children: ["nSiblingLeft", "nEditTransform", "nSiblingRight"],
+          rect: { x: 0, y: 0, width: 0, height: 0 },
+          text: { html: "", markdown: "" },
+          shape: "rect",
+        },
+        nSiblingLeft: {
+          id: "nSiblingLeft",
+          children: [],
+          rect: { x: 36, y: 292, width: 72, height: 132 },
+          text: {
+            html: "<p>Near left</p>",
+            markdown: "Near left",
           },
-        }),
-      )
-      localStorage.setItem(
-        graphID,
-        JSON.stringify({
-          nodes: {
-            nRoot: {
-              id: "nRoot",
-              children: ["nSiblingLeft", "nEditTransform", "nSiblingRight"],
-              rect: { x: 0, y: 0, width: 0, height: 0 },
-              text: { html: "", markdown: "" },
-              shape: "rect",
-            },
-            nSiblingLeft: {
-              id: "nSiblingLeft",
-              children: [],
-              rect: { x: 36, y: 292, width: 72, height: 132 },
-              text: {
-                html: "<p>Near left</p>",
-                markdown: "Near left",
-              },
-              shape: "rect",
-            },
-            nEditTransform: {
-              id: "nEditTransform",
-              children: [],
-              rect: { x: 120, y: 300, width: 170, height: 110 },
-              text: {
-                html: "<p>Move while editing</p>",
-                markdown: "Move while editing",
-              },
-              shape: "rect",
-            },
-            nSiblingRight: {
-              id: "nSiblingRight",
-              children: [],
-              rect: { x: 308, y: 298, width: 112, height: 128 },
-              text: {
-                html: "<p>Near right</p>",
-                markdown: "Near right",
-              },
-              shape: "rect",
-            },
+          shape: "rect",
+        },
+        nEditTransform: {
+          id: "nEditTransform",
+          children: [],
+          rect: { x: 120, y: 300, width: 170, height: 110 },
+          text: {
+            html: "<p>Move while editing</p>",
+            markdown: "Move while editing",
           },
-          edges: {},
-        }),
-      )
+          shape: "rect",
+        },
+        nSiblingRight: {
+          id: "nSiblingRight",
+          children: [],
+          rect: { x: 308, y: 298, width: 112, height: 128 },
+          text: {
+            html: "<p>Near right</p>",
+            markdown: "Near right",
+          },
+          shape: "rect",
+        },
+      },
+      edges: {},
     })
-    await page.goto("/")
 
     const nodeShape = page.locator(
       "[data-nodeID=nEditTransform] [data-dragID=node] > rect",

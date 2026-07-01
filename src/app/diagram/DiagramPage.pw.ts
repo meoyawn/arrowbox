@@ -1,4 +1,10 @@
 import { expect, test, type Page } from "@playwright/test"
+import type { Graph } from "./data/data.ts"
+import { ROOT_ID } from "./data/ROOT_ID.ts"
+import {
+  gotoGraphURLFragment,
+  graphFromURLFragment,
+} from "./url-fragment-test.ts"
 
 async function expectDialogAboveOverlay(page: Page): Promise<void> {
   const layer = await page.evaluate(() => {
@@ -34,53 +40,39 @@ test.describe("diagram page", () => {
   test("opens vertical edge markdown editor with readable proportions", async ({
     page,
   }) => {
-    await page.addInitScript(() => {
-      const graphID = "g-vertical-edge-editor"
-      localStorage.setItem("last-graph", graphID)
-      localStorage.setItem(
-        "graph-list",
-        JSON.stringify({
-          [graphID]: { title: "Vertical edge editor", lastModifiedMs: 0 },
-        }),
-      )
-      localStorage.setItem(
-        graphID,
-        JSON.stringify({
-          nodes: {
-            nRoot: {
-              id: "nRoot",
-              children: ["nTop", "nBottom"],
-              rect: { x: 0, y: 0, width: 0, height: 0 },
-              text: { html: "", markdown: "" },
-              shape: "rect",
-            },
-            nTop: {
-              id: "nTop",
-              children: [],
-              rect: { x: 100, y: 60, width: 240, height: 120 },
-              text: { html: "Top", markdown: "Top" },
-              shape: "rect",
-            },
-            nBottom: {
-              id: "nBottom",
-              children: [],
-              rect: { x: 100, y: 420, width: 240, height: 120 },
-              text: { html: "Bottom", markdown: "Bottom" },
-              shape: "rect",
-            },
-          },
-          edges: {
-            eVertical: {
-              id: "eVertical",
-              from: { type: "node", id: "nTop" },
-              to: { type: "node", id: "nBottom" },
-              text: { html: "", markdown: "" },
-            },
-          },
-        }),
-      )
+    await gotoGraphURLFragment(page, {
+      nodes: {
+        [ROOT_ID]: {
+          id: ROOT_ID,
+          children: ["nTop", "nBottom"],
+          rect: { x: 0, y: 0, width: 0, height: 0 },
+          text: { html: "", markdown: "" },
+          shape: "rect",
+        },
+        nTop: {
+          id: "nTop",
+          children: [],
+          rect: { x: 100, y: 60, width: 240, height: 120 },
+          text: { html: "Top", markdown: "Top" },
+          shape: "rect",
+        },
+        nBottom: {
+          id: "nBottom",
+          children: [],
+          rect: { x: 100, y: 420, width: 240, height: 120 },
+          text: { html: "Bottom", markdown: "Bottom" },
+          shape: "rect",
+        },
+      },
+      edges: {
+        eVertical: {
+          id: "eVertical",
+          from: { type: "node", id: "nTop" },
+          to: { type: "node", id: "nBottom" },
+          text: { html: "", markdown: "" },
+        },
+      },
     })
-    await page.goto("/")
 
     await page.mouse.dblclick(220, 300)
 
@@ -107,53 +99,39 @@ test.describe("diagram page", () => {
   })
 
   test("selects edge from larger hover target", async ({ page }) => {
-    await page.addInitScript(() => {
-      const graphID = "g-edge-hit-target"
-      localStorage.setItem("last-graph", graphID)
-      localStorage.setItem(
-        "graph-list",
-        JSON.stringify({
-          [graphID]: { title: "Hit target", lastModifiedMs: 0 },
-        }),
-      )
-      localStorage.setItem(
-        graphID,
-        JSON.stringify({
-          nodes: {
-            nRoot: {
-              id: "nRoot",
-              children: ["nLeft", "nRight"],
-              rect: { x: 0, y: 0, width: 0, height: 0 },
-              text: { html: "", markdown: "" },
-              shape: "rect",
-            },
-            nLeft: {
-              id: "nLeft",
-              children: [],
-              rect: { x: 100, y: 100, width: 100, height: 100 },
-              text: { html: "Left", markdown: "Left" },
-              shape: "rect",
-            },
-            nRight: {
-              id: "nRight",
-              children: [],
-              rect: { x: 300, y: 100, width: 100, height: 100 },
-              text: { html: "Right", markdown: "Right" },
-              shape: "rect",
-            },
-          },
-          edges: {
-            eMain: {
-              id: "eMain",
-              from: { type: "node", id: "nLeft" },
-              to: { type: "node", id: "nRight" },
-              text: { html: "", markdown: "" },
-            },
-          },
-        }),
-      )
+    await gotoGraphURLFragment(page, {
+      nodes: {
+        [ROOT_ID]: {
+          id: ROOT_ID,
+          children: ["nLeft", "nRight"],
+          rect: { x: 0, y: 0, width: 0, height: 0 },
+          text: { html: "", markdown: "" },
+          shape: "rect",
+        },
+        nLeft: {
+          id: "nLeft",
+          children: [],
+          rect: { x: 100, y: 100, width: 100, height: 100 },
+          text: { html: "Left", markdown: "Left" },
+          shape: "rect",
+        },
+        nRight: {
+          id: "nRight",
+          children: [],
+          rect: { x: 300, y: 100, width: 100, height: 100 },
+          text: { html: "Right", markdown: "Right" },
+          shape: "rect",
+        },
+      },
+      edges: {
+        eMain: {
+          id: "eMain",
+          from: { type: "node", id: "nLeft" },
+          to: { type: "node", id: "nRight" },
+          text: { html: "", markdown: "" },
+        },
+      },
     })
-    await page.goto("/")
 
     await page.mouse.click(250, 156)
 
@@ -165,53 +143,39 @@ test.describe("diagram page", () => {
   test("expands nested parents when dropping a large child into them", async ({
     page,
   }) => {
-    await page.addInitScript(() => {
-      const graphID = "g-drop-expands-nested-parents"
-      localStorage.setItem("last-graph", graphID)
-      localStorage.setItem(
-        "graph-list",
-        JSON.stringify({
-          [graphID]: { title: "Drop expands parents", lastModifiedMs: 0 },
-        }),
-      )
-      localStorage.setItem(
-        graphID,
-        JSON.stringify({
-          nodes: {
-            nRoot: {
-              id: "nRoot",
-              children: ["nGrand", "nDragged"],
-              rect: { x: 0, y: 0, width: 0, height: 0 },
-              text: { html: "", markdown: "" },
-              shape: "rect",
-            },
-            nGrand: {
-              id: "nGrand",
-              children: ["nParent"],
-              rect: { x: 300, y: 220, width: 120, height: 120 },
-              text: { html: "Grand", markdown: "Grand" },
-              shape: "rect",
-            },
-            nParent: {
-              id: "nParent",
-              children: [],
-              rect: { x: 20, y: 20, width: 80, height: 80 },
-              text: { html: "Parent", markdown: "Parent" },
-              shape: "rect",
-            },
-            nDragged: {
-              id: "nDragged",
-              children: [],
-              rect: { x: 80, y: 240, width: 140, height: 140 },
-              text: { html: "Dragged", markdown: "Dragged" },
-              shape: "rect",
-            },
-          },
-          edges: {},
-        }),
-      )
+    await gotoGraphURLFragment(page, {
+      nodes: {
+        [ROOT_ID]: {
+          id: ROOT_ID,
+          children: ["nGrand", "nDragged"],
+          rect: { x: 0, y: 0, width: 0, height: 0 },
+          text: { html: "", markdown: "" },
+          shape: "rect",
+        },
+        nGrand: {
+          id: "nGrand",
+          children: ["nParent"],
+          rect: { x: 300, y: 220, width: 120, height: 120 },
+          text: { html: "Grand", markdown: "Grand" },
+          shape: "rect",
+        },
+        nParent: {
+          id: "nParent",
+          children: [],
+          rect: { x: 20, y: 20, width: 80, height: 80 },
+          text: { html: "Parent", markdown: "Parent" },
+          shape: "rect",
+        },
+        nDragged: {
+          id: "nDragged",
+          children: [],
+          rect: { x: 80, y: 240, width: 140, height: 140 },
+          text: { html: "Dragged", markdown: "Dragged" },
+          shape: "rect",
+        },
+      },
+      edges: {},
     })
-    await page.goto("/")
 
     const draggedShape = page.locator(
       "[data-nodeID=nDragged] [data-dragID=node] > rect",
@@ -233,12 +197,9 @@ test.describe("diagram page", () => {
     await page.mouse.up()
 
     await expect
-      .poll(async () =>
-        page.evaluate(() => {
-          const graph = JSON.parse(
-            localStorage.getItem("g-drop-expands-nested-parents")!,
-          )
-
+      .poll(async () => {
+        const graph = await graphFromURLFragment(page)
+        return page.evaluate(graph => {
           const dragged = graph.nodes.nDragged.rect
           const grand = graph.nodes.nGrand.rect
           const parent = graph.nodes.nParent.rect
@@ -282,8 +243,8 @@ test.describe("diagram page", () => {
             root: graph.nodes.nRoot.rect,
             rootChildren: graph.nodes.nRoot.children,
           }
-        }),
-      )
+        }, graph)
+      })
       .toEqual({
         childBelowParentText: true,
         childInsideParent: true,
@@ -295,6 +256,57 @@ test.describe("diagram page", () => {
         root: { x: 0, y: 0, width: 0, height: 0 },
         rootChildren: ["nGrand"],
       })
+  })
+
+  test("loads last graph from storage and replaces root URL with fragment", async ({
+    page,
+  }) => {
+    const graph: Graph = {
+      nodes: {
+        [ROOT_ID]: {
+          id: ROOT_ID,
+          children: ["nPersisted"],
+          rect: { x: 0, y: 0, width: 0, height: 0 },
+          text: { html: "", markdown: "" },
+          shape: "rect",
+        },
+        nPersisted: {
+          id: "nPersisted",
+          children: [],
+          rect: { x: 42, y: 24, width: 100, height: 80 },
+          text: { html: "Persisted", markdown: "Persisted" },
+          shape: "ellipse",
+        },
+      },
+      edges: {},
+    }
+
+    await page.addInitScript(
+      ({ graph }) => {
+        const graphID = "g-persisted-url-fragment"
+        localStorage.setItem("last-graph", graphID)
+        localStorage.setItem(
+          "graph-list",
+          JSON.stringify({
+            [graphID]: { title: "Persisted URL Fragment", lastModifiedMs: 0 },
+          }),
+        )
+        localStorage.setItem(graphID, JSON.stringify(graph))
+      },
+      { graph },
+    )
+    await page.goto("/")
+
+    await expect
+      .poll(() => {
+        const url = new URL(page.url())
+        return {
+          hashIsCodecFragment: url.hash.startsWith("#ab1.g."),
+          pathname: url.pathname,
+        }
+      })
+      .toEqual({ hashIsCodecFragment: true, pathname: "/" })
+    await expect.poll(async () => graphFromURLFragment(page)).toEqual(graph)
   })
 
   test("keeps shortcut dialog above its overlay", async ({ page }) => {

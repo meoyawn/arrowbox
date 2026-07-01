@@ -4,6 +4,7 @@ import {
   createEffect,
   createSignal,
   onCleanup,
+  onMount,
   Show,
   type Component,
   type Setter,
@@ -21,15 +22,20 @@ import icon from "../../assets/icon.svg"
 import { CloseIcon } from "../components.tsx"
 import { TypedA, useTypedNavigate } from "../routes.tsx"
 import { ToastPortal } from "../Toasts.tsx"
-import type { DataState } from "./data/data.ts"
+import type { DataState, Graph } from "./data/data.ts"
 import {
   archive,
+  createNewGraph,
   getLastGraph,
   saveTitle,
   storeGraph,
 } from "./data/persistence.ts"
 import { ROOT_ID } from "./data/ROOT_ID.ts"
 import { emptyDataState, setStore, store } from "./data/state.ts"
+import {
+  decodeGraphURLFragment,
+  encodeGraphURLFragment,
+} from "./data/url/codec.ts"
 import { DiagramSVG, zoomTo } from "./draw/DiagramSVG.tsx"
 import { ShortcutTable } from "./hotkeys/draw.tsx"
 import { setupHotkeys } from "./hotkeys/hotkeys.tsx"
@@ -231,16 +237,54 @@ const HelpButton: Component = () => {
   )
 }
 
-export const DiagramPage: Component = () => {
-  createEffect(() => {
-    const { graph, title, id } = getLastGraph()
-    setStore({
-      tree: emptyDataState(graph),
-      title,
-      id,
-      camera: zoomIdentity,
-    })
+let urlReplaceSequence = 0
 
+function replaceURLWithGraph(graph: Graph): void {
+  const sequence = ++urlReplaceSequence
+
+  void encodeGraphURLFragment(graph).then(fragment => {
+    if (sequence === urlReplaceSequence)
+      history.replaceState(null, "", `/${fragment}`)
+  })
+}
+
+export const DiagramPage: Component = () => {
+  const [isHydrated, setHydrated] = createSignal(false)
+
+  onMount(() => {
+    let alive = true
+
+    async function loadInitialGraph(): Promise<void> {
+      const hash = location.hash
+      const graphRecord = hash
+        ? createNewGraph(await decodeGraphURLFragment(hash))
+        : getLastGraph()
+
+      if (!alive) return
+
+      setStore({
+        tree: emptyDataState(graphRecord.graph),
+        title: graphRecord.title,
+        id: graphRecord.id,
+        camera: zoomIdentity,
+      })
+
+      if (!hash) {
+        replaceURLWithGraph(graphRecord.graph)
+      }
+
+      if (alive) setHydrated(true)
+    }
+
+    void loadInitialGraph()
+
+    onCleanup(() => {
+      alive = false
+      urlReplaceSequence += 1
+    })
+  })
+
+  createEffect(() => {
     onCleanup(addClass(document.documentElement, "overscroll-none"))
     onCleanup(setupVisualViewportVars())
     onCleanup(setupHotkeys())
@@ -248,8 +292,10 @@ export const DiagramPage: Component = () => {
   })
 
   createEffect(() => {
-    if (!store.dragging) {
-      storeGraph(store.id, store.tree.data)
+    if (isHydrated() && !store.dragging) {
+      const graph = store.tree.data
+      storeGraph(store.id, graph)
+      replaceURLWithGraph(graph)
     }
   })
 

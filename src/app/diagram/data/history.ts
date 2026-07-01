@@ -57,6 +57,7 @@ export const undo = (ds: DataState): DataState => {
   if (!patch.length) throw new Error("empty patch")
 
   const prev = applyPatches(clean(data), patch)
+
   return {
     data: prev,
     index: buildIndex(prev),
@@ -73,6 +74,7 @@ export const redo = (ds: DataState): DataState => {
   if (!patch.length) throw new Error("empty patch")
 
   const next = applyPatches(clean(data), patch)
+
   return {
     data: next,
     index: buildIndex(next),
