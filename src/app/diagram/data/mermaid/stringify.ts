@@ -2,11 +2,16 @@ import { md2html } from "../../../markdown.ts"
 import type { Edge, Graph, GraphText, Node, NodeID } from "../data.ts"
 import { ROOT_ID } from "../ROOT_ID.ts"
 
-const mermaidString = (text: string): `"${string}"` =>
-  `"${text.replaceAll('"', "#quot;")}"`
+const mermaidText = (text: string): string =>
+  text.replaceAll('"', "#quot;").replaceAll("`", "&#96;")
+
+const mermaidMarkdownString = (text: string): `"${string}"` =>
+  `"\`${mermaidText(text)}\`"`
 
 const mdLabel = (text: GraphText): `"${string}"` =>
-  mermaidString(text.markdown ? md2html(text.markdown).trim() || " " : " ")
+  mermaidMarkdownString(
+    text.markdown ? md2html(text.markdown).trim() || " " : " ",
+  )
 
 const mermaidID = (id: NodeID): string => id.substring(1)
 

@@ -48,9 +48,9 @@ describe.concurrent("toMermaid", () => {
 
     expect(toMermaid(graph, "Untitled")).toEqual(`
 flowchart
-source("GET #quot;/encode/:photo_key#quot;: \`photo_key\` -> \`[80]f32\`")
-target("Elastic")
-source -- "query #quot;vec#quot;" --> target
+source("\`GET #quot;/encode/:photo_key#quot;: &#96;photo_key&#96; -> &#96;[80]f32&#96;\`")
+target("\`Elastic\`")
+source -- "\`query #quot;vec#quot;\`" --> target
 `)
   })
 })

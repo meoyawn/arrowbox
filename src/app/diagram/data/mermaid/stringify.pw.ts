@@ -64,6 +64,8 @@ test.describe("stringify mermaid", () => {
     }, graph)
 
     expect(result.mermaid).toContain("#quot;/encode/:photo_key#quot;")
+    expect(result.mermaid).toContain("<code>photo_key</code>")
+    expect(result.mermaid).toContain('source("`<p>GET')
     expect(result.mermaid).toContain("query #quot;vec#quot;")
     expect(result.parsed).toEqual(true)
   })
