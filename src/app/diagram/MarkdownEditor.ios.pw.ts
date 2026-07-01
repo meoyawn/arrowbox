@@ -163,6 +163,59 @@ test.describe("mobile markdown editor", () => {
       .toEqual("Changed")
   })
 
+  test("Enter inserts newline and Done commits markdown", async ({ page }) => {
+    await loadSingleNodeGraph(page, {
+      graphID: "g-mobile-markdown-enter",
+      markdown: "alpha",
+      nodeID: "nMobileEnter",
+      rect: { x: 100, y: 260, width: 180, height: 120 },
+      title: "Mobile markdown enter",
+    })
+
+    const editor = await openMarkdownEditor(page, "nMobileEnter")
+    await page.keyboard.press("Enter")
+    await page.keyboard.type("beta")
+
+    await expect(editor).toHaveText("alpha\nbeta")
+    await expect(editor).toBeFocused()
+
+    await page.locator("[data-testid=markdown-editor-done]").click()
+    await expect(editor).toHaveCount(0)
+    await expect
+      .poll(async () => {
+        const graph = await graphFromURLFragment(page)
+        return graph.nodes.nMobileEnter.markdown
+      })
+      .toEqual("alpha\nbeta")
+  })
+
+  test("keyboard Done blur commits markdown and closes editor", async ({
+    page,
+  }) => {
+    await loadSingleNodeGraph(page, {
+      graphID: "g-mobile-markdown-keyboard-done",
+      markdown: "Original",
+      nodeID: "nMobileKeyboardDone",
+      rect: { x: 100, y: 260, width: 180, height: 120 },
+      title: "Mobile markdown keyboard done",
+    })
+
+    const editor = await openMarkdownEditor(page, "nMobileKeyboardDone")
+    await editor.fill("Blurred")
+    await expect(editor).toHaveText("Blurred")
+    await editor.evaluate(editor => {
+      editor.blur()
+    })
+
+    await expect(editor).toHaveCount(0)
+    await expect
+      .poll(async () => {
+        const graph = await graphFromURLFragment(page)
+        return graph.nodes.nMobileKeyboardDone.markdown
+      })
+      .toEqual("Blurred")
+  })
+
   test("Cancel restores original markdown and closes editor", async ({
     page,
   }) => {

@@ -101,7 +101,7 @@ export const ForeignText: Component<{
         </div>
       </foreignObject>
 
-      <Show when={isEditing()}>
+      <Show when={isEditing() ? props.id : undefined} keyed>
         <Portal mount={props.editorLayer()}>
           <MarkdownEditor
             box={editorBox()}

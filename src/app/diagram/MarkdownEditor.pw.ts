@@ -303,7 +303,14 @@ test.describe("markdown editor", () => {
     expect(Math.abs(metrics.beforeTop - metrics.paddingTop)).toBeLessThan(0.5)
   })
 
-  test("inserts a markdown newline with Shift+Enter", async ({ page }) => {
+  test("inserts a markdown newline with Shift+Enter and commits with Enter on desktop", async ({
+    page,
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== "desktop-chrome",
+      "coarse-pointer editors use Enter for newlines",
+    )
+
     await loadSingleNodeGraph(page, {
       graphID: "g-portal-editor-shift-enter",
       html: "<p>alpha</p>",

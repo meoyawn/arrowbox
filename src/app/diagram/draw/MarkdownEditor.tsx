@@ -33,6 +33,9 @@ type PrismTokenContent = string | PrismToken | PrismTokenContent[]
 const isForwardedEditorGesture = (event: Event): boolean =>
   Boolean((event as ForwardedEditorGestureEvent).arrowboxForwardedEditorGesture)
 
+const isCoarsePointer = (): boolean =>
+  document.defaultView?.matchMedia("(pointer: coarse)").matches ?? false
+
 const prismTokenLength = (content: PrismTokenContent): number => {
   if (typeof content === "string") return content.length
 
@@ -247,6 +250,10 @@ export const MarkdownEditor: Component<{
     props.onCommit(editor ? editorMarkdown(editor) : draft())
   }
 
+  const commitDraft = (): void => {
+    props.onCommit(draft())
+  }
+
   const cancel = (): void => {
     editor?.commands.setContent(markdownDocument(props.value), {
       emitUpdate: false,
@@ -346,7 +353,7 @@ export const MarkdownEditor: Component<{
         return
       }
 
-      commit()
+      commitDraft()
     }
     const handleKeyDown = (event: KeyboardEvent): void => {
       switch (event.key) {
@@ -357,7 +364,7 @@ export const MarkdownEditor: Component<{
           break
 
         case "Enter":
-          if (event.shiftKey) {
+          if (event.shiftKey || isCoarsePointer()) {
             event.preventDefault()
             event.stopPropagation()
             insertEditorText("\n")
