@@ -321,7 +321,7 @@ export const DiagramPage: Component = () => {
       <div
         ref={editorLayerEl}
         data-testid="foreign-text-editor-layer"
-        class="pointer-events-none fixed inset-0 z-10 min-h-screen w-full overflow-visible"
+        class="pointer-events-none fixed inset-0 z-10 min-h-screen w-full overflow-visible pointer-coarse:z-40"
       />
 
       <TypedA

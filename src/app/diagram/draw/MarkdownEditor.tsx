@@ -9,7 +9,6 @@ import {
   createEffect,
   createSignal,
   onCleanup,
-  Show,
   untrack,
   type Component,
 } from "solid-js"
@@ -145,10 +144,9 @@ const editorMarkdown = (editor: Editor): string => {
 }
 
 const editorClassName =
-  "markdown-tiptap pointer-events-auto absolute inset-0 resize overflow-auto bg-white break-words whitespace-pre-wrap text-black outline-none"
+  "markdown-tiptap pointer-events-auto absolute inset-0 resize overflow-auto border-[calc(2px*var(--markdown-editor-scale))] border-solid border-[#18181b] bg-white p-[calc(8px*var(--markdown-editor-scale))] text-[calc(16px*var(--markdown-editor-scale))] leading-[calc(24px*var(--markdown-editor-scale))] [--markdown-editor-padding:calc(8px*var(--markdown-editor-scale))] box-border break-words whitespace-pre-wrap caret-black text-black outline-none pointer-coarse:top-12 pointer-coarse:bottom-0 pointer-coarse:h-auto pointer-coarse:resize-none"
 const wrapperClassName =
-  "pointer-events-auto absolute overflow-visible bg-white"
-const toolbarHeight = 48
+  "pointer-events-auto absolute top-[var(--markdown-editor-top)] left-[var(--markdown-editor-left)] z-10 h-[var(--markdown-editor-height)] w-[var(--markdown-editor-width)] overflow-visible bg-white [--markdown-editor-scale:var(--markdown-editor-camera-scale)] pointer-coarse:fixed pointer-coarse:inset-x-0 pointer-coarse:top-[var(--arrowbox-viewport-top)] pointer-coarse:bottom-[var(--arrowbox-viewport-bottom)] pointer-coarse:h-auto pointer-coarse:w-full pointer-coarse:[--markdown-editor-scale:1]"
 
 export const MarkdownEditor: Component<{
   box: MarkdownEditorBox
@@ -166,51 +164,15 @@ export const MarkdownEditor: Component<{
   let forwardingTouchGesture = false
   let ignoreNextBlur = false
   const [draft, setDraft] = createSignal("")
-  const [isCoarsePointer, setCoarsePointer] = createSignal(false)
-
-  const editorScale = (): number => (isCoarsePointer() ? 1 : props.cameraScale)
-
-  const editorStyle = (): string => {
-    const scale = editorScale()
-
-    return [
-      isCoarsePointer() ? `bottom: 0` : "",
-      `border: ${2 * scale}px solid #18181b`,
-      "box-sizing: border-box",
-      "caret-color: black",
-      "color: black",
-      `font-size: ${16 * scale}px`,
-      isCoarsePointer() ? "height: auto" : "height: 100%",
-      `line-height: ${24 * scale}px`,
-      `padding: ${8 * scale}px`,
-      "position: absolute",
-      isCoarsePointer() ? `top: ${toolbarHeight}px` : "",
-      `--markdown-editor-padding: ${8 * scale}px`,
-      "width: 100%",
-    ]
-      .filter(Boolean)
-      .join(";")
-  }
 
   const wrapperStyle = (): string =>
-    isCoarsePointer()
-      ? [
-          "bottom: var(--arrowbox-viewport-bottom, 0px)",
-          "height: auto",
-          "left: 0",
-          "position: fixed",
-          "top: var(--arrowbox-viewport-top, 0px)",
-          "width: 100%",
-          "z-index: 10",
-        ].join(";")
-      : [
-          `height: ${props.box.height}px`,
-          `left: ${props.box.left}px`,
-          "position: absolute",
-          `top: ${props.box.top}px`,
-          `width: ${props.box.width}px`,
-          "z-index: 10",
-        ].join(";")
+    [
+      `--markdown-editor-camera-scale: ${props.cameraScale}`,
+      `--markdown-editor-height: ${props.box.height}px`,
+      `--markdown-editor-left: ${props.box.left}px`,
+      `--markdown-editor-top: ${props.box.top}px`,
+      `--markdown-editor-width: ${props.box.width}px`,
+    ].join(";")
 
   const syncEditorStaticAttributes = (): void => {
     if (!editorElement) return
@@ -222,15 +184,11 @@ export const MarkdownEditor: Component<{
     editorElement.className = editorClassName
   }
 
-  const syncEditorDynamicAttributes = (
-    placeholder: string,
-    style: string,
-  ): void => {
+  const syncEditorDynamicAttributes = (placeholder: string): void => {
     if (!editorElement) return
 
     editorElement.setAttribute("aria-label", placeholder)
     editorElement.setAttribute("data-placeholder", placeholder)
-    editorElement.setAttribute("style", style)
   }
 
   const syncEditorEmptyState = (markdown: string): void => {
@@ -248,7 +206,7 @@ export const MarkdownEditor: Component<{
   })
 
   createEffect(() => {
-    syncEditorDynamicAttributes(props.placeholder, editorStyle())
+    syncEditorDynamicAttributes(props.placeholder)
   })
 
   const forwardWheelGesture = (event: WheelEvent): void => {
@@ -359,7 +317,6 @@ export const MarkdownEditor: Component<{
           "data-testid": "foreign-text-editor",
           role: "textbox",
           class: editorClassName,
-          style: editorStyle(),
         },
       },
       onUpdate({ editor }) {
@@ -372,7 +329,7 @@ export const MarkdownEditor: Component<{
     editor = tiptap
     editorElement = tiptap.view.dom
     syncEditorStaticAttributes()
-    syncEditorDynamicAttributes(props.placeholder, editorStyle())
+    syncEditorDynamicAttributes(props.placeholder)
     syncEditorEmptyState(initialDraft)
 
     const frame = requestAnimationFrame(() => {
@@ -487,20 +444,6 @@ export const MarkdownEditor: Component<{
     })
   })
 
-  createEffect(() => {
-    const view = document.defaultView
-    const media = view?.matchMedia("(pointer: coarse)")
-    if (!media) return
-
-    const update = (): void => {
-      setCoarsePointer(media.matches)
-    }
-
-    update()
-    media.addEventListener("change", update)
-    onCleanup(() => media.removeEventListener("change", update))
-  })
-
   return (
     <div
       ref={el => {
@@ -513,40 +456,38 @@ export const MarkdownEditor: Component<{
         event.stopPropagation()
       }}
     >
-      <Show when={isCoarsePointer()}>
-        <div
-          class="pointer-events-auto flex h-12 items-center justify-between border-b border-zinc-300 bg-white px-3"
-          data-testid="markdown-editor-mobile-toolbar"
+      <div
+        class="pointer-events-auto hidden h-12 items-center justify-between border-b border-zinc-300 bg-white px-3 pointer-coarse:flex"
+        data-testid="markdown-editor-mobile-toolbar"
+      >
+        <button
+          aria-label="Cancel"
+          class="flex items-center gap-2 rounded px-3 py-2 text-zinc-800"
+          data-testid="markdown-editor-cancel"
+          type="button"
+          onMouseDown={markToolbarAction}
+          onPointerDown={markToolbarAction}
+          onTouchStart={markToolbarAction}
+          onClick={cancel}
         >
-          <button
-            aria-label="Cancel"
-            class="flex items-center gap-2 rounded px-3 py-2 text-zinc-800"
-            data-testid="markdown-editor-cancel"
-            type="button"
-            onMouseDown={markToolbarAction}
-            onPointerDown={markToolbarAction}
-            onTouchStart={markToolbarAction}
-            onClick={cancel}
-          >
-            <CloseIcon />
-            Cancel
-          </button>
+          <CloseIcon />
+          Cancel
+        </button>
 
-          <button
-            aria-label="Done"
-            class="flex items-center gap-2 rounded bg-zinc-900 px-3 py-2 text-white"
-            data-testid="markdown-editor-done"
-            type="button"
-            onMouseDown={markToolbarAction}
-            onPointerDown={markToolbarAction}
-            onTouchStart={markToolbarAction}
-            onClick={commit}
-          >
-            <SaveIcon />
-            Done
-          </button>
-        </div>
-      </Show>
+        <button
+          aria-label="Done"
+          class="flex items-center gap-2 rounded bg-zinc-900 px-3 py-2 text-white"
+          data-testid="markdown-editor-done"
+          type="button"
+          onMouseDown={markToolbarAction}
+          onPointerDown={markToolbarAction}
+          onTouchStart={markToolbarAction}
+          onClick={commit}
+        >
+          <SaveIcon />
+          Done
+        </button>
+      </div>
 
       <div
         ref={el => {
