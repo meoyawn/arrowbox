@@ -1,4 +1,4 @@
-import { Show, createEffect, onCleanup, type Component } from "solid-js"
+import { Show, type Component } from "solid-js"
 import { Portal } from "solid-js/web"
 import type { Rect } from "../../../lib/geometry.ts"
 import {
@@ -10,19 +10,13 @@ import {
 import { patching } from "../data/history.ts"
 import { setStore, store } from "../data/state.ts"
 import { setMD } from "../data/transactions.ts"
+import { MarkdownEditor, type MarkdownEditorBox } from "./MarkdownEditor.tsx"
 
 const setStoreMD = (id: NodeID | EdgeID, markdown: string): void => {
   setStore(({ tree }) => ({
     tree: patching(tree, g => setMD(g, id, markdown)),
     editing: undefined,
   }))
-}
-
-interface EditorBox {
-  height: number
-  left: number
-  top: number
-  width: number
 }
 
 export const ForeignText: Component<{
@@ -42,25 +36,11 @@ export const ForeignText: Component<{
   const width = () => props.rect.width
   const height = () => props.rect.height
 
-  let editor: HTMLTextAreaElement | undefined
-
-  const editorBox = (): EditorBox => ({
+  const editorBox = (): MarkdownEditorBox => ({
     height: props.worldRect.height * store.camera.k,
     left: props.worldRect.x * store.camera.k + store.camera.x,
     top: props.worldRect.y * store.camera.k + store.camera.y,
     width: props.worldRect.width * store.camera.k,
-  })
-
-  createEffect(() => {
-    if (!isEditing()) return
-
-    const frame = requestAnimationFrame(() => {
-      editor?.focus()
-    })
-
-    onCleanup(() => {
-      cancelAnimationFrame(frame)
-    })
   })
 
   return (
@@ -106,47 +86,16 @@ export const ForeignText: Component<{
 
       <Show when={isEditing()}>
         <Portal mount={props.editorLayer()}>
-          <textarea
-            ref={el => {
-              editor = el
-            }}
-            data-testid="foreign-text-editor"
-            class="pointer-events-auto resize bg-white p-2 outline-none"
+          <MarkdownEditor
+            box={editorBox()}
+            cameraScale={store.camera.k}
             value={props.text.markdown}
-            placeholder={"Markdown"}
-            style={{
-              border: `${2 * store.camera.k}px solid #2563eb`,
-              "box-sizing": "border-box",
-              "font-size": `${16 * store.camera.k}px`,
-              height: `${editorBox().height}px`,
-              left: `${editorBox().left}px`,
-              "line-height": `${24 * store.camera.k}px`,
-              padding: `${8 * store.camera.k}px`,
-              position: "absolute",
-              top: `${editorBox().top}px`,
-              width: `${editorBox().width}px`,
-              "z-index": "10",
+            placeholder="Markdown"
+            onCancel={() => {
+              setStore({ editing: undefined })
             }}
-            onBlur={({ currentTarget }) => {
-              setStoreMD(props.id, currentTarget.value)
-            }}
-            onKeyDown={event => {
-              const { currentTarget, key, shiftKey } = event
-
-              switch (key) {
-                case "Escape":
-                  event.preventDefault()
-                  currentTarget.value = props.text.markdown
-                  setStore({ editing: undefined })
-                  break
-
-                case "Enter":
-                  if (!shiftKey) {
-                    event.preventDefault()
-                    setStoreMD(props.id, currentTarget.value)
-                  }
-                  break
-              }
+            onCommit={markdown => {
+              setStoreMD(props.id, markdown)
             }}
           />
         </Portal>

@@ -411,6 +411,84 @@ test.describe("diagram page", () => {
     expect(storedMarkdown).toEqual("# Original")
   })
 
+  test("double-clicking active foreign text editor selects a word instead of adding a node", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const graphID = "g-portal-editor-word-select"
+      localStorage.setItem("last-graph", graphID)
+      localStorage.setItem(
+        "graph-list",
+        JSON.stringify({
+          [graphID]: { title: "Portal editor word select", lastModifiedMs: 0 },
+        }),
+      )
+      localStorage.setItem(
+        graphID,
+        JSON.stringify({
+          nodes: {
+            nRoot: {
+              id: "nRoot",
+              children: ["nWord"],
+              rect: { x: 0, y: 0, width: 0, height: 0 },
+              text: { html: "", markdown: "" },
+              shape: "rect",
+            },
+            nWord: {
+              id: "nWord",
+              children: [],
+              rect: { x: 180, y: 160, width: 280, height: 140 },
+              text: {
+                html: "<p>alpha beta gamma</p>",
+                markdown: "alpha beta gamma",
+              },
+              shape: "rect",
+            },
+          },
+          edges: {},
+        }),
+      )
+    })
+    await page.goto("/")
+
+    const nodeShape = page.locator(
+      "[data-nodeID=nWord] [data-dragID=node] > rect",
+    )
+    const nodeBox = await nodeShape.boundingBox()
+    if (!nodeBox) throw new Error("Missing node box")
+
+    await page.mouse.dblclick(
+      nodeBox.x + nodeBox.width / 2,
+      nodeBox.y + nodeBox.height / 2,
+    )
+
+    const editor = page.locator("[data-testid=foreign-text-editor]")
+    await expect(editor).toBeFocused()
+    await expect(page.locator("[data-nodeID]")).toHaveCount(1)
+
+    const editorBox = await editor.boundingBox()
+    if (!editorBox) throw new Error("Missing editor box")
+
+    await page.mouse.dblclick(editorBox.x + 64, editorBox.y + 20)
+
+    await expect(editor).toBeFocused()
+    await expect(page.locator("[data-nodeID]")).toHaveCount(1)
+    await expect
+      .poll(async () =>
+        editor.evaluate(textarea => {
+          if (!(textarea instanceof HTMLTextAreaElement)) {
+            throw new Error("Missing textarea")
+          }
+
+          return textarea.value.slice(
+            textarea.selectionStart,
+            textarea.selectionEnd,
+          )
+        }),
+      )
+      .toEqual("beta")
+  })
+
   test("keeps portal text editor locked to node while panning", async ({
     page,
   }, testInfo) => {
