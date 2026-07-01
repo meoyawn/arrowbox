@@ -85,7 +85,7 @@ function cloneTouch(touch: Touch, target: EventTarget): Touch {
     screenX: touch.screenX,
     screenY: touch.screenY,
     target,
-  } as Touch
+  }
 }
 
 function cloneTouchList(

@@ -20,6 +20,17 @@ export type LabeledShortcut = Shortcut & { label: string }
 const toKey = (x: Shortcut) =>
   "hotkey" in x ? x.hotkey : `${x.windows}, ${x.macos}`
 
+const eventTargetElement = (target: EventTarget | null): Element | null => {
+  if (target instanceof Element) return target
+  if (target instanceof Node) return target.parentElement
+  return null
+}
+
+const isMarkdownEditorTarget = (target: EventTarget | null): boolean =>
+  Boolean(
+    eventTargetElement(target)?.closest("[data-testid=foreign-text-editor]"),
+  )
+
 export const Shortcuts = {
   del: { label: "Delete", hotkey: "Delete, Backspace" },
   layout: { label: "Auto layout", hotkey: "L" },
@@ -33,6 +44,10 @@ export const Shortcuts = {
 } as const satisfies Record<string, LabeledShortcut>
 
 export const setupHotkeys = (): VoidFunction => {
+  const defaultFilter = hotkeys.filter
+  hotkeys.filter = event =>
+    !isMarkdownEditorTarget(event.target) && defaultFilter(event)
+
   hotkeys(toKey(Shortcuts.del), () =>
     setStore(s => ({
       tree: patching(s.tree, d => del(d, s.tree.index, s.selected)),
@@ -138,5 +153,8 @@ export const setupHotkeys = (): VoidFunction => {
       })
   })
 
-  return () => hotkeys.unbind()
+  return () => {
+    hotkeys.unbind()
+    hotkeys.filter = defaultFilter
+  }
 }

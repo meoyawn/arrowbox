@@ -25,8 +25,8 @@ const setStoreMD = (id: NodeID | EdgeID, markdown: string): void => {
 
 /**
  * Text renders inside SVG during read mode, but editing uses an HTML portal.
- * Mobile Safari has focus/selection/keyboard quirks with textareas inside
- * foreignObject, so the markdown textarea must live outside the SVG tree.
+ * Mobile Safari has focus/selection/keyboard quirks with editable controls
+ * inside foreignObject, so the markdown editor must live outside the SVG tree.
  * That also means pinch and ctrl-wheel gestures cannot bubble naturally to
  * DiagramSVG/d3-zoom, so the editor forwards cloned gesture events to canvas.
  */

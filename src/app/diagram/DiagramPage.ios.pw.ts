@@ -535,7 +535,7 @@ test.describe("diagram page iOS gestures", () => {
     expect(metrics.textBottom).toBeLessThanOrEqual(metrics.shapeBottom)
   })
 
-  test("edits foreign text with native iOS textarea outside SVG", async ({
+  test("edits foreign text with native iOS editor outside SVG", async ({
     page,
   }) => {
     await page.addInitScript(() => {
@@ -585,17 +585,16 @@ test.describe("diagram page iOS gestures", () => {
       nodeBox.y + nodeBox.height / 2,
     )
 
-    const textarea = page.locator("[data-testid=foreign-text-editor]")
-    await expect(textarea).toBeVisible()
-    await expect(textarea).toBeFocused()
+    const editor = page.locator("[data-testid=foreign-text-editor]")
+    await expect(editor).toBeVisible()
+    await expect(editor).toBeFocused()
 
-    await textarea.press("End")
-    await textarea.pressSequentially("!")
-    await expect(textarea).toHaveValue("Edit me!")
+    await editor.pressSequentially("!")
+    await expect(editor).toHaveText("Edit me!")
 
-    const metrics = await textarea.evaluate(textarea => {
-      const rect = textarea.getBoundingClientRect()
-      const style = getComputedStyle(textarea)
+    const metrics = await editor.evaluate(editor => {
+      const rect = editor.getBoundingClientRect()
+      const style = getComputedStyle(editor)
       return {
         borderColor: style.borderTopColor,
         borderStyle: style.borderTopStyle,
@@ -603,9 +602,9 @@ test.describe("diagram page iOS gestures", () => {
         bottom: rect.bottom,
         height: rect.height,
         insideEditorLayer: Boolean(
-          textarea.closest("[data-testid=foreign-text-editor-layer]"),
+          editor.closest("[data-testid=foreign-text-editor-layer]"),
         ),
-        insideSvg: Boolean(textarea.closest("svg")),
+        insideSvg: Boolean(editor.closest("svg")),
         left: rect.left,
         position: style.position,
         textColor: style.color,
@@ -711,16 +710,16 @@ test.describe("diagram page iOS gestures", () => {
     await expect(editor).toBeFocused()
 
     async function editorRect(): Promise<ScreenRect> {
-      const textarea = await editor.boundingBox()
-      if (!textarea) throw new Error("Missing editor box")
+      const editorBox = await editor.boundingBox()
+      if (!editorBox) throw new Error("Missing editor box")
 
       return {
-        bottom: textarea.y + textarea.height,
-        height: textarea.height,
-        left: textarea.x,
-        right: textarea.x + textarea.width,
-        top: textarea.y,
-        width: textarea.width,
+        bottom: editorBox.y + editorBox.height,
+        height: editorBox.height,
+        left: editorBox.x,
+        right: editorBox.x + editorBox.width,
+        top: editorBox.y,
+        width: editorBox.width,
       }
     }
 
@@ -732,12 +731,12 @@ test.describe("diagram page iOS gestures", () => {
       expectRectsClose(await editorRect(), await expectedEditorRect())
     }
 
-    const editorLayer = await editor.evaluate(textarea => ({
+    const editorLayer = await editor.evaluate(editor => ({
       insideEditorLayer: Boolean(
-        textarea.closest("[data-testid=foreign-text-editor-layer]"),
+        editor.closest("[data-testid=foreign-text-editor-layer]"),
       ),
-      insideSvg: Boolean(textarea.closest("svg")),
-      position: getComputedStyle(textarea).position,
+      insideSvg: Boolean(editor.closest("svg")),
+      position: getComputedStyle(editor).position,
     }))
 
     expect(editorLayer.insideEditorLayer).toEqual(true)

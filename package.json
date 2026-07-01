@@ -7,6 +7,7 @@
     "@kobalte/core": "^0.13.12",
     "@solid-primitives/destructure": "^0.2.3",
     "@solidjs/router": "^0.16.1",
+    "codejar": "^4.3.0",
     "d3-drag": "^3.0.0",
     "d3-scale": "^4.0.2",
     "d3-selection": "^3.0.0",
@@ -17,6 +18,7 @@
     "immer": "^11.1.8",
     "marked": "^18.0.5",
     "mermaid": "^11.16.0",
+    "prismjs": "^1.30.0",
     "rbush": "^4.0.1",
     "solid-js": "^1.9.13",
     "terracotta": "^1.1.0"
@@ -32,6 +34,7 @@
     "@types/d3-selection": "^3.0.11",
     "@types/d3-zoom": "^3.0.8",
     "@types/dompurify": "^3.2.0",
+    "@types/prismjs": "^1.26.6",
     "@types/rbush": "^4.0.0",
     "eslint-plugin-solid": "^0.14.5",
     "fast-check": "^4.8.0",
