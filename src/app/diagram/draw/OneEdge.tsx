@@ -8,6 +8,9 @@ import { ForeignText } from "./ForeignText.tsx"
 import type { MarkdownEditorGestureEvent } from "./MarkdownEditor.tsx"
 
 const edgeHitArea = 16
+const edgeTextMaxLongSide = 320
+const edgeTextMinHeight = 64
+const edgeTextMinWidth = 180
 
 export const OneEdge: Component<{
   editorLayer: () => HTMLElement | undefined
@@ -20,12 +23,20 @@ export const OneEdge: Component<{
   const to = () => e().to
   const { fromX, fromY, toX, toY } = createAnchors(store, from, to)
 
-  const textRect = (): Rect => ({
-    x: Math.min(fromX(), toX()),
-    y: Math.min(fromY(), toY()),
-    width: Math.max(1, Math.abs(fromX() - toX())),
-    height: Math.max(1, Math.abs(fromY() - toY())),
-  })
+  const textRect = (): Rect => {
+    const dx = Math.abs(fromX() - toX())
+    const width = Math.min(Math.max(dx, edgeTextMinWidth), edgeTextMaxLongSide)
+    const height = edgeTextMinHeight
+    const centerX = (fromX() + toX()) / 2
+    const centerY = (fromY() + toY()) / 2
+
+    return {
+      x: centerX - width / 2,
+      y: centerY - height / 2,
+      width,
+      height,
+    }
+  }
 
   const isSelected = () => props.id in store.selected
 
