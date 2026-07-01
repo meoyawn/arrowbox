@@ -10,7 +10,11 @@ import {
 import { patching } from "../data/history.ts"
 import { setStore, store } from "../data/state.ts"
 import { setMD } from "../data/transactions.ts"
-import { MarkdownEditor, type MarkdownEditorBox } from "./MarkdownEditor.tsx"
+import {
+  MarkdownEditor,
+  type MarkdownEditorBox,
+  type MarkdownEditorGestureEvent,
+} from "./MarkdownEditor.tsx"
 
 const setStoreMD = (id: NodeID | EdgeID, markdown: string): void => {
   setStore(({ tree }) => ({
@@ -19,9 +23,17 @@ const setStoreMD = (id: NodeID | EdgeID, markdown: string): void => {
   }))
 }
 
+/**
+ * Text renders inside SVG during read mode, but editing uses an HTML portal.
+ * Mobile Safari has focus/selection/keyboard quirks with textareas inside
+ * foreignObject, so the markdown textarea must live outside the SVG tree.
+ * That also means pinch and ctrl-wheel gestures cannot bubble naturally to
+ * DiagramSVG/d3-zoom, so the editor forwards cloned gesture events to canvas.
+ */
 export const ForeignText: Component<{
   editorLayer: () => HTMLElement | undefined
   id: NodeID | EdgeID
+  onForwardEditorGesture: (event: MarkdownEditorGestureEvent) => void
   text: GraphText
   rect: Rect
   worldRect: Rect
@@ -89,6 +101,7 @@ export const ForeignText: Component<{
           <MarkdownEditor
             box={editorBox()}
             cameraScale={store.camera.k}
+            onForwardGesture={props.onForwardEditorGesture}
             value={props.text.markdown}
             placeholder="Markdown"
             onCancel={() => {

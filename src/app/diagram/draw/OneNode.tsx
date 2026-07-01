@@ -5,6 +5,7 @@ import { store } from "../data/state.ts"
 import { dragIDs } from "../drag.ts"
 import { ResizeSides, type ResizeSide } from "../drag/resize.ts"
 import { ForeignText } from "./ForeignText.tsx"
+import type { MarkdownEditorGestureEvent } from "./MarkdownEditor.tsx"
 
 const sideArea = 14
 
@@ -82,6 +83,7 @@ const Corner: Component<{
 export const OneNode: Component<{
   editorLayer: () => HTMLElement | undefined
   id: NodeID
+  onForwardEditorGesture: (event: MarkdownEditorGestureEvent) => void
 }> = props => {
   const node = () => store.tree.data.nodes[props.id]
   const isSelected = () => Boolean(store.selected[props.id])
@@ -139,6 +141,7 @@ export const OneNode: Component<{
           <ForeignText
             editorLayer={props.editorLayer}
             id={props.id}
+            onForwardEditorGesture={props.onForwardEditorGesture}
             text={node().text}
             rect={{ x: 0, y: 0, width: width(), height: height() }}
             worldRect={rect()}
@@ -192,7 +195,13 @@ export const OneNode: Component<{
       </g>
 
       <For each={children()}>
-        {nid => <OneNode editorLayer={props.editorLayer} id={nid} />}
+        {nid => (
+          <OneNode
+            editorLayer={props.editorLayer}
+            id={nid}
+            onForwardEditorGesture={props.onForwardEditorGesture}
+          />
+        )}
       </For>
     </g>
   )

@@ -1,5 +1,104 @@
 import { expect, test, type Page } from "@playwright/test"
 
+interface CameraTransform {
+  x: number
+  y: number
+  k: number
+}
+
+interface TouchPoint {
+  id: number
+  x: number
+  y: number
+}
+
+interface TestWheelEventInit {
+  clientX: number
+  clientY: number
+  ctrlKey: boolean
+  deltaY: number
+}
+
+function parseCameraTransform(transform: string | null): CameraTransform {
+  const match = transform?.match(
+    /^translate\((-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)\) scale\((-?\d+(?:\.\d+)?)\)$/,
+  )
+  if (!match) throw new Error(`Invalid camera transform: ${transform}`)
+
+  return {
+    x: Number(match[1]),
+    y: Number(match[2]),
+    k: Number(match[3]),
+  }
+}
+
+async function cameraTransform(page: Page): Promise<CameraTransform> {
+  return parseCameraTransform(
+    await page.locator("#canvas > g").getAttribute("transform"),
+  )
+}
+
+async function dispatchTouch(
+  page: Page,
+  selector: string,
+  type: string,
+  points: Array<TouchPoint>,
+): Promise<boolean> {
+  return page.evaluate(
+    ({ points, selector, type }) => {
+      const target = document.querySelector(selector)
+      if (!target) throw new Error(`No touch target: ${selector}`)
+
+      const touchList = points.map(({ id, x, y }) => ({
+        clientX: x,
+        clientY: y,
+        identifier: id,
+        pageX: x,
+        pageY: y,
+        screenX: x,
+        screenY: y,
+        target,
+      }))
+
+      Object.defineProperty(touchList, "item", {
+        value: (index: number) => touchList[index] ?? null,
+      })
+
+      const event = new Event(type, { bubbles: true, cancelable: true })
+      Object.defineProperty(event, "touches", { value: touchList })
+      Object.defineProperty(event, "changedTouches", { value: touchList })
+      Object.defineProperty(event, "targetTouches", { value: touchList })
+      target.dispatchEvent(event)
+
+      return event.defaultPrevented
+    },
+    { points, selector, type },
+  )
+}
+
+async function dispatchWheel(
+  page: Page,
+  selector: string,
+  init: TestWheelEventInit,
+): Promise<boolean> {
+  return page.evaluate(
+    ({ init, selector }) => {
+      const target = document.querySelector(selector)
+      if (!target) throw new Error(`No wheel target: ${selector}`)
+
+      const event = new WheelEvent("wheel", {
+        bubbles: true,
+        cancelable: true,
+        ...init,
+      })
+      target.dispatchEvent(event)
+
+      return event.defaultPrevented
+    },
+    { init, selector },
+  )
+}
+
 async function expectDialogAboveOverlay(page: Page): Promise<void> {
   const layer = await page.evaluate(() => {
     const overlay = Array.from(document.querySelectorAll("*")).find(
@@ -762,6 +861,106 @@ test.describe("diagram page", () => {
     expect(Math.abs(metrics.borderTopWidth - 2 * scale)).toBeLessThan(0.5)
     expect(Math.abs(metrics.width - shape.width)).toBeLessThan(2)
     expect(Math.abs(metrics.height - shape.height)).toBeLessThan(2)
+  })
+
+  test("pinch zooms canvas while portal markdown editor is active", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const graphID = "g-portal-editor-pinch-forward"
+      localStorage.setItem("last-graph", graphID)
+      localStorage.setItem(
+        "graph-list",
+        JSON.stringify({
+          [graphID]: { title: "Portal editor pinch", lastModifiedMs: 0 },
+        }),
+      )
+      localStorage.setItem(
+        graphID,
+        JSON.stringify({
+          nodes: {
+            nRoot: {
+              id: "nRoot",
+              children: ["nPinch"],
+              rect: { x: 0, y: 0, width: 0, height: 0 },
+              text: { html: "", markdown: "" },
+              shape: "rect",
+            },
+            nPinch: {
+              id: "nPinch",
+              children: [],
+              rect: { x: 200, y: 180, width: 240, height: 160 },
+              text: {
+                html: "<p>Pinch while editing</p>",
+                markdown: "Pinch while editing",
+              },
+              shape: "rect",
+            },
+          },
+          edges: {},
+        }),
+      )
+    })
+    await page.goto("/")
+
+    const nodeShape = page.locator(
+      "[data-nodeID=nPinch] [data-dragID=node] > rect",
+    )
+    const nodeBox = await nodeShape.boundingBox()
+    if (!nodeBox) throw new Error("Missing node box")
+
+    await page.mouse.dblclick(
+      nodeBox.x + nodeBox.width / 2,
+      nodeBox.y + nodeBox.height / 2,
+    )
+
+    const editor = page.locator("[data-testid=foreign-text-editor]")
+    await expect(editor).toBeFocused()
+    expect((await cameraTransform(page)).k).toEqual(1)
+
+    const wheelPrevented = await dispatchWheel(page, "body", {
+      clientX: 300,
+      clientY: 250,
+      ctrlKey: true,
+      deltaY: -400,
+    })
+
+    expect(wheelPrevented).toEqual(true)
+    await expect
+      .poll(async () => (await cameraTransform(page)).k)
+      .toBeGreaterThan(1)
+
+    const startPrevented = await dispatchTouch(
+      page,
+      "[data-testid=foreign-text-editor]",
+      "touchstart",
+      [
+        { id: 1, x: 250, y: 250 },
+        { id: 2, x: 350, y: 250 },
+      ],
+    )
+    const movePrevented = await dispatchTouch(
+      page,
+      "[data-testid=foreign-text-editor]",
+      "touchmove",
+      [
+        { id: 1, x: 220, y: 230 },
+        { id: 2, x: 400, y: 230 },
+      ],
+    )
+
+    expect(startPrevented).toEqual(true)
+    expect(movePrevented).toEqual(true)
+    await expect
+      .poll(async () => (await cameraTransform(page)).k)
+      .toBeGreaterThan(1.5)
+
+    await dispatchTouch(
+      page,
+      "[data-testid=foreign-text-editor]",
+      "touchend",
+      [],
+    )
   })
 
   test("keeps portal text editor below diagram title chrome", async ({

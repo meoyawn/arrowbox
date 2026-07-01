@@ -16,6 +16,7 @@ import { type DraggingArrow, setStore, store } from "../data/state.ts"
 import { addNode } from "../data/transactions.ts"
 import { behaviorDrag, worldDragSubj } from "../drag.ts"
 import { DotGrid } from "./DotGrid.tsx"
+import type { MarkdownEditorGestureEvent } from "./MarkdownEditor.tsx"
 import { OneEdge } from "./OneEdge.tsx"
 import { OneNode } from "./OneNode.tsx"
 import { SvgDefs } from "./SvgDefs.tsx"
@@ -30,6 +31,8 @@ interface TouchGesture {
   center: Point
   distance: number
 }
+
+type ClonedTouchList = Array<Touch> & { item(index: number): Touch | null }
 
 const zoomScaleExtent: [number, number] = [0.05, 8]
 
@@ -67,6 +70,41 @@ const midpoint = (a: Point, b: Point): Point => ({
   x: (a.x + b.x) / 2,
   y: (a.y + b.y) / 2,
 })
+
+function cloneTouch(touch: Touch, target: EventTarget): Touch {
+  return {
+    clientX: touch.clientX,
+    clientY: touch.clientY,
+    force: touch.force,
+    identifier: touch.identifier,
+    pageX: touch.pageX,
+    pageY: touch.pageY,
+    radiusX: touch.radiusX,
+    radiusY: touch.radiusY,
+    rotationAngle: touch.rotationAngle,
+    screenX: touch.screenX,
+    screenY: touch.screenY,
+    target,
+  } as Touch
+}
+
+function cloneTouchList(
+  source: TouchList,
+  target: EventTarget,
+): ClonedTouchList {
+  const touches: Array<Touch> = []
+
+  for (let i = 0; i < source.length; i++) {
+    const touch = source.item(i)
+    if (touch) touches.push(cloneTouch(touch, target))
+  }
+
+  Object.defineProperty(touches, "item", {
+    value: (index: number) => touches[index] ?? null,
+  })
+
+  return touches as ClonedTouchList
+}
 
 export function touchGestureCamera(
   start: TouchGesture,
@@ -139,6 +177,63 @@ export const DiagramSVG: Component = () => {
   let svgEl: SVGSVGElement | undefined
   let zoomedEl: SVGGElement | undefined
   let editorLayerEl: HTMLDivElement | undefined
+
+  const forwardWheelEvent = (ev: WheelEvent): void => {
+    if (!svgEl) return
+
+    const forwarded = new WheelEvent("wheel", {
+      altKey: ev.altKey,
+      bubbles: true,
+      button: ev.button,
+      buttons: ev.buttons,
+      cancelable: true,
+      clientX: ev.clientX,
+      clientY: ev.clientY,
+      ctrlKey: ev.ctrlKey,
+      deltaMode: ev.deltaMode,
+      deltaX: ev.deltaX,
+      deltaY: ev.deltaY,
+      deltaZ: ev.deltaZ,
+      metaKey: ev.metaKey,
+      screenX: ev.screenX,
+      screenY: ev.screenY,
+      shiftKey: ev.shiftKey,
+    })
+    Object.defineProperty(forwarded, "arrowboxForwardedEditorGesture", {
+      value: true,
+    })
+
+    svgEl.dispatchEvent(forwarded)
+  }
+
+  const forwardTouchEvent = (ev: TouchEvent): void => {
+    if (!svgEl) return
+
+    const forwarded = new Event(ev.type, {
+      bubbles: true,
+      cancelable: true,
+    })
+
+    Object.defineProperty(forwarded, "touches", {
+      value: cloneTouchList(ev.touches, svgEl),
+    })
+    Object.defineProperty(forwarded, "changedTouches", {
+      value: cloneTouchList(ev.changedTouches, svgEl),
+    })
+    Object.defineProperty(forwarded, "targetTouches", {
+      value: cloneTouchList(ev.targetTouches, svgEl),
+    })
+
+    svgEl.dispatchEvent(forwarded)
+  }
+
+  const forwardEditorGesture = (ev: MarkdownEditorGestureEvent): void => {
+    if (ev.type === "wheel") {
+      forwardWheelEvent(ev as WheelEvent)
+    } else {
+      forwardTouchEvent(ev as TouchEvent)
+    }
+  }
 
   createEffect(() => {
     currentCamera = store.camera
@@ -315,14 +410,26 @@ export const DiagramSVG: Component = () => {
 
         <g ref={zoomedEl} transform={zoomTransform(store.camera)}>
           <For each={store.tree.data.nodes[ROOT_ID].children}>
-            {id => <OneNode editorLayer={() => editorLayerEl} id={id} />}
+            {id => (
+              <OneNode
+                editorLayer={() => editorLayerEl}
+                id={id}
+                onForwardEditorGesture={forwardEditorGesture}
+              />
+            )}
           </For>
           <For
             each={toKeysArray(store.tree.data.edges).filter(
               eid => !store.dragging || !(eid in store.dragging),
             )}
           >
-            {e => <OneEdge editorLayer={() => editorLayerEl} id={e} />}
+            {e => (
+              <OneEdge
+                editorLayer={() => editorLayerEl}
+                id={e}
+                onForwardEditorGesture={forwardEditorGesture}
+              />
+            )}
           </For>
 
           <Show when={store.brush}>{b => <BrushRect bbox={b()} />}</Show>

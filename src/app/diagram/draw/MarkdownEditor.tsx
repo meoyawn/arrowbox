@@ -15,6 +15,15 @@ export interface MarkdownEditorBox {
   width: number
 }
 
+export type MarkdownEditorGestureEvent = TouchEvent | WheelEvent
+
+interface ForwardedEditorGestureEvent extends Event {
+  arrowboxForwardedEditorGesture?: true
+}
+
+const isForwardedEditorGesture = (event: Event): boolean =>
+  Boolean((event as ForwardedEditorGestureEvent).arrowboxForwardedEditorGesture)
+
 const escapeHTML = (text: string): string =>
   text
     .replaceAll("&", "&amp;")
@@ -200,6 +209,7 @@ const highlightMarkdown = (markdown: string): string =>
 export const MarkdownEditor: Component<{
   box: MarkdownEditorBox
   cameraScale: number
+  onForwardGesture: (event: MarkdownEditorGestureEvent) => void
   onCancel: () => void
   onCommit: (markdown: string) => void
   placeholder: string
@@ -207,6 +217,8 @@ export const MarkdownEditor: Component<{
 }> = props => {
   let editor: HTMLTextAreaElement | undefined
   let highlighter: HTMLPreElement | undefined
+  let wrapper: HTMLDivElement | undefined
+  let forwardingTouchGesture = false
   const [draft, setDraft] = createSignal("")
 
   createEffect(() => {
@@ -214,6 +226,40 @@ export const MarkdownEditor: Component<{
   })
 
   const highlightedDraft = createMemo(() => highlightMarkdown(draft()))
+
+  const forwardWheelGesture = (event: WheelEvent): void => {
+    if (!event.ctrlKey || isForwardedEditorGesture(event)) return
+
+    const target = event.target
+    const targetInsideEditor = Boolean(
+      target instanceof Node && wrapper?.contains(target),
+    )
+    if (!targetInsideEditor && document.activeElement !== editor) return
+
+    event.preventDefault()
+    event.stopPropagation()
+    props.onForwardGesture(event)
+  }
+
+  const forwardTouchGesture = (event: TouchEvent): void => {
+    if (event.type === "touchstart") {
+      forwardingTouchGesture = event.touches.length >= 2
+    }
+
+    if (!forwardingTouchGesture && event.touches.length < 2) return
+
+    event.preventDefault()
+    event.stopPropagation()
+    props.onForwardGesture(event)
+
+    if (
+      event.type === "touchend" ||
+      event.type === "touchcancel" ||
+      event.touches.length < 2
+    ) {
+      forwardingTouchGesture = false
+    }
+  }
 
   createEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -245,8 +291,66 @@ export const MarkdownEditor: Component<{
     })
   })
 
+  createEffect(() => {
+    if (!editor || !wrapper) return
+
+    const textarea = editor
+    const editorWrapper = wrapper
+    textarea.addEventListener("touchstart", forwardTouchGesture, {
+      passive: false,
+    })
+    textarea.addEventListener("touchmove", forwardTouchGesture, {
+      passive: false,
+    })
+    textarea.addEventListener("touchend", forwardTouchGesture, {
+      passive: false,
+    })
+    textarea.addEventListener("touchcancel", forwardTouchGesture, {
+      passive: false,
+    })
+    editorWrapper.addEventListener("touchstart", forwardTouchGesture, {
+      capture: true,
+      passive: false,
+    })
+    editorWrapper.addEventListener("touchmove", forwardTouchGesture, {
+      capture: true,
+      passive: false,
+    })
+    editorWrapper.addEventListener("touchend", forwardTouchGesture, {
+      capture: true,
+      passive: false,
+    })
+    editorWrapper.addEventListener("touchcancel", forwardTouchGesture, {
+      capture: true,
+      passive: false,
+    })
+    document.addEventListener("wheel", forwardWheelGesture, {
+      capture: true,
+      passive: false,
+    })
+
+    onCleanup(() => {
+      textarea.removeEventListener("touchstart", forwardTouchGesture)
+      textarea.removeEventListener("touchmove", forwardTouchGesture)
+      textarea.removeEventListener("touchend", forwardTouchGesture)
+      textarea.removeEventListener("touchcancel", forwardTouchGesture)
+      editorWrapper.removeEventListener("touchstart", forwardTouchGesture, true)
+      editorWrapper.removeEventListener("touchmove", forwardTouchGesture, true)
+      editorWrapper.removeEventListener("touchend", forwardTouchGesture, true)
+      editorWrapper.removeEventListener(
+        "touchcancel",
+        forwardTouchGesture,
+        true,
+      )
+      document.removeEventListener("wheel", forwardWheelGesture, true)
+    })
+  })
+
   return (
     <div
+      ref={el => {
+        wrapper = el
+      }}
       class={codeEditorTheme.className.wrapper}
       style={{
         height: `${props.box.height}px`,

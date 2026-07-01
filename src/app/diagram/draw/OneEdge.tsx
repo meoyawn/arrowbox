@@ -5,12 +5,14 @@ import { createAnchors } from "../data/edge-anchor.ts"
 import { store } from "../data/state.ts"
 import { dragIDs } from "../drag.ts"
 import { ForeignText } from "./ForeignText.tsx"
+import type { MarkdownEditorGestureEvent } from "./MarkdownEditor.tsx"
 
 const edgeHitArea = 16
 
 export const OneEdge: Component<{
   editorLayer: () => HTMLElement | undefined
   id: EdgeID
+  onForwardEditorGesture: (event: MarkdownEditorGestureEvent) => void
 }> = props => {
   const e = () => store.tree.data.edges[props.id]
 
@@ -93,6 +95,7 @@ export const OneEdge: Component<{
       <ForeignText
         editorLayer={props.editorLayer}
         id={props.id}
+        onForwardEditorGesture={props.onForwardEditorGesture}
         text={e().text}
         isCenter={true}
         rect={textRect()}
