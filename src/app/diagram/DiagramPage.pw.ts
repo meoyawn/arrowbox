@@ -489,6 +489,79 @@ test.describe("diagram page", () => {
       .toEqual("beta")
   })
 
+  test("highlights markdown bullets and backtick markers in active foreign text editor", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const graphID = "g-portal-editor-marker-highlight"
+      localStorage.setItem("last-graph", graphID)
+      localStorage.setItem(
+        "graph-list",
+        JSON.stringify({
+          [graphID]: {
+            title: "Portal editor marker highlight",
+            lastModifiedMs: 0,
+          },
+        }),
+      )
+      localStorage.setItem(
+        graphID,
+        JSON.stringify({
+          nodes: {
+            nRoot: {
+              id: "nRoot",
+              children: ["nMarkers"],
+              rect: { x: 0, y: 0, width: 0, height: 0 },
+              text: { html: "", markdown: "" },
+              shape: "rect",
+            },
+            nMarkers: {
+              id: "nMarkers",
+              children: [],
+              rect: { x: 120, y: 140, width: 480, height: 180 },
+              text: {
+                html: "<ul><li>GET <code>sku_id</code> -&gt; <code>product_json</code></li><li>GET <code>[]sku_id</code> -&gt; <code>[]product_json</code></li></ul>",
+                markdown:
+                  "- GET `sku_id` -> `product_json`\n- GET `[]sku_id` -> `[]product_json`",
+              },
+              shape: "rect",
+            },
+          },
+          edges: {},
+        }),
+      )
+    })
+    await page.goto("/")
+
+    const nodeBox = await page
+      .locator("[data-nodeID=nMarkers] [data-dragID=node] > rect")
+      .boundingBox()
+    if (!nodeBox) throw new Error("Missing node box")
+
+    await page.mouse.dblclick(
+      nodeBox.x + nodeBox.width / 2,
+      nodeBox.y + nodeBox.height / 2,
+    )
+
+    const highlighter = page.locator(
+      "[data-testid=markdown-editor-highlighter]",
+    )
+    await expect(highlighter).toContainText(
+      "- GET `sku_id` -> `product_json`\n- GET `[]sku_id` -> `[]product_json`",
+    )
+
+    const markerCounts = await highlighter.evaluate(pre => {
+      const spans = Array.from(pre.querySelectorAll("span"))
+
+      return {
+        backticks: spans.filter(span => span.textContent === "`").length,
+        bullets: spans.filter(span => span.textContent === "-").length,
+      }
+    })
+
+    expect(markerCounts).toEqual({ backticks: 8, bullets: 2 })
+  })
+
   test("keeps portal text editor locked to node while panning", async ({
     page,
   }, testInfo) => {

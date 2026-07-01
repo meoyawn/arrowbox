@@ -5,6 +5,7 @@ import {
   onCleanup,
   type Component,
 } from "solid-js"
+import { lexer as markedLexer, type Token } from "marked"
 import { codeEditorTheme } from "./codeEditorTheme.ts"
 
 export interface MarkdownEditorBox {
@@ -29,10 +30,16 @@ const delimited = (text: string, markerLength: number): string =>
   escapeHTML(text.slice(markerLength, -markerLength)) +
   span(codeEditorTheme.syntax.marker, text.slice(-markerLength))
 
-const inlineCode = (text: string): string =>
-  span(codeEditorTheme.syntax.marker, "`") +
-  span(codeEditorTheme.syntax.code, text.slice(1, -1)) +
-  span(codeEditorTheme.syntax.marker, "`")
+const inlineCode = (text: string): string => {
+  const match = text.match(/^(`+)([\s\S]*)(`+)$/)
+  if (!match) return span(codeEditorTheme.syntax.code, text)
+
+  return (
+    span(codeEditorTheme.syntax.marker, match[1] ?? "") +
+    span(codeEditorTheme.syntax.code, match[2] ?? "") +
+    span(codeEditorTheme.syntax.marker, match[3] ?? "")
+  )
+}
 
 const link = (text: string): string => {
   const inline = text.match(
@@ -64,7 +71,7 @@ const link = (text: string): string => {
 
 const highlightInlineMarkdown = (markdown: string): string => {
   const token =
-    /(`[^`\n]+`)|(\*\*[^*\n]+?\*\*)|(__[^_\n]+?__)|(\*[^*\n]+?\*)|(_[^_\n]+?_)|(!?\[[^\]\n]+\]\([^) \n]+(?:\s+"[^"\n]*")?\))|(\[[^\]\n]+\]\[[^\]\n]+\])/g
+    /(`+[^`\n]+`+)|(\*\*[^*\n]+?\*\*)|(__[^_\n]+?__)|(\*[^*\n]+?\*)|(_[^_\n]+?_)|(!?\[[^\]\n]+\]\([^) \n]+(?:\s+"[^"\n]*")?\))|(\[[^\]\n]+\]\[[^\]\n]+\])/g
   let html = ""
   let index = 0
 
@@ -84,58 +91,111 @@ const highlightInlineMarkdown = (markdown: string): string => {
   return html + escapeHTML(markdown.slice(index))
 }
 
-const highlightMarkdown = (markdown: string): string => {
-  let isFencedCode = false
+const highlightHeading = (markdown: string): string => {
+  const heading = markdown.match(/^(\s{0,3})(#{1,6})([ \t].*?)(\n*)$/)
+  if (!heading) return highlightInlineMarkdown(markdown)
 
-  return markdown
-    .split("\n")
-    .map(line => {
-      const fence = line.match(/^(\s{0,3})(`{3,}|~{3,})(.*)$/)
-      if (fence) {
-        isFencedCode = !isFencedCode
+  return (
+    escapeHTML(heading[1] ?? "") +
+    span(codeEditorTheme.syntax.marker, heading[2] ?? "") +
+    highlightInlineMarkdown(heading[3] ?? "") +
+    escapeHTML(heading[4] ?? "")
+  )
+}
 
-        return (
-          escapeHTML(fence[1] ?? "") +
-          span(codeEditorTheme.syntax.marker, fence[2] ?? "") +
-          span(codeEditorTheme.syntax.link, fence[3] ?? "")
-        )
-      }
+const highlightBlockquote = (markdown: string): string =>
+  markdown
+    .split(/(\n)/)
+    .map(part => {
+      if (part === "\n") return part
 
-      if (isFencedCode) return span(codeEditorTheme.syntax.code, line)
+      const blockquote = part.match(/^(\s{0,3}>+[ \t]?)(.*)$/)
+      if (!blockquote) return highlightInlineMarkdown(part)
 
-      const heading = line.match(/^(\s{0,3})(#{1,6})([ \t].*)$/)
-      if (heading) {
-        return (
-          escapeHTML(heading[1] ?? "") +
-          span(codeEditorTheme.syntax.marker, heading[2] ?? "") +
-          highlightInlineMarkdown(heading[3] ?? "")
-        )
-      }
+      return (
+        span(codeEditorTheme.syntax.marker, blockquote[1] ?? "") +
+        highlightInlineMarkdown(blockquote[2] ?? "")
+      )
+    })
+    .join("")
 
-      const blockquote = line.match(/^(\s{0,3}>+)([ \t]?.*)$/)
-      if (blockquote) {
-        return (
-          span(codeEditorTheme.syntax.marker, blockquote[1] ?? "") +
-          highlightInlineMarkdown(blockquote[2] ?? "")
-        )
-      }
+const highlightList = (markdown: string): string =>
+  markdown
+    .split(/(\n)/)
+    .map(part => {
+      if (part === "\n") return part
 
-      const list = line.match(/^(\s*)([*+-]|\d+[.)])([ \t]+.*)$/)
+      const list = part.match(/^(\s*)([*+-]|\d+[.)])([ \t]+)(.*)$/)
       if (list) {
         return (
           escapeHTML(list[1] ?? "") +
           span(codeEditorTheme.syntax.marker, list[2] ?? "") +
-          highlightInlineMarkdown(list[3] ?? "")
+          escapeHTML(list[3] ?? "") +
+          highlightInlineMarkdown(list[4] ?? "")
         )
       }
 
-      const thematicBreak = line.match(/^(\s{0,3})([*_-])(?:[ \t]*\2){2,}\s*$/)
-      if (thematicBreak) return span(codeEditorTheme.syntax.marker, line)
-
-      return highlightInlineMarkdown(line)
+      return highlightInlineMarkdown(part)
     })
-    .join("\n")
+    .join("")
+
+const highlightCodeBlock = (markdown: string): string => {
+  const fence = markdown.match(
+    /^(\s{0,3})(`{3,}|~{3,})([^\n]*)(\n?)([\s\S]*?)(\n?)(\s{0,3})(`{3,}|~{3,})([ \t]*\n*)$/,
+  )
+  if (!fence) return span(codeEditorTheme.syntax.code, markdown)
+
+  return (
+    escapeHTML(fence[1] ?? "") +
+    span(codeEditorTheme.syntax.marker, fence[2] ?? "") +
+    span(codeEditorTheme.syntax.link, fence[3] ?? "") +
+    escapeHTML(fence[4] ?? "") +
+    span(codeEditorTheme.syntax.code, fence[5] ?? "") +
+    escapeHTML(fence[6] ?? "") +
+    escapeHTML(fence[7] ?? "") +
+    span(codeEditorTheme.syntax.marker, fence[8] ?? "") +
+    escapeHTML(fence[9] ?? "")
+  )
 }
+
+const highlightDefinition = (markdown: string): string => {
+  const definition = markdown.match(
+    /^(\s{0,3}\[)([^\]\n]+)(\]:[ \t]*)(\S+)(.*)$/,
+  )
+  if (!definition) return highlightInlineMarkdown(markdown)
+
+  return (
+    span(codeEditorTheme.syntax.marker, definition[1] ?? "") +
+    escapeHTML(definition[2] ?? "") +
+    span(codeEditorTheme.syntax.marker, definition[3] ?? "") +
+    span(codeEditorTheme.syntax.link, definition[4] ?? "") +
+    escapeHTML(definition[5] ?? "")
+  )
+}
+
+const highlightMarkdownToken = (token: Token): string => {
+  switch (token.type) {
+    case "blockquote":
+      return highlightBlockquote(token.raw)
+    case "code":
+      return highlightCodeBlock(token.raw)
+    case "def":
+      return highlightDefinition(token.raw)
+    case "heading":
+      return highlightHeading(token.raw)
+    case "hr":
+      return span(codeEditorTheme.syntax.marker, token.raw)
+    case "list":
+      return highlightList(token.raw)
+    case "space":
+      return escapeHTML(token.raw)
+    default:
+      return highlightInlineMarkdown(token.raw)
+  }
+}
+
+const highlightMarkdown = (markdown: string): string =>
+  markedLexer(markdown, { gfm: true }).map(highlightMarkdownToken).join("")
 
 export const MarkdownEditor: Component<{
   box: MarkdownEditorBox
@@ -205,6 +265,7 @@ export const MarkdownEditor: Component<{
           highlighter = el
         }}
         aria-hidden="true"
+        data-testid="markdown-editor-highlighter"
         class={codeEditorTheme.className.highlighter}
         style={{
           border: `${2 * props.cameraScale}px solid transparent`,

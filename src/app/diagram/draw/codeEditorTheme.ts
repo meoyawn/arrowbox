@@ -1,6 +1,6 @@
 export const codeEditorTheme = {
   color: {
-    border: "#2563eb",
+    border: "#18181b",
     caret: "black",
     text: "black",
     transparentText: "transparent",
@@ -13,8 +13,8 @@ export const codeEditorTheme = {
     wrapper: "pointer-events-auto absolute overflow-visible bg-white",
   },
   syntax: {
-    code: "text-slate-700",
-    link: "text-blue-700",
-    marker: "text-slate-400",
+    code: "text-zinc-700",
+    link: "text-zinc-800",
+    marker: "text-zinc-400",
   },
 } as const
