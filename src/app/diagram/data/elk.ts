@@ -3,13 +3,14 @@ import { sleep } from "../../../lib/ts.ts"
 import { Config } from "../../config.ts"
 import { measureHtml } from "../label.tsx"
 import { ROOT_ID } from "./ROOT_ID.ts"
-import type { EdgeID, Graph, GraphText, Node, NodeID } from "./data.ts"
+import type { EdgeID, Graph, Node, NodeID } from "./data.ts"
+import { buildIndex, type GraphIndex } from "./indexing.ts"
 
 const elkModule = sleep(Config.heavyScriptDelayMs)
   .then(() => import("elkjs/lib/elk.bundled"))
   .then(x => new x.default({}))
 
-function toLabels({ html, markdown }: GraphText): ElkLabel[] {
+function toLabels(markdown: string, html: string): ElkLabel[] {
   if (!markdown) return []
 
   const { width, height } = measureHtml(html)
@@ -17,17 +18,21 @@ function toLabels({ html, markdown }: GraphText): ElkLabel[] {
 }
 
 /** DFS */
-function toELK(nodes: Record<NodeID, Node>, id: NodeID): ElkNode {
-  const { children, rect, text } = nodes[id]
+function toELK(
+  nodes: Record<NodeID, Node>,
+  index: GraphIndex,
+  id: NodeID,
+): ElkNode {
+  const { children, markdown, rect } = nodes[id]
   const { x, y, width, height } = rect
   return {
     id,
-    labels: toLabels(text),
+    labels: toLabels(markdown, index.html[markdown] ?? ""),
     x,
     y,
     width,
     height,
-    children: children.map(cid => toELK(nodes, cid)),
+    children: children.map(cid => toELK(nodes, index, cid)),
   }
 }
 
@@ -46,19 +51,23 @@ const layoutOptions: LayoutOptions = {
   "org.eclipse.elk.nodeSize.minimum": "(30, 30)",
 }
 
-export async function layoutGraph({ nodes, edges }: Graph): Promise<ElkNode> {
-  const root = toELK(nodes, ROOT_ID)
+export async function layoutGraph(
+  graph: Graph,
+  index: GraphIndex = buildIndex(graph),
+): Promise<ElkNode> {
+  const { nodes, edges } = graph
+  const root = toELK(nodes, index, ROOT_ID)
 
   root.edges = []
   for (const eid in edges) {
-    const { from, text, to } = edges[eid as EdgeID]
+    const { from, markdown, to } = edges[eid as EdgeID]
     if (from.type !== "node" || to.type !== "node") continue
 
     root.edges.push({
       id: eid,
       sources: [from.id],
       targets: [to.id],
-      labels: toLabels(text),
+      labels: toLabels(markdown, index.html[markdown] ?? ""),
     })
   }
 

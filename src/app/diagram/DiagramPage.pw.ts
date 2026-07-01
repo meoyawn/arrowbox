@@ -48,21 +48,21 @@ test.describe("diagram page", () => {
           id: ROOT_ID,
           children: ["nTop", "nBottom"],
           rect: { x: 0, y: 0, width: 0, height: 0 },
-          text: { html: "", markdown: "" },
+          markdown: "",
           shape: "rect",
         },
         nTop: {
           id: "nTop",
           children: [],
           rect: { x: 100, y: 60, width: 240, height: 120 },
-          text: { html: "Top", markdown: "Top" },
+          markdown: "Top",
           shape: "rect",
         },
         nBottom: {
           id: "nBottom",
           children: [],
           rect: { x: 100, y: 420, width: 240, height: 120 },
-          text: { html: "Bottom", markdown: "Bottom" },
+          markdown: "Bottom",
           shape: "rect",
         },
       },
@@ -71,7 +71,7 @@ test.describe("diagram page", () => {
           id: "eVertical",
           from: { type: "node", id: "nTop" },
           to: { type: "node", id: "nBottom" },
-          text: { html: "", markdown: "" },
+          markdown: "",
         },
       },
     })
@@ -109,21 +109,21 @@ test.describe("diagram page", () => {
           id: ROOT_ID,
           children: ["nLeft", "nRight"],
           rect: { x: 0, y: 0, width: 0, height: 0 },
-          text: { html: "", markdown: "" },
+          markdown: "",
           shape: "rect",
         },
         nLeft: {
           id: "nLeft",
           children: [],
           rect: { x: 100, y: 100, width: 100, height: 100 },
-          text: { html: "Left", markdown: "Left" },
+          markdown: "Left",
           shape: "rect",
         },
         nRight: {
           id: "nRight",
           children: [],
           rect: { x: 300, y: 100, width: 100, height: 100 },
-          text: { html: "Right", markdown: "Right" },
+          markdown: "Right",
           shape: "rect",
         },
       },
@@ -132,7 +132,7 @@ test.describe("diagram page", () => {
           id: "eMain",
           from: { type: "node", id: "nLeft" },
           to: { type: "node", id: "nRight" },
-          text: { html: "", markdown: "" },
+          markdown: "",
         },
       },
     })
@@ -155,28 +155,28 @@ test.describe("diagram page", () => {
           id: ROOT_ID,
           children: ["nGrand", "nDragged"],
           rect: { x: 0, y: 0, width: 0, height: 0 },
-          text: { html: "", markdown: "" },
+          markdown: "",
           shape: "rect",
         },
         nGrand: {
           id: "nGrand",
           children: ["nParent"],
           rect: { x: 300, y: 220, width: 120, height: 120 },
-          text: { html: "Grand", markdown: "Grand" },
+          markdown: "Grand",
           shape: "rect",
         },
         nParent: {
           id: "nParent",
           children: [],
           rect: { x: 20, y: 20, width: 80, height: 80 },
-          text: { html: "Parent", markdown: "Parent" },
+          markdown: "Parent",
           shape: "rect",
         },
         nDragged: {
           id: "nDragged",
           children: [],
           rect: { x: 80, y: 240, width: 140, height: 140 },
-          text: { html: "Dragged", markdown: "Dragged" },
+          markdown: "Dragged",
           shape: "rect",
         },
       },
@@ -219,7 +219,7 @@ test.describe("diagram page", () => {
           const labelMeasure = document.createElement("div")
           labelMeasure.className =
             "prose invisible fixed max-w-prose left-0 top-0"
-          labelMeasure.innerHTML = graph.nodes.nParent.text.html
+          labelMeasure.textContent = graph.nodes.nParent.markdown
           document.body.append(labelMeasure)
           const labelHeight = labelMeasure.getBoundingClientRect().height
           labelMeasure.remove()
@@ -275,14 +275,14 @@ test.describe("diagram page", () => {
           id: ROOT_ID,
           children: ["nPersisted"],
           rect: { x: 0, y: 0, width: 0, height: 0 },
-          text: { html: "", markdown: "" },
+          markdown: "",
           shape: "rect",
         },
         nPersisted: {
           id: "nPersisted",
           children: [],
           rect: { x: 42, y: 24, width: 100, height: 80 },
-          text: { html: "Persisted", markdown: "Persisted" },
+          markdown: "Persisted",
           shape: "ellipse",
         },
       },
@@ -309,7 +309,7 @@ test.describe("diagram page", () => {
       .poll(() => {
         const url = new URL(page.url())
         return {
-          hashIsCodecFragment: url.hash.startsWith("#ab1.g."),
+          hashIsCodecFragment: url.hash.startsWith("#ab2.g."),
           pathname: url.pathname,
         }
       })

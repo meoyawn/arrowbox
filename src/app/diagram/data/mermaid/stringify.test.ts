@@ -1,38 +1,31 @@
-import { describe, expect, mock, test } from "bun:test"
+import { describe, expect, test } from "bun:test"
 import { ROOT_ID } from "../ROOT_ID.ts"
 import type { Graph } from "../data.ts"
-
-mock.module("../../../markdown.ts", () => ({
-  md2html: (markdown: string): string => markdown,
-}))
+import { toMermaid } from "./stringify.ts"
 
 describe.concurrent("toMermaid", () => {
-  test("escapes double quotes in labels", async () => {
-    const { toMermaid } = await import("./stringify.ts")
+  test("escapes double quotes in labels", () => {
     const graph = {
       id: "gMermaidStringify",
       title: "Untitled",
       nodes: {
         [ROOT_ID]: {
           id: ROOT_ID,
-          text: { html: "", markdown: "" },
+          markdown: "",
           rect: { x: 0, y: 0, width: 0, height: 0 },
           children: ["nsource", "ntarget"],
           shape: "rect",
         },
         nsource: {
           id: "nsource",
-          text: {
-            html: "",
-            markdown: 'GET "/encode/:photo_key": `photo_key` -> `[80]f32`',
-          },
+          markdown: 'GET "/encode/:photo_key": `photo_key` -> `[80]f32`',
           rect: { x: 0, y: 0, width: 0, height: 0 },
           children: [],
           shape: "rect",
         },
         ntarget: {
           id: "ntarget",
-          text: { html: "", markdown: "Elastic" },
+          markdown: "Elastic",
           rect: { x: 0, y: 0, width: 0, height: 0 },
           children: [],
           shape: "rect",
@@ -43,7 +36,7 @@ describe.concurrent("toMermaid", () => {
           id: "equery",
           from: { id: "nsource", type: "node" },
           to: { id: "ntarget", type: "node" },
-          text: { html: "", markdown: 'query "vec"' },
+          markdown: 'query "vec"',
         },
       },
     } satisfies Graph

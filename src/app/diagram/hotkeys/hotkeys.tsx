@@ -129,7 +129,7 @@ export const setupHotkeys = (): VoidFunction => {
     if (layingOut) return
 
     layingOut = true
-    void layoutGraph(store.tree.data).then(dag => {
+    void layoutGraph(store.tree.data, store.tree.index).then(dag => {
       layingOut = false
 
       setStore(({ tree }) => ({

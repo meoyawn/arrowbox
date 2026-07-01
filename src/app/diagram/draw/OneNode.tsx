@@ -142,7 +142,7 @@ export const OneNode: Component<{
             editorLayer={props.editorLayer}
             id={props.id}
             onForwardEditorGesture={props.onForwardEditorGesture}
-            text={node().text}
+            markdown={node().markdown}
             rect={{ x: 0, y: 0, width: width(), height: height() }}
             worldRect={rect()}
             isCenter={node().children.length === 0}

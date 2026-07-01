@@ -1,7 +1,6 @@
 import type { ElkNode } from "elkjs/lib/elk-api"
 import type { Vec2 } from "../../../lib/geometry.ts"
 import type { KeySet } from "../../../lib/ts.ts"
-import { md2html } from "../../markdown.ts"
 import { ROOT_ID } from "./ROOT_ID.ts"
 import {
   genID,
@@ -9,7 +8,6 @@ import {
   isNodeID,
   type EdgeID,
   type Graph,
-  type GraphText,
   type Node,
   type NodeID,
   type NodeShape,
@@ -28,7 +26,7 @@ export function addNode(
 
   data.nodes[id] = {
     id,
-    text: { html: "", markdown: "" },
+    markdown: "",
     rect: {
       x: x - DEFAULT_SIZE / 2,
       y: y - DEFAULT_SIZE / 2,
@@ -49,7 +47,7 @@ export function addEdge(
   { from, to }: DraggingArrow,
 ): EdgeID | NodeID {
   const id: EdgeID = genID("e")
-  const text: GraphText = { markdown: "", html: "" }
+  const markdown = ""
 
   if (from.type === "relative") {
     const { x, y } = from
@@ -58,14 +56,14 @@ export function addEdge(
       id,
       from: { type: "node", id: nid },
       to,
-      text,
+      markdown,
     }
     return nid
   }
 
   switch (to.type) {
     case "node":
-      data.edges[id] = { id, from, to, text }
+      data.edges[id] = { id, from, to, markdown }
       return id
 
     case "relative": {
@@ -75,7 +73,7 @@ export function addEdge(
         id,
         from,
         to: { type: "node", id: nid },
-        text,
+        markdown,
       }
       return nid
     }
@@ -87,9 +85,8 @@ export function setMD(
   id: NodeID | EdgeID,
   markdown: string,
 ): void {
-  const text = isNodeID(id) ? nodes[id].text : edges[id].text
-  text.markdown = markdown
-  text.html = md2html(markdown)
+  if (isNodeID(id)) nodes[id].markdown = markdown
+  else edges[id].markdown = markdown
 }
 
 function deleteNode(

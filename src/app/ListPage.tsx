@@ -5,6 +5,7 @@ import { AbToast, ToastPortal } from "./Toasts.tsx"
 import { CloseIcon, ExternalA } from "./components.tsx"
 import type { Graph, GraphID } from "./diagram/data/data.ts"
 import { layoutGraph } from "./diagram/data/elk.ts"
+import { buildIndex } from "./diagram/data/indexing.ts"
 import { fromMermaid } from "./diagram/data/mermaid/parse.ts"
 import {
   createNewGraph,
@@ -12,6 +13,7 @@ import {
   type StoredGraphs,
 } from "./diagram/data/persistence.ts"
 import { setRect } from "./diagram/data/transactions.ts"
+import { populateHtmlCache } from "./diagram/draw/html-cache.ts"
 import { TypedA, useTypedNavigate } from "./routes.tsx"
 
 const CantParseMermaidToast: ToastComponent = props => (
@@ -59,7 +61,9 @@ async function parseMermaid(str: string): Promise<Graph | undefined> {
   const g = await fromMermaid(str)
   if (!g) return
 
-  const elk = await layoutGraph(g)
+  const index = buildIndex(g)
+  populateHtmlCache(index, g)
+  const elk = await layoutGraph(g, index)
   setRect(g.nodes, elk)
 
   return g

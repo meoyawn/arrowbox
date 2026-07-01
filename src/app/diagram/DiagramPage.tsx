@@ -37,6 +37,7 @@ import {
   encodeGraphURLFragment,
 } from "./data/url/codec.ts"
 import { DiagramSVG, zoomTo } from "./draw/DiagramSVG.tsx"
+import { populateHtmlCache } from "./draw/html-cache.ts"
 import { ShortcutTable } from "./hotkeys/draw.tsx"
 import { setupHotkeys } from "./hotkeys/hotkeys.tsx"
 
@@ -273,8 +274,11 @@ export const DiagramPage: Component = () => {
 
       if (!alive) return
 
+      const tree = emptyDataState(graphRecord.graph)
+      populateHtmlCache(tree.index, tree.data)
+
       setStore({
-        tree: emptyDataState(graphRecord.graph),
+        tree,
         id: graphRecord.id,
         camera: zoomIdentity,
       })

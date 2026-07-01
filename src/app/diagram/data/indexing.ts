@@ -146,17 +146,22 @@ export interface GraphIndex {
   parents: ParentIndex
   deepChildren: DeepChildrenIndex
   edges: EdgeIndex
+  html: Record<string, string>
   bush: RBush<IdRect>
   paths: Record<NodeID, NestPath>
 }
 
-export function buildIndex({ edges, nodes }: Graph): GraphIndex {
+export function buildIndex(
+  { edges, nodes }: Graph,
+  previous?: GraphIndex,
+): GraphIndex {
   const [paths, absRects] = getAbsRects(nodes)
 
   return {
     parents: indexParents(nodes),
     deepChildren: indexChildren(nodes, ROOT_ID),
     edges: deriveEdges(edges),
+    html: previous?.html ?? {},
     bush: buildBush(absRects),
     paths,
   }

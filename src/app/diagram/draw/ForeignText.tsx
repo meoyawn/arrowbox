@@ -1,15 +1,11 @@
 import { Show, type Component } from "solid-js"
 import { Portal } from "solid-js/web"
 import type { Rect } from "../../../lib/geometry.ts"
-import {
-  isEdgeID,
-  type EdgeID,
-  type GraphText,
-  type NodeID,
-} from "../data/data.ts"
+import { isEdgeID, type EdgeID, type NodeID } from "../data/data.ts"
 import { patching } from "../data/history.ts"
 import { setStore, store } from "../data/state.ts"
 import { setMD } from "../data/transactions.ts"
+import { htmlForMarkdown, populateHtmlCache } from "./html-cache.ts"
 import {
   MarkdownEditor,
   type MarkdownEditorBox,
@@ -17,10 +13,15 @@ import {
 } from "./MarkdownEditor.tsx"
 
 const setStoreMD = (id: NodeID | EdgeID, markdown: string): void => {
-  setStore(({ tree }) => ({
-    tree: patching(tree, g => setMD(g, id, markdown)),
-    editing: undefined,
-  }))
+  setStore(({ tree }) => {
+    const next = patching(tree, g => setMD(g, id, markdown))
+    populateHtmlCache(next.index, next.data)
+
+    return {
+      tree: next,
+      editing: undefined,
+    }
+  })
 }
 
 /**
@@ -34,7 +35,7 @@ export const ForeignText: Component<{
   editorLayer: () => HTMLElement | undefined
   id: NodeID | EdgeID
   onForwardEditorGesture: (event: MarkdownEditorGestureEvent) => void
-  text: GraphText
+  markdown: string
   rect: Rect
   worldRect: Rect
   isCenter: boolean
@@ -47,6 +48,10 @@ export const ForeignText: Component<{
   const y = () => props.rect.y
   const width = () => props.rect.width
   const height = () => props.rect.height
+
+  const html = (): string => {
+    return htmlForMarkdown(store.tree.index.html, props.markdown)
+  }
 
   const editorBox = (): MarkdownEditorBox => ({
     height: props.worldRect.height * store.camera.k,
@@ -90,7 +95,7 @@ export const ForeignText: Component<{
                 "[&>*]:bg-white": isEdgeID(props.id),
               }}
               // eslint-disable-next-line solid/no-innerhtml
-              innerHTML={props.text.html}
+              innerHTML={html()}
             />
           </Show>
         </div>
@@ -102,7 +107,7 @@ export const ForeignText: Component<{
             box={editorBox()}
             cameraScale={store.camera.k}
             onForwardGesture={props.onForwardEditorGesture}
-            value={props.text.markdown}
+            value={props.markdown}
             placeholder="Markdown"
             onCancel={() => {
               setStore({ editing: undefined })

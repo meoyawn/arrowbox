@@ -27,17 +27,12 @@ export const isEdgeID = (id: unknown): id is EdgeID => isPrefix(id, "e")
 
 export const isGraphID = (id: unknown): id is GraphID => isPrefix(id, "g")
 
-export interface GraphText {
-  markdown: string
-  html: string
-}
-
 export type NodeShape = "rect" | "ellipse"
 
 /** persisted */
 export interface Node {
   readonly id: NodeID
-  text: GraphText
+  markdown: string
   rect: Rect
   children: Array<NodeID>
   shape: NodeShape
@@ -48,7 +43,7 @@ export interface Edge {
   id: EdgeID
   from: EdgeAnchor
   to: EdgeAnchor
-  text: GraphText
+  markdown: string
 }
 
 /** persisted */
@@ -89,7 +84,7 @@ export const emptyGraph = (
       id: ROOT_ID,
       children: [],
       rect: { x: 0, y: 0, width: 0, height: 0 },
-      text: { html: "", markdown: "" },
+      markdown: "",
       shape: "rect",
     },
   },

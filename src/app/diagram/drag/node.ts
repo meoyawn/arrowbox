@@ -16,10 +16,10 @@ import type { State } from "../data/state.ts"
 import type { DragBehavior2 } from "../drag.ts"
 import { measureHtml } from "../label.tsx"
 
-function labelRect({ rect, text }: Node): Rect | null {
-  if (!text.html.trim() && !text.markdown.trim()) return null
+function labelRect({ rect, markdown }: Node, html: string): Rect | null {
+  if (!html?.trim() || !markdown.trim()) return null
 
-  const { height, width } = measureHtml(text.html)
+  const { height, width } = measureHtml(html)
   if (height === 0 && width === 0) return null
 
   return {
@@ -53,11 +53,12 @@ function absPositionByParents(
 
 function extendNodeToFit(
   nodes: Record<NodeID, Node>,
+  index: DataState["index"],
   id: NodeID,
   childRect: Rect,
 ): void {
   const node = nodes[id]
-  const textRect = labelRect(node)
+  const textRect = labelRect(node, index.html[node.markdown])
   let nextRect = extendToFit(
     { x: 0, y: 0, width: node.rect.width, height: node.rect.height },
     childRect,
@@ -95,7 +96,7 @@ function extendNodeToFit(
 
 function extendAncestorsToFit(
   nodes: Record<NodeID, Node>,
-  parents: ParentIndex,
+  index: DataState["index"],
   id: NodeID,
   childRect: Rect,
 ): void {
@@ -103,9 +104,9 @@ function extendAncestorsToFit(
   let nextChildRect = childRect
 
   while (parentID !== ROOT_ID) {
-    extendNodeToFit(nodes, parentID, nextChildRect)
+    extendNodeToFit(nodes, index, parentID, nextChildRect)
     nextChildRect = nodes[parentID].rect
-    parentID = parents[parentID]
+    parentID = index.parents[parentID]
     if (!parentID) throw new Error(`Missing parent for ${id}`)
   }
 }
@@ -241,7 +242,7 @@ export const dragNode = (
             newR.y = oldAbs.y + dy - newParentAbs.y
 
             if (isNewChild) {
-              extendAncestorsToFit(nodes, tree.index.parents, newParentID, newR)
+              extendAncestorsToFit(nodes, tree.index, newParentID, newR)
             }
           }
         }),

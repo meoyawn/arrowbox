@@ -33,4 +33,20 @@ describe.concurrent("graph URL codec", () => {
       "Unsupported graph URL fragment",
     )
   })
+
+  test("rejects old graph URL prefixes", async () => {
+    await expect(decodeGraphURLFragment("#ab1.g.gibberish")).rejects.toThrow(
+      "Unsupported graph URL fragment",
+    )
+  })
+
+  test("uses the v2 graph URL prefix", async () => {
+    await fc.assert(
+      fc.asyncProperty(graphArbitrary, async graph => {
+        const fragment = await encodeGraphURLFragment(graph)
+        expect(fragment.startsWith("#ab2.g.")).toEqual(true)
+      }),
+      { numRuns: 20, seed: 20260703 },
+    )
+  })
 })

@@ -40,7 +40,7 @@ export function patching(ds: DataState, fn: (d: Graph) => void): DataState {
       backward: [...history.backward, bwd],
       index: history.index + 1,
     },
-    index: buildIndex(next),
+    index: buildIndex(next, ds.index),
   }
 }
 
@@ -60,7 +60,7 @@ export const undo = (ds: DataState): DataState => {
 
   return {
     data: prev,
-    index: buildIndex(prev),
+    index: buildIndex(prev, ds.index),
     history: { ...history, index: history.index - 1 },
   }
 }
@@ -77,7 +77,7 @@ export const redo = (ds: DataState): DataState => {
 
   return {
     data: next,
-    index: buildIndex(next),
+    index: buildIndex(next, ds.index),
     history: { ...history, index },
   }
 }

@@ -20,14 +20,14 @@ function graph(
         id: ROOT_ID,
         children: [nodeID],
         rect: { x: 0, y: 0, width: 0, height: 0 },
-        text: { html: "", markdown: "" },
+        markdown: "",
         shape: "rect",
       },
       [nodeID]: {
         id: nodeID,
         children: [],
         rect: { x: 32, y: 48, width: 120, height: 80 },
-        text: { html: label, markdown: label },
+        markdown: label,
         shape: "rect",
       },
     },
@@ -175,7 +175,7 @@ test.describe("list graph persistence", () => {
           title: "Remote Version",
           nodes: {
             nRemote: {
-              text: { markdown: "Remote" },
+              markdown: "Remote",
             },
           },
         },
@@ -189,7 +189,7 @@ test.describe("list graph persistence", () => {
           title: "Remote Version",
           nodes: {
             nRemote: {
-              text: { markdown: "Remote" },
+              markdown: "Remote",
             },
           },
         },

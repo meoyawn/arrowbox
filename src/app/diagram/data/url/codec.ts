@@ -9,13 +9,13 @@ import type {
 } from "../data.ts"
 import type { EdgeAnchor } from "../edge-anchor.ts"
 
-const prefix = "ab1.g."
+const prefix = "ab2.g."
 const binaryChunkSize = 0x8000
 
 type PackedRect = [number, number, number, number]
 type PackedAnchor = [number] | [number, number, number]
-type PackedNode = [number[], PackedRect, string, string, 0 | 1]
-type PackedEdge = [PackedAnchor, PackedAnchor, string, string]
+type PackedNode = [number[], PackedRect, string, 0 | 1]
+type PackedEdge = [PackedAnchor, PackedAnchor, string]
 type PackedGraph = {
   v: number
   i: string
@@ -130,8 +130,7 @@ function packGraph({ edges, id, nodes, title }: Graph): PackedGraph {
           return childIndex
         }),
         [node.rect.x, node.rect.y, node.rect.width, node.rect.height],
-        node.text.markdown,
-        node.text.html,
+        node.markdown,
         nodeShapeCode(node.shape),
       ]
     }),
@@ -140,8 +139,7 @@ function packGraph({ edges, id, nodes, title }: Graph): PackedGraph {
       return [
         packAnchor(nodeIndexes, edge.from),
         packAnchor(nodeIndexes, edge.to),
-        edge.text.markdown,
-        edge.text.html,
+        edge.markdown,
       ]
     }),
   }
@@ -174,8 +172,8 @@ function unpackGraph({ ed, es, i, ids, ns, t, v }: PackedGraph): Graph {
         width: node[1][2],
         height: node[1][3],
       },
-      text: { markdown: node[2], html: node[3] },
-      shape: nodeShapeFromCode(node[4]),
+      markdown: node[2],
+      shape: nodeShapeFromCode(node[3]),
     }
   }
 
@@ -187,7 +185,7 @@ function unpackGraph({ ed, es, i, ids, ns, t, v }: PackedGraph): Graph {
       id,
       from: unpackAnchor(nodeIDs, edge[0]),
       to: unpackAnchor(nodeIDs, edge[1]),
-      text: { markdown: edge[2], html: edge[3] },
+      markdown: edge[2],
     }
   }
 

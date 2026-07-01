@@ -107,7 +107,7 @@ export const OneEdge: Component<{
         editorLayer={props.editorLayer}
         id={props.id}
         onForwardEditorGesture={props.onForwardEditorGesture}
-        text={e().text}
+        markdown={e().markdown}
         isCenter={true}
         rect={textRect()}
         worldRect={textRect()}

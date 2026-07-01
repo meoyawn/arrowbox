@@ -7,7 +7,7 @@ const genNode = (children: NodeID[]): Node => ({
   id: genID("n"),
   children,
   rect: { x: 0, y: 0, width: 0, height: 0 },
-  text: { html: "", markdown: "" },
+  markdown: "",
   shape: "rect",
 })
 

@@ -6,7 +6,6 @@ import type {
   FlowVertex,
 } from "mermaid/dist/diagrams/flowchart/types.js"
 import { Config } from "../../../config.ts"
-import { md2html } from "../../../markdown.ts"
 import { sleep } from "../../../../lib/ts.ts"
 import { ROOT_ID } from "../ROOT_ID.ts"
 import {
@@ -62,7 +61,7 @@ function fromFlowchartDb(db: FlowchartDB): Graph {
     const id: NodeID = `n${sub.id}`
     g.nodes[id] = {
       id,
-      text: { markdown: sub.title, html: md2html(sub.title) },
+      markdown: sub.title,
       children: sub.nodes.map(c => `n${c}` as const),
       shape: "rect",
       rect: { x: 0, y: 0, width: 1, height: 1 },
@@ -78,7 +77,7 @@ function fromFlowchartDb(db: FlowchartDB): Graph {
     if (id in g.nodes) continue
     g.nodes[id] = {
       id,
-      text: { markdown: v.text ?? v.id, html: md2html(v.text ?? v.id) },
+      markdown: v.text ?? v.id,
       shape: "rect",
       rect: { x: 0, y: 0, width: 1, height: 1 },
       children: [],
@@ -98,7 +97,7 @@ function fromFlowchartDb(db: FlowchartDB): Graph {
       id,
       from: { id: from, type: "node" },
       to: { id: to, type: "node" },
-      text: { markdown: edge.text, html: md2html(edge.text) },
+      markdown: edge.text,
     }
   }
 

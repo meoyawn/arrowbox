@@ -19,15 +19,27 @@
  */
 import { emptyGraph, type Graph } from "./diagram/data/data.ts"
 import { layoutGraph } from "./diagram/data/elk.ts"
+import { buildIndex } from "./diagram/data/indexing.ts"
 import { fromMermaid } from "./diagram/data/mermaid/parse.ts"
 import { toMermaid } from "./diagram/data/mermaid/stringify.ts"
+import {
+  ensureStorageMigrations,
+  getLastGraph,
+  getStoredGraphs,
+} from "./diagram/data/persistence.ts"
 import { ROOT_ID } from "./diagram/data/ROOT_ID.ts"
+import { populateHtmlCache } from "./diagram/draw/html-cache.ts"
 import { md2html } from "./markdown.ts"
 
 declare global {
   interface Window {
     arrowboxPw: {
       fromMermaid(str: string): Promise<Graph | undefined>
+      getLastGraph(): { graph: Graph; id: string }
+      getStoredGraphs(): unknown
+      ensureStorageMigrations(): void
+      indexHtml(graph: Graph): Record<string, string>
+      indexHtmlWithPrevious(graph: Graph, next: Graph): Record<string, string>
       layoutEmptyGraphRootID(): Promise<string>
       md2html(md: string): string
       toMermaid(graph: Graph): string
@@ -36,7 +48,22 @@ declare global {
 }
 
 window.arrowboxPw = {
+  ensureStorageMigrations,
   fromMermaid,
+  getLastGraph,
+  getStoredGraphs,
+  indexHtml(graph: Graph): Record<string, string> {
+    const index = buildIndex(graph)
+    populateHtmlCache(index, graph)
+    return index.html
+  },
+  indexHtmlWithPrevious(graph: Graph, next: Graph): Record<string, string> {
+    const index = buildIndex(graph)
+    populateHtmlCache(index, graph)
+    const nextIndex = buildIndex(next, index)
+    populateHtmlCache(nextIndex, next)
+    return nextIndex.html
+  },
   async layoutEmptyGraphRootID(): Promise<string> {
     const x = await layoutGraph(emptyGraph())
     return x.id === ROOT_ID ? x.id : ""

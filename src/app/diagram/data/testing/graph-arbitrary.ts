@@ -1,14 +1,6 @@
 import fc from "fast-check"
 import { ROOT_ID } from "../ROOT_ID.ts"
-import type {
-  Edge,
-  EdgeID,
-  Graph,
-  GraphID,
-  GraphText,
-  Node,
-  NodeID,
-} from "../data.ts"
+import type { Edge, EdgeID, Graph, GraphID, Node, NodeID } from "../data.ts"
 
 const markdownChars = [
   "a",
@@ -47,7 +39,7 @@ export const graphTextArbitrary = fc
     minLength: 0,
     maxLength: 40,
   })
-  .map((chars): GraphText => ({ html: "", markdown: chars.join("") }))
+  .map(chars => chars.join(""))
 
 export const graphArbitrary = fc.integer({ min: 1, max: 6 }).chain(nodeCount =>
   fc
@@ -55,7 +47,7 @@ export const graphArbitrary = fc.integer({ min: 1, max: 6 }).chain(nodeCount =>
       edgeSpecs: fc.array(
         fc.record({
           fromRaw: fc.nat(),
-          text: graphTextArbitrary,
+          markdown: graphTextArbitrary,
           toRaw: fc.nat(),
         }),
         { minLength: 0, maxLength: Math.min(8, nodeCount * nodeCount) },
@@ -73,7 +65,7 @@ export const graphArbitrary = fc.integer({ min: 1, max: 6 }).chain(nodeCount =>
         maxLength: nodeCount,
       }),
       graphID: graphIDArbitrary,
-      title: graphTextArbitrary.map(text => text.markdown),
+      title: graphTextArbitrary,
     })
     .map(
       ({ edgeSpecs, graphID, nodeTexts, parentRaws, shapes, title }): Graph => {
@@ -88,18 +80,18 @@ export const graphArbitrary = fc.integer({ min: 1, max: 6 }).chain(nodeCount =>
         const nodes: Record<NodeID, Node> = {
           [ROOT_ID]: {
             id: ROOT_ID,
-            text: { html: "", markdown: "" },
+            markdown: "",
             rect: { x: 0, y: 0, width: 0, height: 0 },
             children: [],
             shape: "rect",
           },
         }
 
-        for (const [index, text] of nodeTexts.entries()) {
+        for (const [index, markdown] of nodeTexts.entries()) {
           const id = nodeID(index)
           nodes[id] = {
             id,
-            text,
+            markdown,
             rect: { x: 0, y: 0, width: 0, height: 0 },
             children: [],
             shape: shapes[index] ?? "rect",
@@ -119,7 +111,7 @@ export const graphArbitrary = fc.integer({ min: 1, max: 6 }).chain(nodeCount =>
             id,
             from: { id: nodeID(spec.fromRaw % nodeCount), type: "node" },
             to: { id: nodeID(spec.toRaw % nodeCount), type: "node" },
-            text: spec.text,
+            markdown: spec.markdown,
           }
         }
 

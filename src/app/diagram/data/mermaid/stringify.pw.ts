@@ -25,24 +25,21 @@ test.describe("stringify mermaid", () => {
       nodes: {
         [ROOT_ID]: {
           id: ROOT_ID,
-          text: { html: "", markdown: "" },
+          markdown: "",
           rect: { x: 0, y: 0, width: 0, height: 0 },
           children: ["nsource", "ntarget"],
           shape: "rect",
         },
         nsource: {
           id: "nsource",
-          text: {
-            html: "",
-            markdown: 'GET "/encode/:photo_key": `photo_key` -> `[80]f32`',
-          },
+          markdown: 'GET "/encode/:photo_key": `photo_key` -> `[80]f32`',
           rect: { x: 0, y: 0, width: 0, height: 0 },
           children: [],
           shape: "rect",
         },
         ntarget: {
           id: "ntarget",
-          text: { html: "", markdown: "Elastic" },
+          markdown: "Elastic",
           rect: { x: 0, y: 0, width: 0, height: 0 },
           children: [],
           shape: "rect",
@@ -53,7 +50,7 @@ test.describe("stringify mermaid", () => {
           id: "equery",
           from: { id: "nsource", type: "node" },
           to: { id: "ntarget", type: "node" },
-          text: { html: "", markdown: 'query "vec"' },
+          markdown: 'query "vec"',
         },
       },
     }
@@ -67,8 +64,8 @@ test.describe("stringify mermaid", () => {
     }, graph)
 
     expect(result.mermaid).toContain("#quot;/encode/:photo_key#quot;")
-    expect(result.mermaid).toContain("<code>photo_key</code>")
-    expect(result.mermaid).toContain('source("`<p>GET')
+    expect(result.mermaid).toContain("&#96;photo_key&#96;")
+    expect(result.mermaid).toContain('source("`GET')
     expect(result.mermaid).toContain("query #quot;vec#quot;")
     expect(result.parsed).toEqual(true)
   })

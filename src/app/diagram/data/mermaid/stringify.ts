@@ -1,5 +1,4 @@
-import { md2html } from "../../../markdown.ts"
-import type { Edge, Graph, GraphText, Node, NodeID } from "../data.ts"
+import type { Edge, Graph, Node, NodeID } from "../data.ts"
 import { ROOT_ID } from "../ROOT_ID.ts"
 
 const mermaidText = (text: string): string =>
@@ -8,18 +7,16 @@ const mermaidText = (text: string): string =>
 const mermaidMarkdownString = (text: string): `"${string}"` =>
   `"\`${mermaidText(text)}\`"`
 
-const mdLabel = (text: GraphText): `"${string}"` =>
-  mermaidMarkdownString(
-    text.markdown ? md2html(text.markdown).trim() || " " : " ",
-  )
+const mdLabel = (markdown: string): `"${string}"` =>
+  mermaidMarkdownString(markdown || " ")
 
 const mermaidID = (id: NodeID): string => id.substring(1)
 
-function idLabel({ shape, text, id, children }: Node): string {
+function idLabel({ shape, markdown, id, children }: Node): string {
   const mID = mermaidID(id)
-  if (text.markdown === mID) return mID
+  if (markdown === mID) return mID
 
-  const lbl = mdLabel(text)
+  const lbl = mdLabel(markdown)
   if (children.length) return `${mID}[${lbl}]`
 
   switch (shape) {
@@ -54,10 +51,10 @@ const body = (
     .map(cid => printN(nodes, cid, indent))
     .join("\n" + spaces(indent))
 
-function printE({ from, to, text }: Edge): string {
+function printE({ from, to, markdown }: Edge): string {
   const f = mermaidID(from.id)
   const t = mermaidID(to.id)
-  return text.markdown ? `${f} -- ${mdLabel(text)} --> ${t}` : `${f} --> ${t}`
+  return markdown ? `${f} -- ${mdLabel(markdown)} --> ${t}` : `${f} --> ${t}`
 }
 
 function frontMatter(title: string): string {

@@ -126,14 +126,14 @@ async function loadSingleNodeGraph(
         id: ROOT_ID,
         children: [node.nodeID],
         rect: { x: 0, y: 0, width: 0, height: 0 },
-        text: { html: "", markdown: "" },
+        markdown: "",
         shape: "rect",
       },
       [node.nodeID]: {
         id: node.nodeID,
         children: [],
         rect: node.rect,
-        text: { html: node.html, markdown: node.markdown },
+        markdown: node.markdown,
         shape: "rect",
       },
     },
@@ -266,7 +266,7 @@ test.describe("markdown editor", () => {
     await expect
       .poll(async () => {
         const graph = await graphFromURLFragment(page)
-        return graph.nodes.nEscape.text.markdown
+        return graph.nodes.nEscape.markdown
       })
       .toEqual("# Original")
   })
@@ -326,7 +326,7 @@ test.describe("markdown editor", () => {
     await expect
       .poll(async () => {
         const graph = await graphFromURLFragment(page)
-        return graph.nodes.nShiftEnter.text.markdown
+        return graph.nodes.nShiftEnter.markdown
       })
       .toEqual("alpha\nbeta")
   })
