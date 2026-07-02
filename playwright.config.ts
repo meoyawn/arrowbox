@@ -16,6 +16,7 @@ export default defineConfig({
     },
     {
       name: "iphone-13",
+      testIgnore: "**/*.desktop.pw.ts",
       use: devices["iPhone 13"],
     },
   ],
