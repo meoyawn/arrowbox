@@ -554,6 +554,55 @@ test.describe("markdown editor", () => {
     expect(Math.abs(after.heightDelta)).toBeLessThan(2)
   })
 
+  test("aligns portal text editor with nested node on desktop Chrome", async ({
+    page,
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== "desktop-chrome",
+      "desktop regression covers nested SVG transform math",
+    )
+
+    const graph: Graph = {
+      id: "g-portal-editor-nested",
+      title: "Portal editor nested",
+      nodes: {
+        [ROOT_ID]: {
+          id: ROOT_ID,
+          children: ["nGateway"],
+          rect: { x: 0, y: 0, width: 0, height: 0 },
+          markdown: "",
+          shape: "rect",
+        },
+        nGateway: {
+          id: "nGateway",
+          children: ["nBugged"],
+          rect: { x: 90, y: 60, width: 430, height: 460 },
+          markdown: "# Gateway\n\none\n\ntwo",
+          shape: "rect",
+        },
+        nBugged: {
+          id: "nBugged",
+          children: [],
+          rect: { x: 70, y: 250, width: 220, height: 170 },
+          markdown: "bugged",
+          shape: "rect",
+        },
+      },
+      edges: {},
+    }
+    await gotoGraphURLFragment(page, graph)
+
+    const { editor, nodeShape } = await openMarkdownEditor(page, "nBugged")
+    const editorBox = await editor.boundingBox()
+    const shapeBox = await nodeShape.boundingBox()
+    if (!editorBox || !shapeBox) throw new Error("Missing nested editor boxes")
+
+    expect(Math.abs(editorBox.x - shapeBox.x)).toBeLessThan(2)
+    expect(Math.abs(editorBox.y - shapeBox.y)).toBeLessThan(2)
+    expect(Math.abs(editorBox.width - shapeBox.width)).toBeLessThan(2)
+    expect(Math.abs(editorBox.height - shapeBox.height)).toBeLessThan(2)
+  })
+
   test("scales portal text editor typography with canvas zoom", async ({
     page,
   }, testInfo) => {

@@ -416,6 +416,8 @@ export const DiagramSVG: Component<{
                 editorLayer={props.editorLayer}
                 id={id}
                 onForwardEditorGesture={forwardEditorGesture}
+                parentX={0}
+                parentY={0}
               />
             )}
           </For>

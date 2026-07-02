@@ -84,6 +84,8 @@ export const OneNode: Component<{
   editorLayer: () => HTMLElement | undefined
   id: NodeID
   onForwardEditorGesture: (event: MarkdownEditorGestureEvent) => void
+  parentX: number
+  parentY: number
 }> = props => {
   const node = () => store.tree.data.nodes[props.id]
   const isSelected = () => Boolean(store.selected[props.id])
@@ -100,6 +102,12 @@ export const OneNode: Component<{
   const y = () => rect().y
   const width = () => rect().width
   const height = () => rect().height
+  const worldRect = (): Rect => ({
+    x: props.parentX + x(),
+    y: props.parentY + y(),
+    width: width(),
+    height: height(),
+  })
 
   return (
     <g transform={`translate(${x()} ${y()})`}>
@@ -144,7 +152,7 @@ export const OneNode: Component<{
             onForwardEditorGesture={props.onForwardEditorGesture}
             markdown={node().markdown}
             rect={{ x: 0, y: 0, width: width(), height: height() }}
-            worldRect={rect()}
+            worldRect={worldRect()}
             isCenter={node().children.length === 0}
           />
         </g>
@@ -200,6 +208,8 @@ export const OneNode: Component<{
             editorLayer={props.editorLayer}
             id={nid}
             onForwardEditorGesture={props.onForwardEditorGesture}
+            parentX={worldRect().x}
+            parentY={worldRect().y}
           />
         )}
       </For>
