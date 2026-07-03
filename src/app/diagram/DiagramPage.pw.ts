@@ -74,6 +74,9 @@ test.describe("diagram page", () => {
       },
     })
 
+    await expect(
+      page.locator("[data-edgeID=eMain] line[stroke=transparent]"),
+    ).toHaveCount(1)
     await page.mouse.click(250, 156)
 
     await expect(

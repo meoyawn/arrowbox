@@ -1,5 +1,5 @@
 import type { ZoomTransform } from "d3-zoom"
-import { type Component, createEffect, onCleanup } from "solid-js"
+import { type Component, createEffect, onCleanup, untrack } from "solid-js"
 import { modulate } from "../../../lib/number.ts"
 
 const DOT_GRID_SIZE = 16
@@ -14,13 +14,44 @@ const DOT_GRID_VISIBLE = {
 } as const
 const DOT_GRID_FILL = "#b7bec8"
 
-const positiveModulo = (value: number, divisor: number): number =>
-  ((value % divisor) + divisor) % divisor
+export interface DotGridAxisDot {
+  worldCoordinate: number
+  screenCoordinate: number
+}
 
-const dotGridScreenSpacing = (
+const dotGridWorldSpacing = (step: (typeof DOT_GRID_STEPS)[number]): number =>
+  step * DOT_GRID_SIZE
+
+export const dotGridScreenSpacing = (
   camera: ZoomTransform,
   step: (typeof DOT_GRID_STEPS)[number],
-): number => step * DOT_GRID_SIZE * camera.k
+): number => dotGridWorldSpacing(step) * camera.k
+
+export function dotGridAxisDots(
+  cameraCoordinate: number,
+  cameraScale: number,
+  step: (typeof DOT_GRID_STEPS)[number],
+  screenLength: number,
+): Array<DotGridAxisDot> {
+  const worldSpacing = dotGridWorldSpacing(step)
+  const minWorld = -cameraCoordinate / cameraScale
+  const maxWorld = (screenLength - cameraCoordinate) / cameraScale
+  const dots: Array<DotGridAxisDot> = []
+
+  for (
+    let index = Math.ceil(minWorld / worldSpacing);
+    index * worldSpacing < maxWorld;
+    index++
+  ) {
+    const worldCoordinate = index * worldSpacing
+    dots.push({
+      worldCoordinate,
+      screenCoordinate: cameraCoordinate + worldCoordinate * cameraScale,
+    })
+  }
+
+  return dots
+}
 
 function visibleDotGridSteps(
   camera: ZoomTransform,
@@ -73,13 +104,28 @@ function drawDotGrid(canvas: HTMLCanvasElement, camera: ZoomTransform): void {
 
   for (const step of visibleDotGridSteps(camera)) {
     const spacing = dotGridScreenSpacing(camera, step)
-    const startX = positiveModulo(camera.x, spacing)
-    const startY = positiveModulo(camera.y, spacing)
+    const worldSpacing = dotGridWorldSpacing(step)
+    const minWorldX = -camera.x / camera.k
+    const maxWorldX = (width - camera.x) / camera.k
+    const minWorldY = -camera.y / camera.k
+    const maxWorldY = (height - camera.y) / camera.k
 
     ctx.globalAlpha = dotOpacity(spacing)
 
-    for (let y = startY; y < height; y += spacing) {
-      for (let x = startX; x < width; x += spacing) {
+    for (
+      let yIndex = Math.ceil(minWorldY / worldSpacing);
+      yIndex * worldSpacing < maxWorldY;
+      yIndex++
+    ) {
+      const y = camera.y + yIndex * worldSpacing * camera.k
+
+      for (
+        let xIndex = Math.ceil(minWorldX / worldSpacing);
+        xIndex * worldSpacing < maxWorldX;
+        xIndex++
+      ) {
+        const x = camera.x + xIndex * worldSpacing * camera.k
+
         ctx.beginPath()
         ctx.arc(x, y, DOT_GRID_RADIUS, 0, Math.PI * 2)
         ctx.fill()
@@ -92,15 +138,37 @@ function drawDotGrid(canvas: HTMLCanvasElement, camera: ZoomTransform): void {
 
 export const DotGrid: Component<{ camera: ZoomTransform }> = props => {
   let canvasEl: HTMLCanvasElement | undefined
+  let currentCamera = untrack(() => props.camera)
   let frame = 0
 
-  createEffect(() => {
-    const camera = props.camera
+  function scheduleDraw(camera: ZoomTransform): void {
     if (!canvasEl) return
 
     cancelAnimationFrame(frame)
     frame = requestAnimationFrame(() => {
       if (canvasEl) drawDotGrid(canvasEl, camera)
+    })
+  }
+
+  createEffect(() => {
+    currentCamera = props.camera
+    scheduleDraw(currentCamera)
+  })
+
+  createEffect(() => {
+    if (!canvasEl) return
+
+    const ResizeObserverClass =
+      canvasEl.ownerDocument.defaultView?.ResizeObserver
+    if (!ResizeObserverClass) return
+
+    const observer = new ResizeObserverClass(() => {
+      scheduleDraw(currentCamera)
+    })
+    observer.observe(canvasEl)
+
+    onCleanup(() => {
+      observer.disconnect()
     })
   })
 

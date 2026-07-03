@@ -42,6 +42,9 @@ test.describe("diagram page desktop", () => {
       },
     })
 
+    await expect(
+      page.locator("[data-edgeID=eVertical] line[stroke=transparent]"),
+    ).toHaveCount(1)
     await page.mouse.dblclick(220, 300)
 
     const editor = page.locator("[data-testid=foreign-text-editor]")
