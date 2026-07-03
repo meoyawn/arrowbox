@@ -1,5 +1,5 @@
 import type { ZoomTransform } from "d3-zoom"
-import { type Component, createEffect, onCleanup, untrack } from "solid-js"
+import type { Component, JSX } from "solid-js"
 import { modulate } from "../../../lib/number.ts"
 
 const DOT_GRID_SIZE = 16
@@ -12,7 +12,7 @@ const DOT_GRID_VISIBLE = {
   fadeOut: 48,
   max: 72,
 } as const
-const DOT_GRID_FILL = "#b7bec8"
+const DOT_GRID_RGB = "148 163 184"
 
 export interface DotGridAxisDot {
   worldCoordinate: number
@@ -78,109 +78,35 @@ const dotOpacity = (screenSpacing: number): number =>
         true,
       )
 
-function resizeCanvas(canvas: HTMLCanvasElement): void {
-  const dpr = devicePixelRatio || 1
-  const rect = canvas.getBoundingClientRect()
-  const width = Math.max(1, Math.round(rect.width * dpr))
-  const height = Math.max(1, Math.round(rect.height * dpr))
+const positiveRemainder = (value: number, divisor: number): number =>
+  ((value % divisor) + divisor) % divisor
 
-  if (canvas.width !== width) canvas.width = width
-  if (canvas.height !== height) canvas.height = height
-}
-
-function drawDotGrid(canvas: HTMLCanvasElement, camera: ZoomTransform): void {
-  resizeCanvas(canvas)
-
-  const dpr = devicePixelRatio || 1
-  const ctx = canvas.getContext("2d")
-  if (!ctx) return
-
-  const width = canvas.width / dpr
-  const height = canvas.height / dpr
-
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-  ctx.clearRect(0, 0, width, height)
-  ctx.fillStyle = DOT_GRID_FILL
-
-  for (const step of visibleDotGridSteps(camera)) {
+export function dotGridStyle(camera: ZoomTransform): JSX.CSSProperties {
+  const layers = visibleDotGridSteps(camera).map(step => {
     const spacing = dotGridScreenSpacing(camera, step)
-    const worldSpacing = dotGridWorldSpacing(step)
-    const minWorldX = -camera.x / camera.k
-    const maxWorldX = (width - camera.x) / camera.k
-    const minWorldY = -camera.y / camera.k
-    const maxWorldY = (height - camera.y) / camera.k
+    const opacity = dotOpacity(spacing)
+    const x = positiveRemainder(camera.x - spacing / 2, spacing)
+    const y = positiveRemainder(camera.y - spacing / 2, spacing)
 
-    ctx.globalAlpha = dotOpacity(spacing)
-
-    for (
-      let yIndex = Math.ceil(minWorldY / worldSpacing);
-      yIndex * worldSpacing < maxWorldY;
-      yIndex++
-    ) {
-      const y = camera.y + yIndex * worldSpacing * camera.k
-
-      for (
-        let xIndex = Math.ceil(minWorldX / worldSpacing);
-        xIndex * worldSpacing < maxWorldX;
-        xIndex++
-      ) {
-        const x = camera.x + xIndex * worldSpacing * camera.k
-
-        ctx.beginPath()
-        ctx.arc(x, y, DOT_GRID_RADIUS, 0, Math.PI * 2)
-        ctx.fill()
-      }
+    return {
+      image: `radial-gradient(circle at center, rgb(${DOT_GRID_RGB} / ${opacity}) ${DOT_GRID_RADIUS}px, transparent ${DOT_GRID_RADIUS}px)`,
+      position: `${x}px ${y}px`,
+      size: `${spacing}px ${spacing}px`,
     }
-  }
+  })
 
-  ctx.globalAlpha = 1
+  return {
+    "background-image": layers.map(layer => layer.image).join(", "),
+    "background-position": layers.map(layer => layer.position).join(", "),
+    "background-repeat": "repeat",
+    "background-size": layers.map(layer => layer.size).join(", "),
+  }
 }
 
-export const DotGrid: Component<{ camera: ZoomTransform }> = props => {
-  let canvasEl: HTMLCanvasElement | undefined
-  let currentCamera = untrack(() => props.camera)
-  let frame = 0
-
-  function scheduleDraw(camera: ZoomTransform): void {
-    if (!canvasEl) return
-
-    cancelAnimationFrame(frame)
-    frame = requestAnimationFrame(() => {
-      if (canvasEl) drawDotGrid(canvasEl, camera)
-    })
-  }
-
-  createEffect(() => {
-    currentCamera = props.camera
-    scheduleDraw(currentCamera)
-  })
-
-  createEffect(() => {
-    if (!canvasEl) return
-
-    const ResizeObserverClass =
-      canvasEl.ownerDocument.defaultView?.ResizeObserver
-    if (!ResizeObserverClass) return
-
-    const observer = new ResizeObserverClass(() => {
-      scheduleDraw(currentCamera)
-    })
-    observer.observe(canvasEl)
-
-    onCleanup(() => {
-      observer.disconnect()
-    })
-  })
-
-  onCleanup(() => {
-    cancelAnimationFrame(frame)
-  })
-
-  return (
-    <canvas
-      ref={canvasEl}
-      aria-hidden="true"
-      class="pointer-events-none absolute inset-0 h-full w-full"
-    />
-  )
-}
+export const DotGrid: Component<{ camera: ZoomTransform }> = props => (
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-0 h-full w-full"
+    style={dotGridStyle(props.camera)}
+  />
+)

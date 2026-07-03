@@ -142,28 +142,48 @@ function setupVisualViewportVars(): VoidFunction {
   const win = view
   const root = document.documentElement
   const viewport = win.visualViewport
+  let frame: number | undefined
+  let currentTop = ""
+  let currentBottom = ""
 
   function update(): void {
+    frame = undefined
+
     const top = viewport?.offsetTop ?? 0
     const bottom = viewport
       ? Math.max(0, win.innerHeight - viewport.height - top)
       : 0
+    const nextTop = `${top}px`
+    const nextBottom = `${bottom}px`
 
-    root.style.setProperty("--arrowbox-viewport-top", `${top}px`)
-    root.style.setProperty("--arrowbox-viewport-bottom", `${bottom}px`)
+    if (nextTop !== currentTop) {
+      root.style.setProperty("--arrowbox-viewport-top", nextTop)
+      currentTop = nextTop
+    }
+    if (nextBottom !== currentBottom) {
+      root.style.setProperty("--arrowbox-viewport-bottom", nextBottom)
+      currentBottom = nextBottom
+    }
+  }
+
+  function scheduleUpdate(): void {
+    if (frame !== undefined) return
+
+    frame = win.requestAnimationFrame(update)
   }
 
   update()
-  win.addEventListener("resize", update)
-  viewport?.addEventListener("resize", update)
-  viewport?.addEventListener("scroll", update)
+  win.addEventListener("resize", scheduleUpdate)
+  viewport?.addEventListener("resize", scheduleUpdate)
+  viewport?.addEventListener("scroll", scheduleUpdate)
 
   return () => {
+    if (frame !== undefined) win.cancelAnimationFrame(frame)
     root.style.removeProperty("--arrowbox-viewport-top")
     root.style.removeProperty("--arrowbox-viewport-bottom")
-    win.removeEventListener("resize", update)
-    viewport?.removeEventListener("resize", update)
-    viewport?.removeEventListener("scroll", update)
+    win.removeEventListener("resize", scheduleUpdate)
+    viewport?.removeEventListener("resize", scheduleUpdate)
+    viewport?.removeEventListener("scroll", scheduleUpdate)
   }
 }
 
